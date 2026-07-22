@@ -1,0 +1,101 @@
+.wrapper {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 22px;
+  padding-top: max(22px, env(safe-area-inset-top));
+  padding-bottom: max(22px, env(safe-area-inset-bottom));
+  border-radius: 22px;
+  background:
+    linear-gradient(170deg, rgba(7, 30, 70, 0.93), rgba(5, 24, 56, 0.92)),
+    radial-gradient(
+      circle at top right,
+      rgba(50, 143, 255, 0.18),
+      transparent 35%
+    );
+  border: 1px solid rgba(105, 152, 232, 0.28);
+  box-shadow: 0 24px 45px rgba(1, 14, 34, 0.56);
+}
+
+.select,
+.lockedField {
+  width: 100%;
+  min-height: 54px;
+  border-radius: 12px;
+  border: 1px solid rgba(108, 152, 232, 0.34);
+  background: rgba(11, 41, 92, 0.66);
+  color: #dbe9ff;
+  font-size: 15px;
+}
+
+.select {
+  padding: 0 14px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.lockedField {
+  padding: 10px 12px;
+}
+
+.lockedLabel {
+  display: block;
+  font-size: 11px;
+  color: rgba(166, 197, 255, 0.82);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.lockedValue {
+  min-height: 20px;
+  font-size: 14px;
+  color: #f0f5ff;
+}
+
+.newStoreButton,
+.confirmButton,
+.backButton {
+  min-height: 50px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.newStoreButton {
+  border: 1px solid rgba(129, 176, 255, 0.38);
+  background: rgba(12, 44, 100, 0.72);
+  color: #cfe2ff;
+}
+
+.confirmButton {
+  border: 1px solid rgba(129, 176, 255, 0.42);
+  background: linear-gradient(165deg, #2a87ff, #1667e7);
+  color: #f4f8ff;
+  box-shadow: 0 14px 24px rgba(22, 103, 231, 0.34);
+}
+
+.backButton {
+  margin-top: auto;
+  border: 1px solid rgba(108, 152, 232, 0.28);
+  background: rgba(9, 35, 80, 0.76);
+  color: #f7fbff;
+  text-shadow: 0 1px 2px rgba(2, 8, 20, 0.65);
+}
+
+@media (hover: hover) {
+  .newStoreButton:hover,
+  .backButton:hover {
+    background: rgba(16, 52, 112, 0.86);
+  }
+
+  .confirmButton:hover {
+    filter: brightness(1.07);
+  }
+}

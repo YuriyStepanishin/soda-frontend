@@ -1,0 +1,111 @@
+.container {
+  margin-top: 15px;
+  width: 100%;
+}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.input {
+  margin-bottom: 10px;
+}
+
+.previewContainer {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.previewItem {
+  position: relative;
+  max-width: 100%;
+}
+
+.previewImage {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(110, 154, 232, 0.26);
+  transition: transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .previewImage:hover {
+    transform: scale(1.05);
+  }
+
+  .button:hover {
+    background: linear-gradient(165deg, #2a83f5, #145fd9);
+  }
+
+  .removeButton:hover {
+    background: #d00000;
+  }
+}
+.removeButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+.hiddenInput {
+  display: none;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.button {
+  padding: 10px 16px;
+  border: none;
+  background: linear-gradient(165deg, #2e8cff, #1767e7);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.button:active,
+.removeButton:active {
+  transform: scale(0.97);
+}
+
+.button:disabled,
+.removeButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .buttons {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+  }
+}
+
+
+

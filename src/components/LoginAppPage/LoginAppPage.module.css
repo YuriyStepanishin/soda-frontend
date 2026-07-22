@@ -1,0 +1,170 @@
+.wrapper {
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  background: linear-gradient(135deg, #667eea, #764ba2);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 16px;
+
+  /* safe area для iPhone */
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+.card {
+  background: rgba(8, 30, 71, 0.86);
+  color: #dbe8ff;
+
+  padding: 28px;
+
+  border-radius: 20px;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+  text-align: center;
+
+  width: 100%;
+  max-width: 420px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.embeddedCard {
+  max-width: none;
+  padding: 22px;
+  border-radius: 18px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.16);
+}
+
+.email {
+  font-weight: 600;
+  margin-top: 4px;
+
+  font-size: 16px;
+  color: #e9f0f3;
+
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.info {
+  display: flex;
+  gap: 12px;
+
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.card h2 {
+  margin: 0;
+  color: #e7f1ff;
+}
+
+.card > div {
+  color: #4b6280;
+}
+
+/* кнопки */
+.logout,
+.ok {
+  margin-top: 12px;
+
+  padding: 14px 20px;
+
+  border-radius: 12px;
+
+  border: none;
+
+  color: white;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  min-height: 48px; /* mobile touch size */
+
+  width: 100%;
+}
+
+/* кольори */
+.logout {
+  background: #e53e3e;
+}
+
+.ok {
+  background: #3182ce;
+}
+
+/* hover тільки desktop */
+@media (hover: hover) {
+  .logout:hover {
+    transform: translateY(-1px);
+    background: #c53030;
+  }
+
+  .ok:hover {
+    transform: translateY(-1px);
+    background: #2b6cb0;
+  }
+}
+
+.logout:active,
+.ok:active {
+  transform: scale(0.98);
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .email {
+    font-size: 15px;
+  }
+
+  .logout,
+  .ok {
+    font-size: 16px;
+    padding: 16px;
+  }
+}
+
+/* ===== VERY SMALL PHONES ===== */
+@media (max-width: 360px) {
+  .card {
+    padding: 16px;
+  }
+
+  .logout,
+  .ok {
+    font-size: 15px;
+  }
+}
+
+/* ===== LANDSCAPE ===== */
+@media (max-height: 500px) {
+  .wrapper {
+    align-items: flex-start;
+  }
+
+  .card {
+    margin-top: 20px;
+  }
+}

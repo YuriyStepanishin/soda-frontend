@@ -1,0 +1,76 @@
+.mainContent {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 20px;
+  background: rgba(11, 30, 64, 0.45);
+  border: 1px solid rgba(150, 180, 230, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #eef5ff;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+
+  padding: 14px 12px;
+
+  background: rgba(14, 37, 78, 0.95);
+
+  border-bottom: 1px solid rgba(160, 190, 235, 0.25);
+
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(150, 180, 230, 0.12);
+  text-align: right;
+  font-size: 14px;
+}
+
+.table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.brandName {
+  text-align: left !important;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.totalRow {
+  background: rgba(30, 70, 130, 0.35);
+}
+
+.totalRow td {
+  font-weight: 700;
+  border-top: 2px solid rgba(170, 200, 255, 0.35);
+}
+
+.loader,
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  min-height: 300px;
+
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.error {
+  color: #ff9f9f;
+}

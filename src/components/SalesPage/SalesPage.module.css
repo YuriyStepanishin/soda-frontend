@@ -1,0 +1,70 @@
+.container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 16px 16px 0;
+  box-sizing: border-box;
+  background: transparent;
+  color: #dce9ff;
+}
+
+.desktopLayout {
+  display: grid;
+  grid-template-columns: minmax(270px, 320px) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.button {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 20;
+
+  height: 48px;
+  padding: 0 18px;
+
+  border: 1px solid rgba(156, 185, 236, 0.42);
+  border-radius: 999px;
+
+  background: rgba(14, 38, 79, 0.46);
+  color: #eef5ff;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  box-shadow: 0 8px 20px rgba(3, 18, 45, 0.35);
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.button:hover {
+  background: rgba(20, 52, 107, 0.58);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1023px) {
+  .container {
+    padding: 10px;
+  }
+
+  .desktopLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}

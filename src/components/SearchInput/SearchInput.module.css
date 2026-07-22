@@ -1,0 +1,78 @@
+.searchInput {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.label {
+  color: rgba(166, 196, 247, 0.9);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  position: absolute;
+  left: 12px;
+  font-size: 14px;
+  color: rgba(169, 197, 245, 0.86);
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  padding: 10px 40px 10px 36px;
+  border-radius: 14px;
+  border: 1px solid rgba(108, 152, 232, 0.34);
+  background: rgba(11, 41, 92, 0.74);
+  color: #dce9ff;
+  font-size: 14px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input::-webkit-search-decoration,
+.input::-webkit-search-cancel-button,
+.input::-webkit-search-results-button,
+.input::-webkit-search-results-decoration {
+  display: block;
+}
+
+.input::-ms-clear,
+.input::-ms-reveal {
+  display: block;
+  width: auto;
+  height: auto;
+}
+
+.input::placeholder {
+  color: rgba(214, 230, 255, 0.92);
+}
+
+.input:focus {
+  border-color: #7eb5ff;
+  box-shadow: 0 0 0 3px rgba(126, 181, 255, 0.24);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at 14% 10%,
+      rgba(56, 125, 242, 0.22),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 80% 84%,
+      rgba(0, 210, 255, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(145deg, #030e24 0%, #041430 48%, #051329 100%);
+  overflow-x: hidden;
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
+  color: #dce8ff;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+select,
+input,
+textarea {
+  min-width: 0;
+}
+
+:root {
+  --field-bg-light: #f4f7fb;
+  --field-text-dark: #18202c;
+  --field-border: #c5d0df;
+  --field-placeholder: #5f6e83;
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+    [type='color']
+  ):not([type='image']):not([type='submit']):not([type='button']):not(
+    [type='reset']
+  ):not([type='file']),
+textarea,
+select {
+  background-color: var(--field-bg-light) !important;
+  color: var(--field-text-dark) !important;
+  border: 1px solid var(--field-border);
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+    [type='color']
+  ):not([type='image']):not([type='submit']):not([type='button']):not(
+    [type='reset']
+  ):not([type='file'])::placeholder,
+textarea::placeholder {
+  color: var(--field-placeholder) !important;
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+    [type='color']
+  ):not([type='image']):not([type='submit']):not([type='button']):not(
+    [type='reset']
+  ):not([type='file']):-webkit-autofill,
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+    [type='color']
+  ):not([type='image']):not([type='submit']):not([type='button']):not(
+    [type='reset']
+  ):not([type='file']):-webkit-autofill:hover,
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+    [type='color']
+  ):not([type='image']):not([type='submit']):not([type='button']):not(
+    [type='reset']
+  ):not([type='file']):-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--field-text-dark);
+  box-shadow: 0 0 0 1000px var(--field-bg-light) inset;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(97, 155, 255, 0.36);
+  outline-offset: 2px;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 16px;
+    max-width: 100%;
+  }
+}

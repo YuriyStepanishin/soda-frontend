@@ -1,0 +1,108 @@
+.wrapper {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+  padding-top: max(24px, env(safe-area-inset-top));
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  border-radius: 20px;
+  background: linear-gradient(168deg, rgba(7, 30, 70, 0.94), rgba(5, 23, 55, 0.92));
+  border: 1px solid rgba(105, 152, 232, 0.3);
+  box-shadow: 0 24px 46px rgba(1, 11, 28, 0.56);
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #f0f6ff;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: rgba(181, 205, 245, 0.9);
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(164, 197, 255, 0.86);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(109, 154, 232, 0.34);
+  background: rgba(11, 41, 92, 0.68);
+  color: #e4eeff;
+  font-size: 15px;
+}
+
+.input {
+  min-height: 52px;
+  padding: 0 12px;
+}
+
+.textarea {
+  min-height: 128px;
+  resize: vertical;
+  padding: 10px 12px;
+}
+
+.bottomRow {
+  display: flex;
+  gap: 10px;
+}
+
+.saveButton,
+.cancelButton {
+  flex: 1;
+  min-height: 50px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.saveButton {
+  border: 1px solid rgba(129, 176, 255, 0.42);
+  background: linear-gradient(166deg, #2a87ff, #1667e7);
+  color: #f4f8ff;
+  box-shadow: 0 14px 24px rgba(22, 103, 231, 0.35);
+}
+
+.cancelButton {
+  border: 1px solid rgba(108, 152, 232, 0.28);
+  background: rgba(9, 35, 80, 0.76);
+  color: #c9dcff;
+}
+
+.successMessage {
+  border-radius: 12px;
+  border: 1px solid rgba(52, 199, 89, 0.45);
+  background: rgba(19, 90, 55, 0.42);
+  color: #c9f4de;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .wrapper {
+    padding: 16px;
+  }
+
+  .bottomRow {
+    flex-direction: column;
+  }
+}
+
+
+

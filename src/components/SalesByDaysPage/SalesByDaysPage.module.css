@@ -1,0 +1,260 @@
+.container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+  color: #dce9ff;
+}
+
+.error {
+  padding: 40px;
+  text-align: center;
+  color: #fecaca;
+}
+
+.section {
+  margin-top: 18px;
+}
+
+.brandFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.brandButton {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(108, 152, 232, 0.34);
+  border-radius: 999px;
+  background: rgba(11, 41, 92, 0.72);
+  color: #d9e8ff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.brandButtonActive {
+  background: linear-gradient(165deg, #2a87ff, #1667e7);
+  color: #f7faff;
+  border-color: rgba(140, 183, 255, 0.62);
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: 18px;
+  color: #e6f1ff;
+}
+
+.chartsSection {
+  margin-top: 18px;
+  padding-bottom: 80px;
+}
+
+.chartsGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 12px;
+}
+
+.chartCard {
+  background: rgba(9, 34, 79, 0.78);
+  border: 1px solid rgba(108, 152, 232, 0.24);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.chartTitle {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #e6f0ff;
+}
+
+.chartBody {
+  display: grid;
+  gap: 6px;
+}
+
+.chartRow {
+  display: grid;
+  grid-template-columns: 84px 1fr 78px;
+  align-items: center;
+  gap: 8px;
+}
+
+.chartDate {
+  font-size: 12px;
+  color: #cddffb;
+  white-space: nowrap;
+}
+
+.chartTrack {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(50, 86, 152, 0.34);
+  overflow: hidden;
+}
+
+.chartBar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1f5eb8 0%, #3c84e6 100%);
+}
+
+.chartBarNegative {
+  background: linear-gradient(90deg, #174a93 0%, #2d6fc8 100%);
+}
+
+.chartValue {
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: #deecff;
+  white-space: nowrap;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: rgba(8, 31, 73, 0.86);
+  border: 1px solid rgba(108, 152, 232, 0.2);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  border: 1px solid rgba(108, 152, 232, 0.2);
+  padding: 8px;
+  font-size: clamp(12px, 1.6vw, 14px);
+  line-height: 1.25;
+  color: #dce9ff;
+}
+
+.table th {
+  background: rgba(13, 44, 97, 0.88);
+  color: #edf5ff;
+}
+
+.weekTotalRow {
+  background: rgba(20, 64, 132, 0.45);
+}
+
+.grandTotalRow {
+  background: rgba(26, 81, 158, 0.56);
+}
+
+.weekTotalRow td,
+.grandTotalRow td {
+  color: #f2f7ff;
+  font-weight: 700;
+}
+
+.table td:nth-child(2),
+.table td:nth-child(3),
+.table td:nth-child(4),
+.table td:nth-child(5),
+.table th:nth-child(2),
+.table th:nth-child(3),
+.table th:nth-child(4),
+.table th:nth-child(5) {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.backButton {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 20;
+  height: 48px;
+  padding: 0 18px;
+  border: 1px solid rgba(156, 185, 236, 0.42);
+  border-radius: 999px;
+  background: rgba(14, 38, 79, 0.46);
+  color: #f7fbff;
+  text-shadow: 0 1px 2px rgba(2, 8, 20, 0.65);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 20px rgba(3, 18, 45, 0.35);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+@media (hover: hover) {
+  .backButton:hover {
+    background: rgba(20, 52, 107, 0.58);
+    transform: translateY(-1px);
+  }
+
+  .brandButton:hover {
+    background: rgba(17, 54, 114, 0.86);
+    transform: translateY(-1px);
+  }
+
+  .brandButtonActive:hover {
+    background: linear-gradient(165deg, #2a87ff, #1667e7);
+  }
+}
+
+@media (max-width: 560px) {
+  .container {
+    padding: 12px;
+  }
+
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .chartRow {
+    grid-template-columns: 72px 1fr 64px;
+    gap: 6px;
+  }
+
+  .chartDate,
+  .chartValue {
+    font-size: 11px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 24px;
+  }
+
+  .section {
+    margin-top: 24px;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .chartsSection {
+    margin-top: 24px;
+  }
+}

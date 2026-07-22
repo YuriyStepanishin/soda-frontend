@@ -1,0 +1,168 @@
+/* wrapper — full screen як мобільний додаток */
+.wrapper {
+  min-height: 100vh;
+  min-height: 100dvh; /* сучасні телефони */
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(135deg, #667eea, #764ba2);
+
+  padding: 16px;
+
+  /* safe area для iPhone */
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+/* card */
+.card {
+  background: rgba(8, 30, 71, 0.86);
+  color: #dbe8ff;
+
+  padding: 32px;
+  border-radius: 20px;
+
+  width: 100%;
+  max-width: 380px;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.embeddedCard {
+  width: 100%;
+  max-width: none;
+  padding: 22px;
+  border-radius: 18px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.16);
+}
+
+.panelTitle {
+  margin: 0;
+  text-align: center;
+  font-size: 20px;
+  color: #b7d0f7;
+}
+
+/* title */
+.title {
+  margin: 0;
+  text-align: center;
+
+  font-size: 22px;
+  color: #e7f1ff;
+}
+
+/* input */
+.input {
+  padding: 14px;
+
+  border-radius: 10px;
+  border: 1px solid rgba(110, 154, 232, 0.26);
+  color: #dbe8ff;
+  background: rgba(8, 30, 71, 0.86);
+
+  font-size: 16px;
+
+  transition: 0.2s;
+
+  /* прибирає zoom на iPhone */
+  appearance: none;
+}
+
+.input::placeholder {
+  color: #8792b0;
+}
+
+/* input focus */
+.input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+/* button */
+.button {
+  padding: 14px;
+
+  border-radius: 10px;
+  border: none;
+
+  background: #667eea;
+  color: white;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+
+  /* правильний розмір для пальця */
+  min-height: 48px;
+}
+
+/* button hover тільки для desktop */
+@media (hover: hover) {
+  .button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(102, 126, 234, 0.28);
+    background: #5a67d8;
+  }
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+/* error */
+.error {
+  color: #e53e3e;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 24px;
+    border-radius: 16px;
+
+    max-width: 100%;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .input {
+    padding: 16px;
+    font-size: 16px;
+  }
+
+  .button {
+    padding: 16px;
+    font-size: 16px;
+  }
+}
+
+/* ===== VERY SMALL PHONES ===== */
+@media (max-width: 360px) {
+  .card {
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+}

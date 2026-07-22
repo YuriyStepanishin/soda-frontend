@@ -1,0 +1,662 @@
+.container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.error {
+  padding: 40px;
+  text-align: center;
+  color: #fecaca;
+}
+
+.header {
+  margin-bottom: 10px;
+}
+
+.pageTitle {
+  margin: 0;
+  color: #eaf3ff;
+  font-size: 24px;
+}
+
+.pageMeta {
+  margin: 8px 0 0;
+  color: #bcd3f5;
+  font-size: 14px;
+}
+
+.filtersCard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid rgba(110, 154, 232, 0.26);
+  border-radius: 14px;
+  background: rgba(8, 30, 71, 0.78);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field span {
+  font-size: 13px;
+  color: #b7d0f7;
+  font-weight: 600;
+}
+
+.field select {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(110, 154, 232, 0.26);
+  background: rgba(8, 30, 71, 0.9);
+  color: #dbe8ff;
+  font-size: 14px;
+}
+
+.lockedValue {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(110, 154, 232, 0.26);
+  background: rgba(8, 30, 71, 0.9);
+  color: #dbe8ff;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  width: 100%;
+}
+
+.searchInput .input {
+  height: 42px;
+  padding: 0 40px 0 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(110, 154, 232, 0.26);
+  background: rgba(8, 30, 71, 0.9);
+  color: #dbe8ff;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.searchInput .input:focus {
+  border-color: rgba(112, 167, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(97, 155, 255, 0.24);
+}
+
+.searchInput .input::placeholder {
+  color: #8eaedc;
+}
+
+.searchInput .clearButton {
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(69, 114, 196, 0.22);
+  color: #b7d0f7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.searchInput .clearButton:hover {
+  background: rgba(92, 140, 228, 0.34);
+}
+
+.searchInput .clearButton:active {
+  transform: scale(0.95);
+}
+
+.searchInput .icon {
+  left: 12px;
+  font-size: 14px;
+  color: #8fb6ef;
+}
+
+.summaryCard {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(110, 154, 232, 0.24);
+  border-radius: 12px;
+  background: rgba(8, 29, 68, 0.86);
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 12px 24px;
+  align-items: center;
+}
+
+.summaryMainGroup,
+.summaryTrafficGroup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.summaryTrafficGroup {
+  justify-self: end;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.trafficSubgroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.trafficLabel {
+  color: #b7d0f7;
+  font-weight: 600;
+  min-width: 60px;
+}
+
+.summaryItem {
+  margin: 0;
+  color: #dbe8ff;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.goalsHeader {
+  font-size: 15px;
+  font-weight: 700;
+  color: #dbe8ff;
+  margin-bottom: 10px;
+}
+
+.goalsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.storeGoalsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.storeGoalCard {
+  border: 1px solid rgba(110, 154, 232, 0.24);
+  border-radius: 14px;
+  background: rgba(8, 30, 71, 0.86);
+  padding: 12px;
+  box-shadow: 0 8px 18px rgba(2, 12, 30, 0.32);
+}
+
+.storeGoalToggle {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 28px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(110, 154, 232, 0.26);
+  border-radius: 12px;
+  background: rgba(10, 35, 80, 0.82);
+  color: #dbe8ff;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.storeGoalToggle:hover {
+  background: rgba(13, 40, 90, 0.82);
+  border-color: rgba(120, 170, 245, 0.52);
+  transform: translateY(-1px);
+}
+
+.storeGoalToggleIcon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(118, 168, 245, 0.48);
+  background: rgba(17, 53, 112, 0.88);
+  color: #d5e8ff;
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.storeGoalTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #dbe8ff;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.storeGoalBody {
+  margin-top: 10px;
+}
+
+.goalCard {
+  border: 1px solid rgba(110, 154, 232, 0.24);
+  border-radius: 12px;
+  background: rgba(8, 30, 71, 0.86);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goalLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #dbe8ff;
+}
+
+.goalStats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  color: #b7d0f7;
+  font-size: 13px;
+}
+
+.goalInlineRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.goalInlineValue {
+  width: auto;
+  min-height: 34px;
+  padding: 6px 10px;
+}
+
+.goalFactBlock {
+  display: grid;
+  gap: 6px;
+}
+
+.goalFactDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.goalFactTag,
+.goalFactTagMuted {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.goalFactTag {
+  background: rgba(15, 50, 102, 0.68);
+  color: #d7e8ff;
+  border: 1px solid rgba(110, 154, 232, 0.24);
+}
+
+.goalFactTagMuted {
+  background: rgba(15, 42, 94, 0.76);
+  color: #9fbbe8;
+  border: 1px dashed rgba(110, 154, 232, 0.28);
+}
+
+.summaryMainGroup .summaryItem b,
+.summaryTrafficGroup .summaryItem b {
+  font-weight: 700;
+}
+
+.routeList {
+  margin-top: 14px;
+  padding-bottom: 80px;
+}
+
+.desktopTableWrap {
+  overflow-x: auto;
+  border: 1px solid rgba(110, 154, 232, 0.24);
+  border-radius: 14px;
+  background: rgba(8, 30, 71, 0.88);
+}
+
+.akbTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 720px;
+}
+
+.akbTable th,
+.akbTable td {
+  border: 1px solid rgba(110, 154, 232, 0.24);
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #dbe8ff;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.akbTable thead th {
+  background: rgba(10, 35, 80, 0.8);
+  text-align: center;
+  font-weight: 700;
+}
+
+.akbTable th:nth-child(1),
+.akbTable td:nth-child(1) {
+  width: 70%;
+  text-align: left;
+}
+
+.akbTable th:nth-child(2),
+.akbTable td:nth-child(2),
+.akbTable th:nth-child(3),
+.akbTable td:nth-child(3) {
+  width: 15%;
+  text-align: center;
+}
+
+.valueCell {
+  padding: 8px;
+  vertical-align: middle;
+}
+
+.storeNameCell {
+  color: #dbe8ff;
+  font-weight: 700;
+  line-height: 1.3;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.valueBox,
+.valueGreen,
+.valueYellow,
+.valueRed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.valueBox {
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px;
+  box-sizing: border-box;
+}
+
+.valueMain {
+  font-size: 14px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.valueSub {
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.valueGreen {
+  background: #b9efc2;
+  color: #0f5b28;
+}
+
+.valueYellow {
+  background: #ffe27a;
+  color: #7a5600;
+}
+
+.valueRed {
+  background: #ffb1b1;
+  color: #8b1f1f;
+}
+
+.mobileList {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobileCard {
+  border: 1px solid rgba(110, 154, 232, 0.24);
+  border-radius: 14px;
+  background: rgba(8, 30, 71, 0.88);
+  padding: 12px;
+}
+
+.mobileRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(110, 154, 232, 0.22);
+}
+
+.mobileRow:last-child {
+  border-bottom: 0;
+}
+
+.mobileSumsRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 0 0;
+}
+
+.mobileSumItem {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mobileLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9fbbe8;
+}
+
+.emptyCell {
+  text-align: center;
+  color: #f2b8b8;
+  padding: 12px;
+}
+
+.backButton {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 20;
+  height: 48px;
+  padding: 0 18px;
+  border: 1px solid rgba(156, 185, 236, 0.42);
+  border-radius: 999px;
+  background: rgba(14, 38, 79, 0.46);
+  color: #f7fbff;
+  text-shadow: 0 1px 2px rgba(2, 8, 20, 0.65);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 20px rgba(3, 18, 45, 0.35);
+}
+
+@media (hover: hover) {
+  .backButton:hover {
+    background: rgba(20, 52, 107, 0.58);
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 860px) {
+  .summaryRow {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryTrafficGroup {
+    justify-self: start;
+  }
+
+  .desktopTableWrap {
+    display: none;
+  }
+
+  .mobileList {
+    display: flex;
+  }
+}
+
+@media (max-width: 680px) {
+  .container {
+    padding: 12px;
+  }
+
+  .filtersCard {
+    grid-template-columns: 1fr;
+  }
+
+  .pageTitle {
+    font-size: 21px;
+  }
+
+  .summaryCard {
+    padding: 12px;
+  }
+
+  .summaryRow {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .summaryItem {
+    white-space: normal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid rgba(110, 154, 232, 0.24);
+    border-radius: 10px;
+    background: rgba(8, 30, 71, 0.82);
+    text-align: center;
+  }
+
+  .summaryMainGroup,
+  .summaryTrafficGroup {
+    display: grid;
+    gap: 8px;
+  }
+
+  .summaryMainGroup {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summaryMainGroup .summaryItem:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .summaryTrafficGroup {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .trafficSubgroup {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+    column-gap: 6px;
+  }
+
+  .trafficLabel {
+    min-width: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .summaryTrafficGroup .summaryItem {
+    min-height: 38px;
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  .summaryMainGroup .summaryItem {
+    min-height: 38px;
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  .mobileSumsRow {
+    gap: 6px;
+  }
+
+  .mobileSumItem .mobileLabel {
+    text-align: center;
+  }
+
+  .mobileSumItem :global(.valueBox) {
+    min-height: 44px;
+  }
+
+  .valueBox {
+    min-height: 40px;
+  }
+
+  .valueMain {
+    font-size: 13px;
+  }
+
+  .valueSub {
+    font-size: 11px;
+  }
+}

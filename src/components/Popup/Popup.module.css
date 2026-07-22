@@ -1,0 +1,56 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.popup {
+  width: min(92vw, 360px);
+  border-radius: 14px;
+  padding: 18px 16px;
+  background: rgba(8, 30, 71, 0.86);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+  display: grid;
+  gap: 12px;
+}
+
+.message {
+  margin: 0;
+  color: #1d2d25;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+  white-space: pre-wrap;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.button {
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: #2f7a54;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondaryButton {
+  background: #eef2ee;
+  color: #274133;
+  border: 1px solid #cbd8cf;
+}
+
+.button:active {
+  transform: scale(0.98);
+}

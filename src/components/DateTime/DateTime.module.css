@@ -1,0 +1,135 @@
+.kyivDateTime {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  left: calc(min(340px, 100%) + max(16px, env(safe-area-inset-left)));
+  z-index: 12;
+  width: min(420px, calc(100vw - 392px));
+  min-width: 320px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  border: 1px solid rgba(121, 170, 247, 0.28);
+  background:
+    linear-gradient(165deg, rgba(11, 38, 86, 0.82), rgba(7, 27, 64, 0.78)),
+    radial-gradient(circle at 0% 0%, rgba(47, 143, 255, 0.24), transparent 60%);
+  box-shadow: 0 14px 28px rgba(2, 15, 36, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  backdrop-filter: blur(8px);
+}
+
+.kyivHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.uaFlag {
+  width: 20px;
+  height: 14px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(161, 195, 248, 0.4);
+  box-shadow: 0 2px 6px rgba(2, 13, 34, 0.35);
+  background: linear-gradient(180deg, #2f81ff 0 50%, #ffd84c 50% 100%);
+}
+
+.kyivDateTimeLabel {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(164, 197, 250, 0.9);
+}
+
+.kyivDateTimeValue {
+  font-size: 44px;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  color: #f2f8ff;
+}
+
+.kyivDateTimeSub {
+  font-size: 17px;
+  line-height: 1.25;
+  color: rgba(196, 218, 252, 0.9);
+}
+
+.kyivQuote {
+  margin: 2px 0 0;
+  font-size: 15px;
+  line-height: 1.35;
+  color: rgba(210, 228, 255, 0.9);
+  font-style: italic;
+  text-align: left;
+  max-width: 100%;
+  align-self: stretch;
+}
+
+.kyivQuoteLine {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.kyivQuoteLine + .kyivQuoteLine {
+  margin-top: 6px;
+}
+
+@media (max-width: 1023px) {
+  .kyivDateTime {
+    top: calc(max(10px, env(safe-area-inset-top)) + 86px);
+    left: max(10px, env(safe-area-inset-left));
+    right: max(10px, env(safe-area-inset-right));
+    bottom: auto;
+    z-index: 8;
+    width: auto;
+    min-width: 0;
+    padding: 16px 16px 18px;
+    border-radius: 18px;
+    gap: 8px;
+  }
+
+  .kyivDateTimeValue {
+    font-size: 28px;
+  }
+
+  .kyivDateTimeSub {
+    font-size: 14px;
+  }
+
+  .kyivQuote {
+    display: none;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 640px) {
+  .kyivDateTime {
+    top: calc(max(10px, env(safe-area-inset-top)) + 82px);
+    bottom: auto;
+    padding: 14px 14px 16px;
+    gap: 6px;
+  }
+
+  .kyivDateTimeLabel {
+    font-size: 12px;
+  }
+
+  .uaFlag {
+    width: 18px;
+    height: 12px;
+  }
+
+  .kyivDateTimeValue {
+    font-size: 24px;
+  }
+
+  .kyivDateTimeSub {
+    font-size: 12px;
+  }
+
+  .kyivQuote {
+    font-size: 12px;
+    line-height: 1.3;
+  }
+}
