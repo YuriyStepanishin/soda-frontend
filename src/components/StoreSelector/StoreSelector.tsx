@@ -5,7 +5,7 @@ import {
   fetchStoreSelectorData,
   type StoreSelectorSource,
   type StoreSelectorRow,
-} from '../../api/fetchStoreSelectorData';
+} from '../../api/fetchOlgatorgStoreSelectorData';
 import { queryKeys } from '../../api/queryKeys';
 import Popup from '../Popup/Popup';
 import Loader from '../Loader/Loader';
@@ -17,6 +17,7 @@ import {
 } from '../../config/userRoles';
 import styles from './StoreSelector.module.css';
 
+// Store selector for report flows with role-aware defaults and local store add-on.
 interface Props {
   source: StoreSelectorSource;
   onSelect: (store: {

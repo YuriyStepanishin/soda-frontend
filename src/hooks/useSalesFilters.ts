@@ -13,7 +13,7 @@ export interface SalesFiltersState {
 }
 
 export function useSalesFilters() {
-  const [filters, setFilters] = useState<SalesFiltersState>({
+  const emptyFilters: SalesFiltersState = {
     department: [],
     agent: [],
 
@@ -23,20 +23,27 @@ export function useSalesFilters() {
 
     dateFrom: '',
     dateTo: '',
-  });
+  };
+  const [filters, setFilters] = useState<SalesFiltersState>(emptyFilters);
+  const [appliedFilters, setAppliedFilters] =
+    useState<SalesFiltersState>(emptyFilters);
 
   const [options, setOptions] = useState({
     showDates: false,
     showProducts: false,
+    showPrice: false,
+    showByStore: false,
+    showByDepartment: false,
+    showByAgent: false,
   });
 
   const backendFilters = useMemo(
     () => ({
-      ...filters,
+      ...appliedFilters,
       page: 1,
       limit: 5000,
     }),
-    [filters]
+    [appliedFilters]
   );
 
   const updateFilters = (values: Partial<SalesFiltersState>) => {
@@ -46,9 +53,12 @@ export function useSalesFilters() {
     }));
   };
 
+  const applyFilters = () => setAppliedFilters(filters);
+
   return {
     filters,
     updateFilters,
+    applyFilters,
 
     backendFilters,
 

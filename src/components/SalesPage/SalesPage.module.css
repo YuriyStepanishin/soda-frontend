@@ -57,6 +57,30 @@
   transform: translateY(-1px);
 }
 
+.debugPanel {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px dashed rgba(156, 185, 236, 0.42);
+  border-radius: 10px;
+  background: rgba(9, 24, 52, 0.45);
+}
+
+.debugPanel h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #dce9ff;
+}
+
+.debugPanel pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #bfd6ff;
+}
+
 @media (max-width: 1023px) {
   .container {
     padding: 10px;

@@ -34,6 +34,7 @@ export interface AuthSession {
   user: AuthUser;
 }
 
+// Backend has more granular roles; UI currently maps them into app-level roles.
 export function normalizeRole(role: BackendRole): UserRole {
   if (role === 'admin' || role === 'manager' || role === 'brand_manager') {
     return 'admin';
@@ -44,6 +45,7 @@ export function normalizeRole(role: BackendRole): UserRole {
 }
 
 export function getAuthSession(): AuthSession | null {
+  // Restores session from localStorage after page reload.
   if (typeof window === 'undefined') return null;
 
   const email = window.localStorage.getItem(AUTH_STORAGE_KEY);
@@ -53,6 +55,7 @@ export function getAuthSession(): AuthSession | null {
   if (!email || !token || !userRaw) return null;
 
   try {
+    // Validate stored user JSON before exposing session to app.
     const user = JSON.parse(userRaw) as AuthUser;
     if (!user?.email) return null;
 
@@ -69,6 +72,7 @@ export function getAuthSession(): AuthSession | null {
 export function saveAuthSession(session: AuthSession): void {
   if (typeof window === 'undefined') return;
 
+  // Keep normalized email so role lookup stays stable across case variants.
   const normalizedEmail = session.email.trim().toLowerCase();
 
   window.localStorage.setItem(AUTH_STORAGE_KEY, normalizedEmail);
@@ -79,6 +83,7 @@ export function saveAuthSession(session: AuthSession): void {
 export function clearAuthSession(): void {
   if (typeof window === 'undefined') return;
 
+  // Remove all auth-related keys to force clean logout state.
   window.localStorage.removeItem(AUTH_STORAGE_KEY);
   window.localStorage.removeItem(AUTH_TOKEN_KEY);
   window.localStorage.removeItem(AUTH_USER_KEY);
@@ -88,9 +93,11 @@ export async function login(
   email: string,
   password: string
 ): Promise<AuthSession> {
+  // Auth endpoint wrapper with user-facing messages for common backend failures.
   let payload: LoginResponse;
 
   try {
+    // Request JWT and user profile from backend auth endpoint.
     payload = await apiPostJson<
       LoginResponse,
       { email: string; password: string }
@@ -100,6 +107,7 @@ export async function login(
     });
   } catch (error) {
     if (error instanceof ApiError) {
+      // Convert known backend statuses into clearer UI messages.
       if (error.status === 500) {
         throw new Error(
           'Сервер авторизації повернув 500. Це проблема бекенду (/api/auth/login), а не форми входу.'
@@ -118,6 +126,7 @@ export async function login(
     throw new Error(payload.message || 'Невірний логін або пароль');
   }
 
+  // Build and persist session once backend payload is complete.
   const session: AuthSession = {
     email: payload.data.user.email,
     token: payload.data.token,

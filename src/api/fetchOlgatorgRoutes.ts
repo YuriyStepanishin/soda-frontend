@@ -1,4 +1,4 @@
-import { fetchSales } from './fetchSales';
+import { fetchSales } from './fetchOlgatorgSales';
 
 export type RouteRow = {
   day: string;
@@ -51,8 +51,8 @@ function normalizeValue(value: unknown): string {
     .trim();
 }
 
-export async function fetchRoutes(): Promise<RouteRow[]> {
-  const sales = await fetchSales();
+async function loadRoutes(filters: Record<string, string> = {}): Promise<RouteRow[]> {
+  const sales = await fetchSales(filters);
   const unique = new Map<string, RouteRow>();
 
   for (const sale of sales) {
@@ -72,4 +72,14 @@ export async function fetchRoutes(): Promise<RouteRow[]> {
   }
 
   return Array.from(unique.values());
+}
+
+export async function fetchRoutes(): Promise<RouteRow[]> {
+  return loadRoutes();
+}
+
+export async function fetchRoutesByFilters(
+  filters: Record<string, string>
+): Promise<RouteRow[]> {
+  return loadRoutes(filters);
 }

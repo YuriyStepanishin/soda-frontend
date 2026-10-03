@@ -7,6 +7,10 @@ import MultiSelectDropdown from '../MultiSelectDropdown/MultiSelectDropdown';
 type OptionsState = {
   showDates: boolean;
   showProducts: boolean;
+  showPrice: boolean;
+  showByStore: boolean;
+  showByDepartment: boolean;
+  showByAgent: boolean;
 };
 
 type MetricsState = {
@@ -14,7 +18,7 @@ type MetricsState = {
   weight: boolean;
   amount: boolean;
   sku: boolean;
-  price: boolean;
+  stores: boolean;
 };
 
 type Props = {
@@ -39,9 +43,11 @@ type Props = {
   onChangeMetrics: Dispatch<SetStateAction<MetricsState>>;
 
   onSaveExcel: () => void;
+  onApplyFilters?: () => void;
   onOpenSalesByDays: () => void;
 
   isMobile: boolean;
+  dateError?: string;
 };
 
 export default function SalesFilters({
@@ -67,9 +73,11 @@ export default function SalesFilters({
   onChangeMetrics,
 
   onSaveExcel,
+  onApplyFilters,
   onOpenSalesByDays,
 
   isMobile,
+  dateError,
 }: Props) {
   return (
     <aside className={styles.sidebar}>
@@ -90,6 +98,8 @@ export default function SalesFilters({
               onChange={e => updateFilters({ dateTo: e.target.value })}
             />
           </div>
+
+          {dateError && <div className={styles.dateError}>{dateError}</div>}
 
           {showDepartment && (
             <MultiSelectDropdown
@@ -157,13 +167,72 @@ export default function SalesFilters({
               type="checkbox"
               checked={options.showProducts}
               onChange={() =>
-                onChangeOptions(prev => ({
-                  ...prev,
-                  showProducts: !prev.showProducts,
-                }))
+                onChangeOptions(prev => {
+                  const nextValue = !prev.showProducts;
+
+                  if (!nextValue) {
+                    onChangeMetrics(currentMetrics => ({
+                      ...currentMetrics,
+                      amount: false,
+                    }));
+                  }
+
+                  return {
+                    ...prev,
+                    showProducts: nextValue,
+                  };
+                })
               }
             />
             З товаром
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={Boolean(options.showByStore)}
+              onChange={() =>
+                onChangeOptions(prev => ({
+                  ...prev,
+                  showByStore: !prev.showByStore,
+                  showByDepartment: false,
+                  showByAgent: false,
+                }))
+              }
+            />
+            По ТТ
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={Boolean(options.showByDepartment)}
+              onChange={() =>
+                onChangeOptions(prev => ({
+                  ...prev,
+                  showByStore: false,
+                  showByDepartment: !prev.showByDepartment,
+                  showByAgent: false,
+                }))
+              }
+            />
+            По відділам
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={Boolean(options.showByAgent)}
+              onChange={() =>
+                onChangeOptions(prev => ({
+                  ...prev,
+                  showByStore: false,
+                  showByDepartment: false,
+                  showByAgent: !prev.showByAgent,
+                }))
+              }
+            />
+            По ТП
           </label>
 
           <h3>Показники</h3>
@@ -184,6 +253,20 @@ export default function SalesFilters({
           <label>
             <input
               type="checkbox"
+              checked={metrics.stores}
+              onChange={() =>
+                onChangeMetrics(prev => ({
+                  ...prev,
+                  stores: !prev.stores,
+                }))
+              }
+            />
+            ТТ
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
               checked={metrics.weight}
               onChange={() =>
                 onChangeMetrics(prev => ({
@@ -198,15 +281,18 @@ export default function SalesFilters({
           <label>
             <input
               type="checkbox"
-              checked={metrics.amount}
-              onChange={() =>
+              checked={Boolean(options.showProducts && metrics.amount)}
+              disabled={!options.showProducts}
+              onChange={() => {
+                if (!options.showProducts) return;
+
                 onChangeMetrics(prev => ({
                   ...prev,
                   amount: !prev.amount,
-                }))
-              }
+                }));
+              }}
             />
-            Сума, грн
+            Ціна, грн
           </label>
 
           <label>
@@ -222,23 +308,18 @@ export default function SalesFilters({
             />
             SKU
           </label>
-
-          <label>
-            <input
-              type="checkbox"
-              checked={metrics.price}
-              onChange={() =>
-                onChangeMetrics(prev => ({
-                  ...prev,
-                  price: !prev.price,
-                }))
-              }
-            />
-            Ціна, грн
-          </label>
         </section>
 
         <div className={styles.sidebarButtons}>
+          {onApplyFilters ? (
+            <button
+              type="button"
+              className={styles.sidebarSaveButton}
+              onClick={onApplyFilters}
+            >
+              Сформувати
+            </button>
+          ) : null}
           <button
             type="button"
             className={styles.sidebarSaveButton}

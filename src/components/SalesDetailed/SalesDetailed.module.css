@@ -1,0 +1,53 @@
+.container {
+  margin-top: 20px;
+  border-radius: 20px;
+  background: rgba(11, 30, 64, 0.45);
+  border: 1px solid rgba(150, 180, 230, 0.18);
+  overflow: hidden;
+}
+
+.header {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(150, 180, 230, 0.18);
+  background: rgba(14, 37, 78, 0.95);
+  font-weight: 700;
+  color: #eef5ff;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #eef5ff;
+}
+
+.table thead th {
+  padding: 12px;
+  background: rgba(14, 37, 78, 0.8);
+  border-bottom: 1px solid rgba(160, 190, 235, 0.25);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(150, 180, 230, 0.12);
+  text-align: right;
+  font-size: 14px;
+}
+
+.label {
+  text-align: left !important;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.totalRow {
+  background: rgba(30, 70, 130, 0.35);
+}
+
+.totalRow td {
+  font-weight: 700;
+  border-top: 2px solid rgba(170, 200, 255, 0.35);
+}

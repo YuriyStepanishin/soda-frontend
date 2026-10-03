@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import styles from './InfoBoardPage.module.css';
 import { canUserSeeBrand, getUserRole } from '../../config/userRoles';
 import { useMessagesCenter } from '../../hooks/useMessagesCenter';
-import { fetchSales, type Sale } from '../../api/fetchSales';
+import { fetchSales, type Sale } from '../../api/fetchOlgatorgSales';
 import { fetchReports, type Report } from '../../api/fetchReports';
 import { queryKeys } from '../../api/queryKeys';
 import { loadPlanColumns } from '../ImplementationPage/planColumnsStorage';

@@ -1,0 +1,5 @@
+.groupRow { background: rgba(38, 91, 163, 0.35); cursor: pointer; }
+.subgroupRow { background: rgba(29, 67, 122, 0.24); cursor: pointer; }
+.groupRow:hover, .subgroupRow:hover { background: rgba(50, 113, 196, 0.45); }
+.indent { display: inline-block; width: 18px; color: #8fb9ff; }
+.deepIndent { display: inline-block; width: 38px; color: #8fb9ff; }

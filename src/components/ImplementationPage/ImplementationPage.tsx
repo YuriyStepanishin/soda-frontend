@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchSales, type Sale } from '../../api/fetchSales';
+import { fetchSales, type Sale } from '../../api/fetchOlgatorgSales';
 import Loader from '../Loader/Loader';
 import {
   getCurrentAuthorizedEmail,

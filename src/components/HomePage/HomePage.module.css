@@ -85,6 +85,35 @@
   font-size: 11px;
 }
 
+.databaseSwitcher {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(87, 224, 209, 0.45);
+  border-radius: 10px;
+  background: rgba(5, 112, 119, 0.35);
+  color: #e7ffff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.databaseSwitcher span {
+  color: rgba(222, 247, 255, 0.78);
+  font-size: 11px;
+}
+
+.databaseSwitcher strong {
+  color: #70f0df;
+  font-size: 12px;
+}
+
+.databaseSwitcher:hover {
+  background: rgba(5, 145, 150, 0.5);
+}
+
 .sidebarTitle {
   margin: 0;
   padding: 3px 6px;

@@ -1,5 +1,9 @@
 import { apiGet } from './client';
 
+// Sales API adapter:
+// - normalizes backend field aliases into stable frontend shape
+// - serializes list filters into query params
+// - converts numeric fields from strings to numbers
 export type Sale = {
   місяць: string;
   дата: string;
@@ -22,6 +26,7 @@ function toNumber(value: unknown): number {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (value == null) return 0;
 
+  // Normalize locale-formatted numbers like "1 234,56" before Number().
   const cleaned = String(value)
     .replace(/\u00A0/g, '')
     .replace(/\s/g, '')
@@ -42,10 +47,12 @@ function cleanText(value: unknown): string {
 
 function normalizeFilterValues(value: unknown): string[] {
   if (Array.isArray(value)) {
+    // Accept already-split multi-select filters.
     return value.map(item => cleanText(item)).filter(Boolean);
   }
 
   if (typeof value === 'string') {
+    // Also support comma-separated values from persisted/query state.
     return value
       .split(',')
       .map(item => item.trim())
@@ -56,6 +63,7 @@ function normalizeFilterValues(value: unknown): string[] {
 }
 
 function getFirstPresent(source: MaybeObject, keys: string[]): unknown {
+  // Backend may return different field aliases; pick the first existing key.
   for (const key of keys) {
     if (key in source) return source[key];
   }
@@ -78,6 +86,7 @@ function resolveStore(raw: MaybeObject): string {
 
   if (!point) return '';
 
+  // Fallback display: "Point (Address)" when canonical store name is absent.
   return address ? `${point} (${address})` : point;
 }
 
@@ -95,6 +104,7 @@ function normalizeSale(raw: MaybeObject): Sale {
   );
 
   return {
+    // Each field maps backend aliases to one stable frontend contract.
     місяць: cleanText(getFirstPresent(raw, ['місяць', 'Месяц', 'month'])),
 
     дата: cleanText(getFirstPresent(raw, ['дата', 'Дата', 'sale_date'])),
@@ -130,6 +140,7 @@ function extractRows(payload: unknown): unknown[] {
 
   const objectPayload = payload as Record<string, unknown>;
 
+  // Support common wrappers used by different backend handlers.
   for (const key of ['data', 'result', 'rows', 'items']) {
     const candidate = objectPayload[key];
 
@@ -167,6 +178,7 @@ export interface SalesFilters {
 }
 
 function isSalesFilters(value: unknown): value is SalesFilters {
+  // Runtime guard for untyped inputs from URL/state storage.
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
@@ -175,6 +187,7 @@ function appendJoinedValues(
   key: string,
   values: unknown
 ) {
+  // Backend expects list filters as comma-separated string values.
   const normalizedValues = normalizeFilterValues(values);
 
   if (normalizedValues.length) {
@@ -183,6 +196,7 @@ function appendJoinedValues(
 }
 
 export async function fetchSales(filtersInput: unknown = {}): Promise<Sale[]> {
+  // Detailed rows endpoint used for agent/department aggregation in UI.
   const filters = isSalesFilters(filtersInput) ? filtersInput : {};
   const query: Record<string, string | number> = {};
 
@@ -206,6 +220,7 @@ export async function fetchSales(filtersInput: unknown = {}): Promise<Sale[]> {
 
   const rows = extractRows(payload.data ?? payload);
 
+  // Keep only valid records with a date to avoid empty/technical rows in UI.
   return rows
     .filter(
       (row): row is MaybeObject => typeof row === 'object' && row !== null
@@ -215,22 +230,27 @@ export async function fetchSales(filtersInput: unknown = {}): Promise<Sale[]> {
 }
 export interface SalesSummaryRow {
   tm: string;
+  quantity?: number;
   stores: number;
   weight: number;
   amount: number;
+  sku?: number;
 }
 
 export interface SalesSummaryResponse {
   data: SalesSummaryRow[];
   totals: {
+    quantity?: number;
     stores: number;
     weight: number;
     amount: number;
+    sku?: number;
   };
 }
 export async function fetchSalesSummary(
   filtersInput: unknown = {}
 ): Promise<SalesSummaryResponse> {
+  // Summary endpoint used by brand-level totals table.
   const filters = isSalesFilters(filtersInput) ? filtersInput : {};
 
   const query: Record<string, string | number> = {};
@@ -238,6 +258,7 @@ export async function fetchSalesSummary(
   if (filters.search) query.search = filters.search;
   appendJoinedValues(query, 'brands', filters.brands);
   appendJoinedValues(query, 'stores', filters.stores);
+  appendJoinedValues(query, 'products', filters.products);
   appendJoinedValues(query, 'agent', filters.agent);
   appendJoinedValues(query, 'department', filters.department);
   if (filters.storeSearch) query.storeSearch = filters.storeSearch;
@@ -249,9 +270,11 @@ export async function fetchSalesSummary(
     success: boolean;
     data: SalesSummaryRow[];
     totals: {
+      quantity?: number | string;
       stores: number | string;
       weight: number | string;
       amount: number | string;
+      sku?: number | string;
     };
   }>('/api/sales/summary', {
     authenticated: true,
@@ -259,16 +282,21 @@ export async function fetchSalesSummary(
   });
 
   return {
+    // Normalize numeric fields because backend may send strings.
     data: payload.data.map(item => ({
       ...item,
+      quantity: Number(item.quantity ?? 0),
       stores: Number(item.stores),
       weight: Number(item.weight),
       amount: Number(item.amount),
+      sku: Number(item.sku ?? 0),
     })),
     totals: {
+      quantity: Number(payload.totals.quantity ?? 0),
       stores: Number(payload.totals.stores),
       weight: Number(payload.totals.weight),
       amount: Number(payload.totals.amount),
+      sku: Number(payload.totals.sku ?? 0),
     },
   };
 }
@@ -283,12 +311,14 @@ export interface SalesStoreRow {
 export async function fetchSalesStores(
   filtersInput: unknown = {}
 ): Promise<SalesStoreRow[]> {
+  // Store-level aggregation endpoint.
   const filters = isSalesFilters(filtersInput) ? filtersInput : {};
 
   const query: Record<string, string | number> = {};
 
   appendJoinedValues(query, 'brands', filters.brands);
   appendJoinedValues(query, 'stores', filters.stores);
+  appendJoinedValues(query, 'products', filters.products);
   if (filters.storeSearch) query.storeSearch = filters.storeSearch;
 
   appendJoinedValues(query, 'agent', filters.agent);
@@ -304,6 +334,7 @@ export async function fetchSalesStores(
     query,
   });
 
+  // Force numeric types for table math and totals.
   return payload.data.map(item => ({
     ...item,
     sum: Number(item.sum),
@@ -320,12 +351,14 @@ export interface SalesProductRow {
 export async function fetchSalesProducts(
   filtersInput: unknown = {}
 ): Promise<SalesProductRow[]> {
+  // Product-level aggregation endpoint.
   const filters = isSalesFilters(filtersInput) ? filtersInput : {};
 
   const query: Record<string, string | number> = {};
 
   appendJoinedValues(query, 'brands', filters.brands);
   appendJoinedValues(query, 'stores', filters.stores);
+  appendJoinedValues(query, 'products', filters.products);
   if (filters.storeSearch) query.storeSearch = filters.storeSearch;
 
   appendJoinedValues(query, 'agent', filters.agent);
@@ -341,6 +374,7 @@ export async function fetchSalesProducts(
     query,
   });
 
+  // Force numeric types for table math and totals.
   return payload.data.map(item => ({
     ...item,
     quantity: Number(item.quantity),
@@ -359,12 +393,14 @@ export interface SalesDateRow {
 export async function fetchSalesDates(
   filtersInput: unknown = {}
 ): Promise<SalesDateRow[]> {
+  // Date-level aggregation endpoint.
   const filters = isSalesFilters(filtersInput) ? filtersInput : {};
 
   const query: Record<string, string | number> = {};
 
   appendJoinedValues(query, 'brands', filters.brands);
   appendJoinedValues(query, 'stores', filters.stores);
+  appendJoinedValues(query, 'products', filters.products);
   if (filters.storeSearch) query.storeSearch = filters.storeSearch;
 
   appendJoinedValues(query, 'agent', filters.agent);
@@ -380,6 +416,7 @@ export async function fetchSalesDates(
     query,
   });
 
+  // Force numeric types for table math and totals.
   return payload.data.map(item => ({
     ...item,
     sum: Number(item.sum),
@@ -391,12 +428,14 @@ export async function fetchSalesDates(
 export async function fetchSalesHierarchy(
   filtersInput: unknown = {}
 ): Promise<unknown[]> {
+  // Raw hierarchy endpoint (shape is backend-defined, consumed by specialized UI).
   const filters = isSalesFilters(filtersInput) ? filtersInput : {};
 
   const query: Record<string, string | number> = {};
 
   appendJoinedValues(query, 'brands', filters.brands);
   appendJoinedValues(query, 'stores', filters.stores);
+  appendJoinedValues(query, 'products', filters.products);
   if (filters.storeSearch) query.storeSearch = filters.storeSearch;
 
   appendJoinedValues(query, 'agent', filters.agent);
@@ -426,6 +465,7 @@ export type SalesFiltersResponse = {
 export const fetchSalesFilters = async (
   filtersInput: unknown = {}
 ): Promise<SalesFiltersResponse> => {
+  // Returns dynamic filter dictionaries based on already selected constraints.
   const filters = isSalesFilters(filtersInput) ? filtersInput : {};
 
   const query: Record<string, string | number> = {};

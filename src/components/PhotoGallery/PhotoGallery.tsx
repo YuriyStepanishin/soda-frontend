@@ -10,7 +10,7 @@ import {
   normalizePhotoUrls,
   type Report,
 } from '../../api/fetchReports';
-import { fetchSales } from '../../api/fetchSales';
+import { fetchSales } from '../../api/fetchOlgatorgSales';
 import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
 import Popup from '../Popup/Popup';

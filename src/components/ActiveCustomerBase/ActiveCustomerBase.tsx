@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchSales, type Sale } from '../../api/fetchSales';
-import { fetchRoutes, type RouteRow } from '../../api/fetchRoutes';
+import { fetchSales, type Sale } from '../../api/fetchOlgatorgSales';
+import { fetchRoutes, type RouteRow } from '../../api/fetchOlgatorgRoutes';
 import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
 import SearchInput from '../SearchInput';

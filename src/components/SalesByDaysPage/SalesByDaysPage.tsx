@@ -1,6 +1,6 @@
 import { Fragment, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchSales, type Sale } from '../../api/fetchSales';
+import { fetchSales, type Sale } from '../../api/fetchOlgatorgSales';
 import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
 
@@ -124,6 +124,86 @@ function normalizeBrandValue(value: string): string {
 
 function isDeliciaBrand(brand: string): boolean {
   return normalizeBrandValue(brand) === normalizeBrandValue('Деліція');
+}
+
+function SalesFilter({
+  departments,
+  agents,
+  department,
+  agent,
+  dateFrom,
+  dateTo,
+  onChangeDepartment,
+  onChangeAgent,
+  onChangeDateFrom,
+  onChangeDateTo,
+}: {
+  departments: string[];
+  agents: string[];
+  department: string;
+  agent: string;
+  dateFrom: string;
+  dateTo: string;
+  onChangeDepartment: (value: string) => void;
+  onChangeAgent: (value: string) => void;
+  onChangeDateFrom: (value: string) => void;
+  onChangeDateTo: (value: string) => void;
+}) {
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gap: 12,
+        marginBottom: 12,
+      }}
+    >
+      <label style={{ display: 'grid', gap: 6 }}>
+        <span style={{ fontSize: 12, color: '#cfe1ff' }}>Відділ</span>
+        <select
+          value={department}
+          onChange={e => onChangeDepartment(e.target.value)}
+        >
+          <option value="">Усі відділи</option>
+          {departments.map(item => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label style={{ display: 'grid', gap: 6 }}>
+        <span style={{ fontSize: 12, color: '#cfe1ff' }}>ТП</span>
+        <select value={agent} onChange={e => onChangeAgent(e.target.value)}>
+          <option value="">Усі ТП</option>
+          {agents.map(item => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label style={{ display: 'grid', gap: 6 }}>
+        <span style={{ fontSize: 12, color: '#cfe1ff' }}>Дата від</span>
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={e => onChangeDateFrom(e.target.value)}
+        />
+      </label>
+
+      <label style={{ display: 'grid', gap: 6 }}>
+        <span style={{ fontSize: 12, color: '#cfe1ff' }}>Дата до</span>
+        <input
+          type="date"
+          value={dateTo}
+          onChange={e => onChangeDateTo(e.target.value)}
+        />
+      </label>
+    </div>
+  );
 }
 
 export default function SalesByDaysPage({ onBack }: { onBack: () => void }) {

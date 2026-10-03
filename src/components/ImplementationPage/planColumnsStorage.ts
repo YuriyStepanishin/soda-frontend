@@ -1,4 +1,4 @@
-import type { Sale } from '../../api/fetchSales';
+import type { Sale } from '../../api/fetchOlgatorgSales';
 import { canUserSeeBrand } from '../../config/userRoles';
 import {
   fetchPlanColumns,

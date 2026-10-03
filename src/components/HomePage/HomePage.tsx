@@ -1,6 +1,7 @@
 import DateTime from '../DateTime/DateTime';
 import styles from './HomePage.module.css';
 
+// Home dashboard menu: exposes only actions/features allowed for current user role.
 type MenuItem = {
   key: string;
   label: string;
@@ -15,6 +16,9 @@ interface Props {
   onOpenBonus: () => void;
   onOpenGallery: () => void;
   onOpenSales: () => void;
+  activeDatabase: 'olgatorg' | 'laska';
+  canSwitchDatabase: boolean;
+  onToggleDatabase: () => void;
   onOpenRouteHistory: () => void;
   onOpenActiveCustomerBase: () => void;
   onOpenImplementation: () => void;
@@ -41,6 +45,9 @@ export default function HomePage({
   onOpenBonus,
   onOpenGallery,
   onOpenSales,
+  activeDatabase,
+  canSwitchDatabase,
+  onToggleDatabase,
   onOpenRouteHistory,
   onOpenActiveCustomerBase,
   onOpenImplementation,
@@ -84,7 +91,7 @@ export default function HomePage({
       label: 'Фотогалерея',
       icon: withVersion('/icons/gallery-icon-64.svg'),
       onClick: onOpenGallery,
-      visible: canOpenGallery,
+      visible: activeDatabase === 'olgatorg' && canOpenGallery,
     },
     {
       key: 'sales-by-days',
@@ -98,7 +105,7 @@ export default function HomePage({
       label: 'Цілі маршрута',
       icon: withVersion('/icons/calendar-icon-64.svg'),
       onClick: onOpenActiveCustomerBase,
-      visible: canOpenActiveCustomerBase,
+      visible: activeDatabase === 'olgatorg' && canOpenActiveCustomerBase,
     },
     {
       key: 'messages',
@@ -106,28 +113,28 @@ export default function HomePage({
       icon: withVersion('/icons/message-icon-64.svg'),
       onClick: onOpenMessages,
       badge: unreadMessagesCount > 0 ? unreadMessagesCount : null,
-      visible: canOpenMessages,
+      visible: activeDatabase === 'olgatorg' && canOpenMessages,
     },
     {
       key: 'implementation',
       label: 'Виконання показників',
       icon: withVersion('/icons/implementation.svg'),
       onClick: onOpenImplementation,
-      visible: canOpenImplementation,
+      visible: activeDatabase === 'olgatorg' && canOpenImplementation,
     },
     {
       key: 'store-check-review',
       label: 'Перегляд StoreCheck',
       icon: withVersion('/icons/storecheck.svg'),
       onClick: onOpenStoreCheckReview,
-      visible: canOpenStoreCheckReview,
+      visible: activeDatabase === 'olgatorg' && canOpenStoreCheckReview,
     },
     {
       key: 'plan-targets',
       label: 'Планові показники',
       icon: withVersion('/icons/icons_planning.svg'),
       onClick: onOpenPlanTargets,
-      visible: canOpenPlanTargets,
+      visible: activeDatabase === 'olgatorg' && canOpenPlanTargets,
     },
   ];
 
@@ -137,21 +144,21 @@ export default function HomePage({
       label: 'Додавання фотозвіту',
       icon: withVersion('/icons/camera-icon-64.svg'),
       onClick: onOpenBonus,
-      visible: canOpenBonusReport,
+      visible: activeDatabase === 'olgatorg' && canOpenBonusReport,
     },
     {
       key: 'display',
       label: 'Додавання фотозвіту для Акція на представленність',
       icon: withVersion('/icons/promo-icon-64.svg'),
       onClick: onOpenDisplay,
-      visible: canOpenDisplayReport,
+      visible: activeDatabase === 'olgatorg' && canOpenDisplayReport,
     },
     {
       key: 'store-check',
       label: 'Додавання StoreCheck',
       icon: withVersion('/icons/storecheck.svg'),
       onClick: onOpenStoreCheck,
-      visible: canOpenStoreCheck,
+      visible: activeDatabase === 'olgatorg' && canOpenStoreCheck,
     },
   ];
 
@@ -193,6 +200,18 @@ export default function HomePage({
             <span className={styles.brandSub}>Головна панель</span>
           </div>
         </div>
+
+        {canSwitchDatabase ? (
+          <button
+            type="button"
+            className={styles.databaseSwitcher}
+            onClick={onToggleDatabase}
+            title="Перемкнути базу даних"
+          >
+            <span>База для роботи</span>
+            <strong>{activeDatabase === 'laska' ? 'LASKA' : 'OLGATORG'}</strong>
+          </button>
+        ) : null}
 
         <p className={styles.sidebarTitle}>Розділи</p>
         <div className={styles.topGroup}>

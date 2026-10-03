@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchSales, type Sale } from '../../api/fetchSales';
-import { fetchRoutes, type RouteRow } from '../../api/fetchRoutes';
+import { fetchSales, type Sale } from '../../api/fetchOlgatorgSales';
+import { fetchLaskaSales } from '../../api/fetchLaskaSales';
 import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
 import SearchInput from '../SearchInput';
@@ -15,6 +15,7 @@ import styles from './RouteHistoryPage.module.css';
 
 type Props = {
   onBack: () => void;
+  database: 'olgatorg' | 'laska';
 };
 
 type ProductRow = {
@@ -106,29 +107,6 @@ function normalizeWeekendToFriday(date: Date): Date {
   return date;
 }
 
-function getIsoWeekday(date: Date): number {
-  const day = date.getDay();
-  return day === 0 ? 7 : day;
-}
-
-function normalizeValue(value: string): string {
-  return value
-    .replace(/[\u2019\u02BC'`]/g, '')
-    .replace(/\u00A0/g, ' ')
-    .trim()
-    .replace(/\s+/g, ' ')
-    .toLocaleLowerCase('uk-UA');
-}
-
-function getRouteDayLabel(date: Date): string {
-  const weekday = getIsoWeekday(date);
-  if (weekday === 1) return 'понеділок';
-  if (weekday === 2) return 'вівторок';
-  if (weekday === 3) return 'середа';
-  if (weekday === 4) return 'четвер';
-  return 'пʼятниця';
-}
-
 function getIsoWeekInfo(date: Date): { year: number; week: number } {
   const utcDate = new Date(
     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
@@ -162,7 +140,31 @@ function getDateLabel(date: Date): string {
   return `${shortDate} (${weekday})`;
 }
 
-export default function RouteHistoryPage({ onBack }: Props) {
+function formatIsoDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function mapLaskaSaleToHistorySale(
+  row: Awaited<ReturnType<typeof fetchLaskaSales>>[number]
+): Sale {
+  return {
+    місяць: row.date,
+    дата: row.date,
+    бренд: row.tm,
+    товар: row.product,
+    вага: row.weight,
+    кількість: row.quantity,
+    сума: row.amount,
+    точка: row.store,
+    адреса: row.address,
+    агент: row.ta,
+    відділ: row.department,
+    торгова_точка: row.store,
+    джерело: 'laska',
+  };
+}
+
+export default function RouteHistoryPage({ onBack, database }: Props) {
   const authEmail = getCurrentAuthorizedEmail();
   const userRole = getUserRole(authEmail);
   const ownRepresentative = getUserRepresentative(authEmail);
@@ -177,27 +179,38 @@ export default function RouteHistoryPage({ onBack }: Props) {
   const [agent, setAgent] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedStore, setExpandedStore] = useState<string | null>(null);
-
-  const {
-    data = [],
-    isLoading,
-    error,
-  } = useQuery<Sale[]>({
-    queryKey: queryKeys.sales,
-    queryFn: fetchSales,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const { data: routes = [], isLoading: isRoutesLoading } = useQuery<
-    RouteRow[]
-  >({
-    queryKey: queryKeys.routes,
-    queryFn: fetchRoutes,
-    staleTime: 1000 * 60 * 5,
-  });
+  const [periodMode, setPeriodMode] = useState<'weeks' | 'months'>('weeks');
 
   const today = useMemo(() => normalizeWeekendToFriday(getKyivDateNow()), []);
-  const currentRouteDay = useMemo(() => getRouteDayLabel(today), [today]);
+  const historyFrom = useMemo(
+    () =>
+      periodMode === 'months'
+        ? new Date(today.getFullYear(), today.getMonth() - 4, 1)
+        : shiftDays(today, -35),
+    [periodMode, today]
+  );
+  const historyQuery = useMemo(
+    () => ({
+      dateFrom: formatIsoDate(historyFrom),
+      dateTo: formatIsoDate(today),
+    }),
+    [historyFrom, today]
+  );
+
+  const salesQuery = useQuery<Sale[]>({
+    queryKey: [...queryKeys.sales, 'route-history', database, historyQuery],
+    queryFn: async () => {
+      if (database === 'laska') {
+        const rows = await fetchLaskaSales(historyQuery);
+        return rows.map(mapLaskaSaleToHistorySale);
+      }
+
+      return fetchSales(historyQuery);
+    },
+    staleTime: 0,
+    refetchOnMount: 'always',
+  });
+  const { data = [], isLoading, error } = salesQuery;
 
   const uniqueDepartments = useMemo(
     () => [...new Set(data.map(item => item.відділ).filter(Boolean))].sort(),
@@ -235,52 +248,56 @@ export default function RouteHistoryPage({ onBack }: Props) {
     });
   }, [data, department, agent, searchTerm, authEmail]);
 
-  const weekKeys = useMemo(() => {
+  const periodKeys = useMemo(() => {
     const keys: string[] = [];
 
     for (let offset = 1; offset <= 4; offset += 1) {
-      const date = shiftDays(today, -offset * 7);
-      const info = getIsoWeekInfo(date);
-      keys.push(`${info.year}-W${String(info.week).padStart(2, '0')}`);
+      if (periodMode === 'weeks') {
+        const date = shiftDays(today, -offset * 7);
+        const info = getIsoWeekInfo(date);
+        keys.push(`${info.year}-W${String(info.week).padStart(2, '0')}`);
+      } else {
+        const date = new Date(
+          today.getFullYear(),
+          today.getMonth() - offset,
+          1
+        );
+        keys.push(
+          `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        );
+      }
     }
 
     return keys;
-  }, [today]);
+  }, [periodMode, today]);
 
-  const weekIndexMap = useMemo(() => {
+  const periodIndexMap = useMemo(() => {
     const indexMap = new Map<string, number>();
-    weekKeys.forEach((key, index) => indexMap.set(key, index));
+    periodKeys.forEach((key, index) => indexMap.set(key, index));
     return indexMap;
-  }, [weekKeys]);
+  }, [periodKeys]);
 
-  const weekNumbers = useMemo(
+  const periodLabels = useMemo(
     () =>
-      weekKeys.map(key => {
-        const [, weekPart = ''] = key.split('-W');
-        if (!weekPart) return '-';
-
-        const parsed = Number(weekPart);
-        return Number.isFinite(parsed) ? String(parsed) : weekPart;
+      periodKeys.map(key => {
+        if (periodMode === 'months') {
+          const [year, month] = key.split('-');
+          return `${month}.${year}`;
+        }
+        return key.split('-W')[1] ?? '-';
       }),
-    [weekKeys]
+    [periodKeys, periodMode]
   );
 
   const routeStores = useMemo(() => {
-    const stores = new Set<string>();
-    const allowedStores = new Set(filtered.map(item => item.торгова_точка));
-    const query = searchTerm.trim().toLowerCase();
-    const normalizedRouteDay = normalizeValue(currentRouteDay);
-
-    routes.forEach(item => {
-      if (normalizeValue(item.day) !== normalizedRouteDay) return;
-      if (!allowedStores.has(item.store)) return;
-      if (query && !item.store.toLowerCase().includes(query)) return;
-
-      stores.add(item.store);
-    });
+    const stores = new Set(
+      filtered
+        .map(item => item.торгова_точка)
+        .filter((store): store is string => Boolean(store))
+    );
 
     return Array.from(stores).sort((a, b) => storeNameCollator.compare(a, b));
-  }, [routes, filtered, currentRouteDay, searchTerm, storeNameCollator]);
+  }, [filtered, storeNameCollator]);
 
   const visibleBrands = useMemo(() => {
     const normalized = (value: string) =>
@@ -324,9 +341,14 @@ export default function RouteHistoryPage({ onBack }: Props) {
       const effectiveDate = getEffectiveDate(item);
       if (!effectiveDate) return;
 
-      const weekInfo = getIsoWeekInfo(effectiveDate);
-      const weekKey = `${weekInfo.year}-W${String(weekInfo.week).padStart(2, '0')}`;
-      const weekIndex = weekIndexMap.get(weekKey);
+      const periodKey =
+        periodMode === 'months'
+          ? `${effectiveDate.getFullYear()}-${String(effectiveDate.getMonth() + 1).padStart(2, '0')}`
+          : (() => {
+              const weekInfo = getIsoWeekInfo(effectiveDate);
+              return `${weekInfo.year}-W${String(weekInfo.week).padStart(2, '0')}`;
+            })();
+      const weekIndex = periodIndexMap.get(periodKey);
 
       if (weekIndex === undefined) return;
 
@@ -397,7 +419,7 @@ export default function RouteHistoryPage({ onBack }: Props) {
         hasHistory: totals.some(value => value !== 0),
       };
     });
-  }, [filtered, routeStores, weekIndexMap, visibleBrands]);
+  }, [filtered, periodIndexMap, periodMode, routeStores, visibleBrands]);
 
   const summary = useMemo(() => {
     const withoutHistory = storeHistory.filter(item => !item.hasHistory).length;
@@ -415,9 +437,6 @@ export default function RouteHistoryPage({ onBack }: Props) {
   const formatHistoryCell = (value: number) =>
     value === 0 ? '-' : formatQty(value);
 
-  if (isLoading || isRoutesLoading) return <Loader />;
-  if (error) return <div className={styles.error}>Помилка</div>;
-
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -427,7 +446,58 @@ export default function RouteHistoryPage({ onBack }: Props) {
         </p>
       </header>
 
+      {isLoading && <Loader />}
+
+      {error && (
+        <div className={styles.error} role="alert">
+          <p>
+            Не вдалося завантажити історію продажів
+            {error instanceof Error ? `: ${error.message}` : '.'}
+          </p>
+          <button type="button" onClick={() => void salesQuery.refetch()}>
+            Повторити запит
+          </button>
+        </div>
+      )}
+
       <section className={styles.filtersCard}>
+        <div className={styles.field}>
+          <span>Період історії</span>
+          <div
+            className={styles.periodToggle}
+            role="group"
+            aria-label="Період історії"
+          >
+            <button
+              type="button"
+              className={
+                periodMode === 'weeks'
+                  ? styles.periodToggleActive
+                  : styles.periodToggleButton
+              }
+              onClick={() => {
+                setPeriodMode('weeks');
+                setExpandedStore(null);
+              }}
+            >
+              4 тижні
+            </button>
+            <button
+              type="button"
+              className={
+                periodMode === 'months'
+                  ? styles.periodToggleActive
+                  : styles.periodToggleButton
+              }
+              onClick={() => {
+                setPeriodMode('months');
+                setExpandedStore(null);
+              }}
+            >
+              4 місяці
+            </button>
+          </div>
+        </div>
         <label className={styles.field}>
           <span>Пошук ТТ</span>
           <SearchInput
@@ -497,6 +567,11 @@ export default function RouteHistoryPage({ onBack }: Props) {
       </section>
 
       <section className={styles.routeList}>
+        {!isLoading && !error && storeHistory.length === 0 && (
+          <p className={styles.emptyState}>
+            За вибраний період продажів не знайдено.
+          </p>
+        )}
         {storeHistory.map(store => {
           const isOpen = expandedStore === store.store;
           const nextExpanded = isOpen ? null : store.store;
@@ -527,9 +602,9 @@ export default function RouteHistoryPage({ onBack }: Props) {
                       <thead>
                         <tr>
                           <th>Товар</th>
-                          {weekNumbers.map((weekNumber, index) => (
+                          {periodLabels.map((periodLabel, index) => (
                             <th key={`${store.store}-week-${index}`}>
-                              {weekNumber}
+                              {periodLabel}
                             </th>
                           ))}
                         </tr>
@@ -607,7 +682,7 @@ export default function RouteHistoryPage({ onBack }: Props) {
 
                           {!brand.isEmpty && (
                             <span className={styles.mobileWeekHeader}>
-                              {weekNumbers.join(' | ')}
+                              {periodLabels.join(' | ')}
                             </span>
                           )}
                         </div>

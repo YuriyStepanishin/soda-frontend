@@ -1,73 +1,54 @@
-# React + TypeScript + Vite
+# SODA Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Фронтенд-застосунок для польової команди: фотозвіти, продажі, маршрути,
+повідомлення, планові показники.
 
-Currently, two official plugins are available:
+## Запуск
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Хто за що відповідає
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `src/main.tsx`: точка входу, підключає Router і React Query провайдери.
+- `src/App.tsx`: головний координатор флоу (авторизація, доступи за ролями,
+  перемикання екранів).
+- `src/api/config.ts`: базовий URL API та ключі сесії в localStorage.
+- `src/api/client.ts`: універсальний HTTP-клієнт (`GET`, `POST JSON`,
+  `POST FormData`) + обробка помилок.
+- `src/api/auth.ts`: логін, відновлення/очищення сесії, нормалізація ролей із
+  бекенду.
+- `src/api/fetchSales.ts`: адаптер продажів (серіалізація фільтрів, нормалізація
+  полів, агрегаційні ендпоінти).
+- `src/hooks/*`: повторно-використовувана логіка стану і поведінки (фільтри,
+  повідомлення, геолокація).
+- `src/config/*`: правила доступу, ролі, feature-флаги.
+- `src/components/HomePage/*`: головне меню і вхід у розділи.
+- `src/components/StoreSelector/*`: вибір відділу/ТП/точки перед створенням
+  звіту.
+- `src/components/SalesPage/*`: екран аналітики продажів (фільтри, таблиці,
+  деталізація).
+- `src/components/InfoBoardPage/*`: дошка повідомлень.
+- `src/components/PlanTargetsPage/*`: планові показники.
+- `src/components/StoreCheckPage/*`, `src/components/StoreCheckReviewPage/*`:
+  створення і перевірка StoreCheck.
+- `src/components/PhotoReport/*`, `src/components/ShowcasePromotion/*`,
+  `src/components/PhotoUpload/*`: створення фотозвітів і завантаження фото.
+- `src/utils/*`: утиліти, наприклад експорт у Excel.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Структура даних і доступів (коротко)
+
+- Авторизація: токен зберігається в localStorage і автоматично додається в
+  API-запити.
+- Ролі: бекенд-ролі мапляться у фронтові (`admin`, `supervisor`, `agent`).
+- Доступ до розділів: перевіряється в `App.tsx` через `canAccessSection` і
+  `backendFeatures`.
+- Дані продажів: React Query кешує і перевикористовує відповіді; `SalesPage`
+  обирає режим агрегації (бренд/ТТ/відділ/агент).
+
+## Нотатка для розробки
+
+У ключових файлах уже додані короткі коментарі по відповідальності модулів, щоб
+швидко входити в кодову базу без зайвого читання.

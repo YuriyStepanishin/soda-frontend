@@ -1,4 +1,4 @@
-import { fetchSales } from './fetchSales';
+import { fetchSales } from './fetchOlgatorgSales';
 
 export type StoreSelectorSource = 'sales' | 'bonus';
 

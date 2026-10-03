@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Select, { type MultiValue } from 'react-select';
-import { fetchSales, type Sale } from '../../api/fetchSales';
+import { fetchSales, type Sale } from '../../api/fetchOlgatorgSales';
 import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
 import Popup from '../Popup/Popup';

@@ -1,6 +1,12 @@
 import type { UserRole } from './allowedEmails';
 import { getAuthSession, normalizeRole } from '../api/auth';
 
+export const SUPERADMIN_EMAIL = 'y.stepanishin@gmail.com';
+
+export function isSuperAdminEmail(email: string | null): boolean {
+  return email?.trim().toLowerCase() === SUPERADMIN_EMAIL;
+}
+
 export type AppSection =
   | 'display-report'
   | 'bonus-report'

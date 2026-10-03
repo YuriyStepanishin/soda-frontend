@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { Sale } from '../api/fetchSales';
+import type { Sale } from '../api/fetchOlgatorgSales';
 
 type BrandRow = {
   brand: string;

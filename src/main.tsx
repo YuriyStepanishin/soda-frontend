@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import './index.css';
 
+// Shared query client for all screens: controls caching, retries, and stale data strategy.
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -23,6 +24,7 @@ const queryClient = new QueryClient({
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
+  // Provider stack: router for navigation, React Query for server state.
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
       <App />

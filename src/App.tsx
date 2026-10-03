@@ -15,6 +15,9 @@ const PhotoGallery = lazy(
   () => import('./components/PhotoGallery/PhotoGallery')
 );
 const SalesPage = lazy(() => import('./components/SalesPage/SalesPage'));
+const LaskaSalesPage = lazy(
+  () => import('./components/LaskaSalesPage/LaskaSalesPage')
+);
 const SalesByDaysPage = lazy(
   () => import('./components/SalesByDaysPage/SalesByDaysPage')
 );
@@ -51,15 +54,21 @@ import {
   getUserDepartment,
   getUserRole,
   getRoleLabel,
+  isSuperAdminEmail,
   type AppSection,
 } from './config/userRoles';
 import { backendFeatures } from './config/backendFeatures';
 
+// App is the top-level flow coordinator:
+// - keeps auth and navigation state
+// - enforces role/feature access
+// - routes user to page-level lazy modules
 export default function App() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState<
     | 'home'
     | 'sales'
+    | 'laska-sales'
     | 'sales-by-days'
     | 'route-history'
     | 'active-customer-base'
@@ -71,6 +80,9 @@ export default function App() {
   >('home');
   const [email, setEmail] = useState<string | null>(
     () => getAuthSession()?.email ?? null
+  );
+  const [activeDatabase, setActiveDatabase] = useState<'olgatorg' | 'laska'>(
+    'olgatorg'
   );
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(() => !email);
   const [showStoreSelector, setShowStoreSelector] = useState(false);
@@ -92,6 +104,7 @@ export default function App() {
   } | null>(null);
 
   function resetToHome() {
+    // Reset all transient flow states when returning to dashboard.
     setPage('home');
     setShowStoreSelector(false);
     setReportType(null);
@@ -100,12 +113,14 @@ export default function App() {
   }
 
   function handleLogin(nextEmail: string) {
+    // Save user identity and refresh cached queries for newly authorized scope.
     setEmail(nextEmail);
     void queryClient.invalidateQueries();
     setIsUserMenuOpen(false);
   }
 
   function handleLogout() {
+    // Full sign-out: drop auth storage and clear client-side cached data.
     clearAuthSession();
     setEmail(null);
     void queryClient.clear();
@@ -114,19 +129,27 @@ export default function App() {
   }
 
   function runProtectedAction(action: () => void, section?: AppSection) {
+    // Centralized gate for auth + role checks before opening protected sections.
     if (!email) {
+      // If guest tries protected action, open login panel instead.
       setIsUserMenuOpen(true);
       return;
     }
 
     if (section && !canAccess(section)) {
+      // Silently block sections unavailable for current role.
       return;
     }
 
     action();
   }
 
-  if (showGallery && canAccess('gallery') && backendFeatures.gallery) {
+  if (
+    showGallery &&
+    activeDatabase === 'olgatorg' &&
+    canAccess('gallery') &&
+    backendFeatures.gallery
+  ) {
     return (
       <>
         <Suspense fallback={<Loader />}>
@@ -148,7 +171,15 @@ export default function App() {
     );
   }
 
-  if (page === 'sales-by-days' && canAccess('sales')) {
+  if (page === 'laska-sales' && isSuperAdminEmail(email)) {
+    return (
+      <Suspense fallback={<Loader />}>
+        <LaskaSalesPage onBack={() => setPage('home')} />
+      </Suspense>
+    );
+  }
+
+  if (page === 'sales-by-days' && activeDatabase === 'olgatorg' && canAccess('sales')) {
     return (
       <>
         <Suspense fallback={<Loader />}>
@@ -162,13 +193,20 @@ export default function App() {
     return (
       <>
         <Suspense fallback={<Loader />}>
-          <RouteHistoryPage onBack={() => setPage('home')} />
+          <RouteHistoryPage
+            onBack={() => setPage('home')}
+            database={activeDatabase}
+          />
         </Suspense>
       </>
     );
   }
 
-  if (page === 'active-customer-base' && canAccess('active-customer-base')) {
+  if (
+    page === 'active-customer-base' &&
+    activeDatabase === 'olgatorg' &&
+    canAccess('active-customer-base')
+  ) {
     return (
       <>
         <Suspense fallback={<Loader />}>
@@ -178,7 +216,11 @@ export default function App() {
     );
   }
 
-  if (page === 'implementation' && canAccess('implementation')) {
+  if (
+    page === 'implementation' &&
+    activeDatabase === 'olgatorg' &&
+    canAccess('implementation')
+  ) {
     return (
       <>
         <Suspense fallback={<Loader />}>
@@ -188,7 +230,11 @@ export default function App() {
     );
   }
 
-  if (page === 'store-check' && backendFeatures.storeCheckCreate) {
+  if (
+    page === 'store-check' &&
+    activeDatabase === 'olgatorg' &&
+    backendFeatures.storeCheckCreate
+  ) {
     return (
       <>
         <Suspense fallback={<Loader />}>
@@ -198,7 +244,11 @@ export default function App() {
     );
   }
 
-  if (page === 'store-check-review' && backendFeatures.storeCheckReview) {
+  if (
+    page === 'store-check-review' &&
+    activeDatabase === 'olgatorg' &&
+    backendFeatures.storeCheckReview
+  ) {
     return (
       <>
         <Suspense fallback={<Loader />}>
@@ -210,6 +260,7 @@ export default function App() {
 
   if (
     page === 'plan-targets' &&
+    activeDatabase === 'olgatorg' &&
     canAccess('plan-targets') &&
     backendFeatures.planTargets
   ) {
@@ -224,6 +275,7 @@ export default function App() {
 
   if (
     page === 'messages' &&
+    activeDatabase === 'olgatorg' &&
     email &&
     canAccess('messages') &&
     backendFeatures.messages
@@ -263,7 +315,20 @@ export default function App() {
               runProtectedAction(() => setShowGallery(true), 'gallery')
             }
             onOpenSales={() =>
-              runProtectedAction(() => setPage('sales'), 'sales')
+              runProtectedAction(
+                () =>
+                  setPage(
+                    activeDatabase === 'laska' ? 'laska-sales' : 'sales'
+                  ),
+                'sales'
+              )
+            }
+            activeDatabase={activeDatabase}
+            canSwitchDatabase={isSuperAdminEmail(email)}
+            onToggleDatabase={() =>
+              setActiveDatabase(current =>
+                current === 'laska' ? 'olgatorg' : 'laska'
+              )
             }
             onOpenRouteHistory={() =>
               runProtectedAction(

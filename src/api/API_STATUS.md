@@ -10,11 +10,11 @@
 
 - `auth.ts`: login/session role mapping
 - `client.ts`: shared HTTP/JWT client
-- `fetchSales.ts`: normalized sales list
+- `fetchOlgatorgSales.ts`: normalized OLGATORG sales list
 - `saveReport.ts`: photo uploads
 - `saveStoreCheck.ts`: photo uploads for StoreCheck
-- `fetchRoutes.ts`: route view model derived from sales (no extra endpoint)
-- `fetchStoreSelectorData.ts`: selector data derived from sales
+- `fetchOlgatorgRoutes.ts`: OLGATORG route view model derived from sales (no extra endpoint)
+- `fetchOlgatorgStoreSelectorData.ts`: OLGATORG selector data derived from sales
 
 ## Grouped API entrypoints
 
