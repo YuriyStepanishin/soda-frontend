@@ -65,8 +65,7 @@ export default function LaskaSalesPage({ onBack }: Props) {
     backendFilters,
     options,
     setOptions,
-  } =
-    useSalesFilters();
+  } = useSalesFilters();
   const [metrics, setMetrics] = useState({
     quantity: true,
     weight: true,
@@ -83,10 +82,15 @@ export default function LaskaSalesPage({ onBack }: Props) {
     store: backendFilters.stores[0],
     product: backendFilters.products[0],
   };
-  const { data = [], isLoading, isError } = useQuery({
+  const {
+    data = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['laska-sales', backendFilters],
     queryFn: () => fetchLaskaSales(laskaQueryFilters),
-    enabled: options.showByStore || options.showByDepartment || options.showByAgent,
+    enabled:
+      options.showByStore || options.showByDepartment || options.showByAgent,
     staleTime: 60_000,
   });
   const summaryQuery = useQuery({
@@ -131,13 +135,35 @@ export default function LaskaSalesPage({ onBack }: Props) {
     agents: unique(data.map(row => row.ta)),
     stores: unique(data.map(row => row.store)),
     brands: unique(data.map(row => row.tm)),
+    groups: unique(data.map(row => row.group)),
+    subgroups: [],
     products: unique(data.map(row => row.product)),
   };
   const detailedRows = useMemo(() => {
-    const map = new Map<string, { quantity: number; weight: number; amount: number; sku: number; stores: Set<string> }>();
+    const map = new Map<
+      string,
+      {
+        quantity: number;
+        weight: number;
+        amount: number;
+        sku: number;
+        stores: Set<string>;
+      }
+    >();
     rows.forEach(row => {
-      const key = (options.showByStore ? row.store : options.showByDepartment ? row.department : row.ta) || 'Без назви';
-      const item = map.get(key) ?? { quantity: 0, weight: 0, amount: 0, sku: 0, stores: new Set<string>() };
+      const key =
+        (options.showByStore
+          ? row.store
+          : options.showByDepartment
+            ? row.department
+            : row.ta) || 'Без назви';
+      const item = map.get(key) ?? {
+        quantity: 0,
+        weight: 0,
+        amount: 0,
+        sku: 0,
+        stores: new Set<string>(),
+      };
       item.quantity += row.quantity;
       item.weight += row.weight;
       item.amount += row.amount;
@@ -145,9 +171,15 @@ export default function LaskaSalesPage({ onBack }: Props) {
       item.stores.add(row.store);
       map.set(key, item);
     });
-    return Array.from(map, ([label, item]) => ({ ...item, id: label, label, stores: item.stores.size }));
+    return Array.from(map, ([label, item]) => ({
+      ...item,
+      id: label,
+      label,
+      stores: item.stores.size,
+    }));
   }, [options.showByDepartment, options.showByStore, rows]);
-  const format = (value: number) => new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 2 }).format(value);
+  const format = (value: number) =>
+    new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 2 }).format(value);
 
   return (
     <div className={styles.container}>
@@ -159,7 +191,10 @@ export default function LaskaSalesPage({ onBack }: Props) {
           agents={filterOptions.agents}
           stores={filterOptions.stores}
           brands={filterOptions.brands}
+          groups={filterOptions.groups}
+          subgroups={filterOptions.subgroups}
           products={filterOptions.products}
+          isLaska
           showDepartment
           showAgent
           representativeLabel="LASKA"
@@ -173,25 +208,56 @@ export default function LaskaSalesPage({ onBack }: Props) {
           isMobile={false}
         />
         <div>
-          {summaryQuery.isLoading || hierarchyQuery.isLoading || (isLoading && (options.showByStore || options.showByDepartment || options.showByAgent)) ? <p>Завантаження LASKA...</p> : null}
-          {summaryQuery.isError || hierarchyQuery.isError || isError ? <p>Не вдалося завантажити дані LASKA.</p> : null}
-          {!summaryQuery.isLoading && !summaryQuery.isError && !hierarchyQuery.isLoading && !hierarchyQuery.isError ? (
+          {summaryQuery.isLoading ||
+          hierarchyQuery.isLoading ||
+          (isLoading &&
+            (options.showByStore ||
+              options.showByDepartment ||
+              options.showByAgent)) ? (
+            <p>Завантаження LASKA...</p>
+          ) : null}
+          {summaryQuery.isError || hierarchyQuery.isError || isError ? (
+            <p>Не вдалося завантажити дані LASKA.</p>
+          ) : null}
+          {!summaryQuery.isLoading &&
+          !summaryQuery.isError &&
+          !hierarchyQuery.isLoading &&
+          !hierarchyQuery.isError ? (
             <>
-              <LaskaHierarchyTable rows={hierarchyQuery.data ?? []} format={format} />
-              {options.showByStore || options.showByDepartment || options.showByAgent ? (
+              <LaskaHierarchyTable
+                rows={hierarchyQuery.data ?? []}
+                format={format}
+              />
+              {options.showByStore ||
+              options.showByDepartment ||
+              options.showByAgent ? (
                 <SalesDetailed
                   rows={detailedRows}
-                  totals={{ id: 'total', label: 'Разом', ...summaryData.totals, quantity: summaryData.totals.quantity ?? 0, sku: summaryData.totals.sku ?? 0 }}
+                  totals={{
+                    id: 'total',
+                    label: 'Разом',
+                    ...summaryData.totals,
+                    quantity: summaryData.totals.quantity ?? 0,
+                    sku: summaryData.totals.sku ?? 0,
+                  }}
                   metrics={metrics}
                   format={format}
-                  title={options.showByStore ? 'Деталізація по ТТ' : options.showByDepartment ? 'Деталізація по відділам' : 'Деталізація по ТП'}
+                  title={
+                    options.showByStore
+                      ? 'Деталізація по торговим точкам'
+                      : options.showByDepartment
+                        ? 'Деталізація по відділам'
+                        : 'Деталізація по торговим представникам'
+                  }
                 />
               ) : null}
             </>
           ) : null}
         </div>
       </div>
-      <button type="button" onClick={onBack} className={styles.button}>← Назад</button>
+      <button type="button" onClick={onBack} className={styles.button}>
+        ← Назад
+      </button>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import styles from './ShowcasePromotion.module.css';
 import useGeolocation from '../../hooks/useGeolocation';
 import type { Photo } from '../../types/photo';
 import { db } from '../PhotoUpload/db';
+import { openDatePicker } from '../../utils/openDatePicker';
 
 interface Props {
   storeData: {
@@ -117,6 +118,7 @@ export default function ShowcasePromotion({ storeData, onBack }: Props) {
       <input
         type="date"
         value={startDate}
+        onClick={e => openDatePicker(e.currentTarget)}
         onChange={e => handleStartDate(e.target.value)}
         className={styles.input}
       />

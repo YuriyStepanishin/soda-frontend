@@ -10,6 +10,7 @@ interface Props {
 export default function LoginPage({ onSuccess, embedded = false }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -50,14 +51,24 @@ export default function LoginPage({ onSuccess, embedded = false }: Props) {
         autoComplete="email"
       />
 
-      <input
-        className={styles.input}
-        type="password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        placeholder="Пароль"
-        autoComplete="current-password"
-      />
+      <div className={styles.passwordField}>
+        <input
+          className={styles.input}
+          type={showPassword ? 'text' : 'password'}
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="Пароль"
+          autoComplete="current-password"
+        />
+        <button
+          className={styles.passwordToggle}
+          type="button"
+          onClick={() => setShowPassword(value => !value)}
+          aria-label={showPassword ? 'Сховати пароль' : 'Показати пароль'}
+        >
+          {showPassword ? 'Сховати' : 'Показати'}
+        </button>
+      </div>
 
       <button
         className={styles.button}

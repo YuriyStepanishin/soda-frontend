@@ -1,7 +1,7 @@
 {
   "name": "soda",
   "private": true,
-  "version": "3.0.0",
+  "version": "3.2.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.91.3",
+    "@tanstack/react-table": "^8.21.3",
     "@vitejs/plugin-react": "^5.1.4",
     "browser-image-compression": "^2.0.2",
     "dexie": "^4.3.0",

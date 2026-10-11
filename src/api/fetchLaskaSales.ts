@@ -37,6 +37,8 @@ export type LaskaSalesFilters = {
   tm?: string;
   group?: string;
   subgroup?: string;
+  packing?: string;
+  groupingFields?: string;
 };
 
 type RawRow = Record<string, unknown>;
@@ -80,7 +82,7 @@ export async function fetchLaskaSales(
     if (value) query[key] = value;
   }
 
-  const payload = await apiGet<{ data?: RawRow[] }>('/api/laska/sales', {
+  const payload = await apiGet<{ data?: RawRow[] }>('/api/sales', {
     authenticated: true,
     query,
   });
@@ -102,7 +104,7 @@ export async function fetchLaskaSummary(
   const payload = await apiGet<{
     data: SummaryResponse['data'];
     totals: SummaryResponse['totals'];
-  }>('/api/laska/sales/summary', {
+  }>('/api/sales/summary', {
     authenticated: true,
     query: buildQuery(filters),
   });
@@ -131,18 +133,20 @@ export type LaskaFiltersResponse = {
   agents: string[];
   stores: string[];
   brands: string[];
+  groups: string[];
+  subgroups: string[];
+  packings: string[];
   products: string[];
 };
 
 export async function fetchLaskaFilters(
   filters: LaskaSalesFilters = {}
 ): Promise<LaskaFiltersResponse> {
-  return apiGet<LaskaFiltersResponse>('/api/laska/sales/filters', {
+  return apiGet<LaskaFiltersResponse>('/api/sales/filters', {
     authenticated: true,
     query: buildQuery(filters),
   });
 }
-
 
 export type LaskaHierarchyRow = {
   group: string;
@@ -159,7 +163,7 @@ export async function fetchLaskaHierarchy(
   filters: LaskaSalesFilters = {}
 ): Promise<LaskaHierarchyRow[]> {
   const payload = await apiGet<{ data: LaskaHierarchyRow[] }>(
-    '/api/laska/sales/hierarchy',
+    '/api/sales/hierarchy',
     { authenticated: true, query: buildQuery(filters) }
   );
 

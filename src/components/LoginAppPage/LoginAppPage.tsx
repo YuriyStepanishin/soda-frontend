@@ -5,6 +5,11 @@ interface Props {
   roleLabel?: string;
   departmentLabel?: string;
 
+  activeDatabase: string;
+
+  canSwitchDatabase: boolean;
+  onSelectDatabase: (tenantId: string) => void;
+
   onLogout: () => void;
 
   onOk: () => void;
@@ -12,10 +17,20 @@ interface Props {
   embedded?: boolean;
 }
 
+const TENANTS = [
+  { id: 'olgatorg', name: 'OLGATORG' },
+  { id: 'laska', name: 'LASKA' },
+];
+
 export default function LoginAppPage({
   email,
   roleLabel,
   departmentLabel,
+
+  activeDatabase,
+
+  canSwitchDatabase,
+  onSelectDatabase,
 
   onLogout,
 
@@ -29,13 +44,40 @@ export default function LoginAppPage({
 
       <div>
         <span className={styles.email}>Ви увійшли як:</span>
+
         <div className={styles.email}>{email}</div>
+
         {roleLabel ? (
           <div className={styles.email}>Роль: {roleLabel}</div>
         ) : null}
+
         {departmentLabel ? (
           <div className={styles.email}>Відділ: {departmentLabel}</div>
         ) : null}
+      </div>
+
+      {/* БАЗА ДЛЯ РОБОТИ */}
+      <div className={styles.database}>
+        <span>Компанія:</span>
+
+        {canSwitchDatabase ? (
+          <select
+            className={styles.databaseSelect}
+            value={activeDatabase}
+            onChange={event => onSelectDatabase(event.target.value)}
+          >
+            {TENANTS.map(tenant => (
+              <option key={tenant.id} value={tenant.id}>
+                {tenant.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <strong>
+            {TENANTS.find(tenant => tenant.id === activeDatabase)?.name ??
+              activeDatabase}
+          </strong>
+        )}
       </div>
 
       <div className={styles.info}>

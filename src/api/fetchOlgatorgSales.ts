@@ -8,6 +8,9 @@ export type Sale = {
   місяць: string;
   дата: string;
   бренд: string;
+  група?: string;
+  підгрупа?: string;
+  фасовка?: string;
   товар: string;
   вага: number;
   кількість: number;
@@ -111,6 +114,24 @@ function normalizeSale(raw: MaybeObject): Sale {
 
     бренд: cleanText(getFirstPresent(raw, ['бренд', 'ТМ', 'tm'])),
 
+    група: cleanText(
+      getFirstPresent(raw, ['група', 'Група', 'группа', 'Группа', 'group'])
+    ),
+
+    підгрупа: cleanText(
+      getFirstPresent(raw, [
+        'підгрупа',
+        'Підгрупа',
+        'подгруппа',
+        'Подгруппа',
+        'subgroup',
+      ])
+    ),
+
+    фасовка:
+      cleanText(getFirstPresent(raw, ['фасовка', 'Фасовка', 'packing'])) ||
+      cleanText(getFirstPresent(raw, ['вага', 'Вес', 'weight'])),
+
     товар: cleanText(getFirstPresent(raw, ['товар', 'Товар', 'product_name'])),
 
     вага: toNumber(getFirstPresent(raw, ['вага', 'Вес', 'weight'])),
@@ -170,6 +191,8 @@ export interface SalesFilters {
   dateFrom?: string;
   dateTo?: string;
 
+  groupingFields?: string;
+
   page?: number;
   limit?: number;
 
@@ -210,6 +233,7 @@ export async function fetchSales(filtersInput: unknown = {}): Promise<Sale[]> {
 
   if (filters.dateFrom) query.dateFrom = filters.dateFrom;
   if (filters.dateTo) query.dateTo = filters.dateTo;
+  if (filters.groupingFields) query.groupingFields = filters.groupingFields;
 
   if (filters.search) query.search = filters.search;
 

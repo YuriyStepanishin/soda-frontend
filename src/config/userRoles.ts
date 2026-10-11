@@ -186,7 +186,7 @@ export function canUserSeeBrand(
 }
 
 export function getRoleLabel(role: UserRole): string {
-  if (role === 'admin') return 'Керівник';
+  if (role === 'admin') return 'Адміністратор';
   if (role === 'supervisor') return 'Супервайзер';
   return 'Торговий представник';
 }

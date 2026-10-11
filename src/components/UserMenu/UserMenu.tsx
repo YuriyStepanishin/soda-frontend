@@ -6,6 +6,12 @@ interface Props {
   email: string | null;
   roleLabel?: string;
   departmentLabel?: string;
+
+  activeDatabase: string;
+
+  canSwitchDatabase: boolean;
+  onSelectDatabase: (tenantId: string) => void;
+
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
@@ -17,6 +23,12 @@ export default function UserMenu({
   email,
   roleLabel,
   departmentLabel,
+
+  activeDatabase,
+
+  canSwitchDatabase,
+  onSelectDatabase,
+
   isOpen,
   onOpen,
   onClose,
@@ -69,6 +81,9 @@ export default function UserMenu({
                 email={email}
                 roleLabel={roleLabel}
                 departmentLabel={departmentLabel}
+                activeDatabase={activeDatabase}
+                canSwitchDatabase={canSwitchDatabase}
+                onSelectDatabase={onSelectDatabase}
                 onLogout={onLogout}
                 onOk={onClose}
                 okLabel="Закрити"

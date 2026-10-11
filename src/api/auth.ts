@@ -13,6 +13,8 @@ export interface AuthUser {
   id: number;
   email: string;
   role: BackendRole;
+  tenant?: string;
+  tenantAdmin?: string;
   department: string | null;
   departments: string[];
   representative: string | null;

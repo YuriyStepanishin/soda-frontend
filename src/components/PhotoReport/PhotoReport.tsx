@@ -8,6 +8,7 @@ import Popup from '../Popup/Popup';
 import styles from './PhotoReport.module.css';
 import type { Photo } from '../../types/photo';
 import { db } from '../PhotoUpload/db';
+import { openDatePicker } from '../../utils/openDatePicker';
 
 interface Props {
   storeData: {
@@ -91,6 +92,7 @@ export default function ReportBonusForm({ storeData, onBack }: Props) {
       <input
         type="date"
         value={createdDate}
+        onClick={e => openDatePicker(e.currentTarget)}
         onChange={e => setCreatedDate(e.target.value)}
         className={styles.input}
       />

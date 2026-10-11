@@ -4,10 +4,10 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { exportSalesToExcel } from '../../utils/exportSalesToExcel';
 import {
   fetchSales,
-  fetchSalesSummary,
   fetchSalesFilters,
-  fetchSalesStores,
-} from '../../api/fetchOlgatorgSales';
+  fetchSalesReport,
+} from '../../api/fetchSales';
+import { getAuthSession } from '../../api/auth';
 import { queryKeys } from '../../api/queryKeys';
 import {
   getCurrentAuthorizedEmail,
@@ -16,17 +16,23 @@ import {
 } from '../../config/userRoles';
 import styles from './SalesPage.module.css';
 import SalesFilters from '../SalesFilters/SalesFilters';
-import SalesTable from '../SalesTable/SalesTable';
 import SalesDetailed from '../SalesDetailed/SalesDetailed';
 import { useSalesFilters } from '../../hooks/useSalesFilters';
 
-// Sales analytics screen:
-// - fetches summary/detailed data via React Query
-// - applies role-aware filter defaults
-// - builds table rows/totals for selected grouping mode
 type SalesPageProps = {
   onBack: () => void;
   onOpenSalesByDays: () => void;
+};
+
+const HIERARCHY_LABELS: Record<string, string> = {
+  group: 'Група',
+  subgroup: 'Підгрупа',
+  brand: 'ТМ',
+  product: 'Товар',
+  date: 'Дата',
+  store: 'ТТ',
+  department: 'Відділ',
+  agent: 'ТП',
 };
 
 export default function SalesPage({
@@ -38,6 +44,23 @@ export default function SalesPage({
   const ownRepresentative = getUserRepresentative(authEmail) ?? '';
   const isSupervisor = userRole === 'supervisor';
   const isAgent = userRole === 'agent';
+  const activeTenant = useMemo(() => {
+    const session = getAuthSession();
+
+    if (session?.user.role !== 'admin' && session?.user.tenant) {
+      return session.user.tenant;
+    }
+
+    return (
+      (typeof window !== 'undefined'
+        ? window.localStorage.getItem('activeTenant')
+        : '') ||
+      session?.user.tenantAdmin ||
+      session?.user.tenant ||
+      ''
+    );
+  }, []);
+  const isLaska = activeTenant === 'laska';
 
   const {
     filters,
@@ -46,8 +69,7 @@ export default function SalesPage({
     backendFilters,
     options,
     setOptions,
-  } =
-    useSalesFilters();
+  } = useSalesFilters();
 
   const [metrics, setMetrics] = useState({
     quantity: true,
@@ -56,9 +78,10 @@ export default function SalesPage({
     sku: true,
     stores: true,
   });
+  const [isReportReady, setIsReportReady] = useState(false);
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return window.matchMedia('(max-width: 560px)').matches;
+    return window.matchMedia('(max-width: 1023px)').matches;
   });
 
   const numberFormatter = useMemo(
@@ -76,8 +99,44 @@ export default function SalesPage({
   const hasInvalidDateRange =
     hasDateFrom && hasDateTo && filters.dateFrom > filters.dateTo;
 
+  const handleUpdateFilters = (values: Partial<typeof filters>) => {
+    const nextValues = { ...values };
+
+    if ('department' in values) {
+      nextValues.agent = [];
+      nextValues.stores = [];
+    }
+
+    if ('agent' in values) {
+      nextValues.stores = [];
+    }
+
+    if ('groups' in values) {
+      nextValues.subgroups = [];
+      nextValues.brands = [];
+      nextValues.products = [];
+    }
+
+    if ('subgroups' in values) {
+      nextValues.brands = [];
+      nextValues.products = [];
+    }
+
+    if ('brands' in values) {
+      nextValues.products = [];
+    }
+
+    updateFilters(nextValues);
+  };
+
   const safeBackendFilters = useMemo(() => {
     const nextFilters = { ...backendFilters };
+
+    if (!isLaska) {
+      Reflect.deleteProperty(nextFilters, 'groups');
+      Reflect.deleteProperty(nextFilters, 'subgroups');
+      Reflect.deleteProperty(nextFilters, 'packings');
+    }
 
     if (hasInvalidDateRange) {
       Reflect.deleteProperty(nextFilters, 'dateFrom');
@@ -85,42 +144,76 @@ export default function SalesPage({
     }
 
     return nextFilters;
-  }, [backendFilters, hasInvalidDateRange]);
+  }, [backendFilters, hasInvalidDateRange, isLaska]);
 
-  const { data: summaryData } = useQuery({
-    queryKey: [queryKeys.sales, 'summary', safeBackendFilters],
-    queryFn: () => fetchSalesSummary(safeBackendFilters),
-    staleTime: 1000 * 60 * 5,
-    enabled: isValidPeriod,
-    placeholderData: keepPreviousData,
-  });
+  const liveFilterQuery = useMemo(() => {
+    const nextFilters = { ...filters };
 
-  const { data: storeData } = useQuery({
-    queryKey: [queryKeys.sales, 'stores', safeBackendFilters],
-    queryFn: () => fetchSalesStores(safeBackendFilters),
-    staleTime: 1000 * 60 * 5,
-    enabled: isValidPeriod && options.showByStore,
-    placeholderData: keepPreviousData,
-  });
+    if (!isLaska) {
+      Reflect.deleteProperty(nextFilters, 'groups');
+      Reflect.deleteProperty(nextFilters, 'subgroups');
+      Reflect.deleteProperty(nextFilters, 'packings');
+    }
 
-  const { data: salesListData } = useQuery({
-    queryKey: [queryKeys.sales, 'list', safeBackendFilters],
-    queryFn: () => fetchSales(safeBackendFilters),
+    if (hasInvalidDateRange) {
+      Reflect.deleteProperty(nextFilters, 'dateFrom');
+      Reflect.deleteProperty(nextFilters, 'dateTo');
+    }
+
+    return nextFilters;
+  }, [filters, hasInvalidDateRange, isLaska]);
+
+  const reportFields = useMemo(() => {
+    const fields: string[] = [];
+
+    if (isLaska && options.showGroups) fields.push('group');
+    if (isLaska && options.showSubgroups) fields.push('subgroup');
+    if (options.showBrands) fields.push('brand');
+    if (options.showProducts) fields.push('product');
+    if (options.showDates) fields.push('date');
+    if (options.showByStore) fields.push('store');
+    if (options.showByDepartment) fields.push('department');
+    if (options.showByAgent) fields.push('agent');
+
+    return fields.length ? fields : ['brand'];
+  }, [
+    isLaska,
+    options.showByAgent,
+    options.showByDepartment,
+    options.showByStore,
+    options.showBrands,
+    options.showDates,
+    options.showGroups,
+    options.showProducts,
+    options.showSubgroups,
+  ]);
+
+  const reportQuery = useMemo(
+    () => ({
+      ...safeBackendFilters,
+      reportBy: reportFields.join(','),
+    }),
+    [safeBackendFilters, reportFields]
+  );
+
+  const { data: reportData } = useQuery({
+    queryKey: [queryKeys.sales, 'report', reportQuery],
+    queryFn: () => fetchSalesReport(reportQuery),
     staleTime: 1000 * 60 * 5,
-    enabled: isValidPeriod && (options.showByDepartment || options.showByAgent),
+    enabled: isReportReady && isValidPeriod,
     placeholderData: keepPreviousData,
   });
 
   const { data: filtersData } = useQuery({
-    queryKey: ['sales-filters', safeBackendFilters],
-    queryFn: () => fetchSalesFilters(safeBackendFilters),
+    queryKey: ['sales-filters', activeTenant, liveFilterQuery],
+    queryFn: () => fetchSalesFilters(liveFilterQuery),
     staleTime: 1000 * 60 * 5,
     enabled: isValidPeriod,
     placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 560px)');
+    const mediaQuery = window.matchMedia('(max-width: 1023px)');
     const handleChange = (event: MediaQueryListEvent) => {
       setIsMobile(event.matches);
     };
@@ -134,173 +227,38 @@ export default function SalesPage({
 
   const {
     brands = [],
+    groups = [],
+    subgroups = [],
     stores = [],
     products = [],
     departments = [],
     agents = [],
   } = filtersData ?? {};
 
-  const totalRow = useMemo(
-    () => ({
-      quantity: summaryData?.totals.quantity ?? 0,
-      stores: summaryData?.totals.stores ?? 0,
-      weight: summaryData?.totals.weight ?? 0,
-      amount: summaryData?.totals.amount ?? 0,
-      sku: summaryData?.totals.sku ?? 0,
-    }),
-    [summaryData]
-  );
-
-  const detailedRows = useMemo(() => {
-    if (options.showByStore) {
-      return (storeData ?? []).map(item => ({
-        id: item.name,
-        label: item.name,
-        quantity: item.quantity,
-        stores: 1,
-        weight: item.weight,
-        amount: item.sum,
-        sku: item.sku,
-      }));
-    }
-
-    if (options.showByDepartment || options.showByAgent) {
-      const map = new Map<
-        string,
-        {
-          id: string;
-          label: string;
-          quantity: number;
-          stores: Set<string>;
-          weight: number;
-          amount: number;
-          sku: number;
-        }
-      >();
-
-      for (const row of salesListData ?? []) {
-        const key = options.showByDepartment ? row.відділ : row.агент;
-        if (!key) continue;
-
-        const item = map.get(key) ?? {
-          id: key,
-          label: key,
-          quantity: 0,
-          stores: new Set<string>(),
-          weight: 0,
-          amount: 0,
-          sku: 0,
-        };
-
-        item.quantity += row.кількість;
-        item.weight += row.вага;
-        item.amount += row.сума;
-        item.sku += 1;
-        item.stores.add(row.торгова_точка || row.точка || 'Невідомо');
-
-        map.set(key, item);
-      }
-
-      return Array.from(map.values()).map(item => ({
-        id: item.id,
-        label: item.label,
-        quantity: item.quantity,
-        stores: item.stores.size,
-        weight: item.weight,
-        amount: item.amount,
-        sku: item.sku,
-      }));
-    }
-
-    return (summaryData?.data ?? []).map(item => ({
-      id: item.tm,
-      label: item.tm,
-      quantity: item.quantity ?? 0,
-      stores: item.stores,
-      weight: item.weight,
-      amount: item.amount,
-      sku: item.sku ?? 0,
-    }));
-  }, [
-    options.showByAgent,
-    options.showByDepartment,
-    options.showByStore,
-    salesListData,
-    summaryData,
-    storeData,
-  ]);
-
-  const detailedTotals = useMemo(() => {
-    if (options.showByStore) {
-      return {
-        id: 'total',
-        label: 'Усі ТТ',
-        quantity:
-          storeData?.reduce((sum, item) => sum + (item.quantity ?? 0), 0) ?? 0,
-        stores: storeData?.length ?? 0,
-        weight:
-          storeData?.reduce((sum, item) => sum + (item.weight ?? 0), 0) ?? 0,
-        amount: storeData?.reduce((sum, item) => sum + (item.sum ?? 0), 0) ?? 0,
-        sku: storeData?.reduce((sum, item) => sum + (item.sku ?? 0), 0) ?? 0,
-      };
-    }
-
-    if (options.showByDepartment || options.showByAgent) {
-      return {
-        id: 'total',
-        label: options.showByDepartment ? 'Усі відділи' : 'Усі ТП',
-        quantity: detailedRows.reduce((sum, item) => sum + item.quantity, 0),
-        stores: detailedRows.reduce((sum, item) => sum + item.stores, 0),
-        weight: detailedRows.reduce((sum, item) => sum + item.weight, 0),
-        amount: detailedRows.reduce((sum, item) => sum + item.amount, 0),
-        sku: detailedRows.reduce((sum, item) => sum + item.sku, 0),
-      };
-    }
-
-    return {
-      id: 'total',
-      label: 'Усі торгові марки',
-      quantity: totalRow.quantity,
-      stores: totalRow.stores,
-      weight: totalRow.weight,
-      amount: totalRow.amount,
-      sku: totalRow.sku,
-    };
-  }, [
-    detailedRows,
-    options.showByAgent,
-    options.showByDepartment,
-    options.showByStore,
-    storeData,
-    totalRow,
-  ]);
+  const detailedRows = reportData?.rows ?? [];
+  const detailedTotals = reportData?.totals ?? {
+    id: 'total',
+    label: 'Разом',
+    quantity: 0,
+    stores: 0,
+    weight: 0,
+    amount: 0,
+    sku: 0,
+  };
 
   const format = (n: number) => numberFormatter.format(n);
 
-  const activeColumns = useMemo(
-    () =>
-      [
-        { key: 'stores', label: 'ТТ' },
-        { key: 'quantity', label: 'Кількість, шт' },
-        { key: 'weight', label: 'Вага' },
-        { key: 'sku', label: 'SKU' },
-        { key: 'amount', label: 'Сума, грн' },
-      ] as Array<{
-        key: 'quantity' | 'stores' | 'weight' | 'amount' | 'sku';
-        label: string;
-      }>,
-    []
-  );
-
   const handleSaveExcel = async () => {
+    if (!reportData) return;
+
     const sales = await fetchSales({
-      ...backendFilters,
+      ...safeBackendFilters,
       page: 1,
       limit: 50000,
     });
 
-    const brandsList = (summaryData?.data ?? []).map(item => ({
-      brand: item.tm,
+    const brandsList = reportData.rows.map(item => ({
+      brand: item.label,
       stores: item.stores,
       weight: item.weight,
       amount: item.amount,
@@ -309,7 +267,7 @@ export default function SalesPage({
     await exportSalesToExcel({
       sales,
       brandsList,
-      totalRow,
+      totalRow: reportData.totals,
       agent: filters.agent,
       dateFrom: filters.dateFrom,
       dateTo: filters.dateTo,
@@ -317,63 +275,119 @@ export default function SalesPage({
     });
   };
 
+  const handleGenerateReport = () => {
+    if (!isValidPeriod) return;
+
+    applyFilters();
+    setIsReportReady(true);
+  };
+
+  const selectedSummary = useMemo(() => {
+    const period =
+      filters.dateFrom || filters.dateTo
+        ? `${filters.dateFrom || '...'} — ${filters.dateTo || '...'}`
+        : 'Усі дати';
+    const parts = [period];
+
+    if (filters.department.length)
+      parts.push(`Відділ: ${filters.department.join(', ')}`);
+    if (filters.agent.length) parts.push(`ТП: ${filters.agent.join(', ')}`);
+    if (isLaska && filters.groups.length)
+      parts.push(`Груп: ${filters.groups.length}`);
+    if (isLaska && filters.subgroups.length)
+      parts.push(`Підгруп: ${filters.subgroups.length}`);
+    if (filters.stores.length) parts.push(`ТТ: ${filters.stores.length}`);
+    if (filters.brands.length) parts.push(`ТМ: ${filters.brands.length}`);
+    if (filters.products.length)
+      parts.push(`Товарів: ${filters.products.length}`);
+    parts.push(
+      `Ієрархія: ${reportFields.map(field => HIERARCHY_LABELS[field]).join(' → ')}`
+    );
+
+    return parts;
+  }, [filters, isLaska, reportFields]);
+
+  const reportTitle = 'Звіт по вибраній ієрархії';
+
+  const handleBack = () => {
+    if (isReportReady) {
+      setIsReportReady(false);
+      return;
+    }
+
+    onBack();
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.desktopLayout}>
-        <SalesFilters
-          filters={filters}
-          updateFilters={updateFilters}
-          departments={departments}
-          agents={agents}
-          stores={stores}
-          brands={brands}
-          products={products}
-          showDepartment={!isSupervisor && !isAgent}
-          showAgent={!isAgent}
-          representativeLabel={ownRepresentative}
-          options={options}
-          metrics={metrics}
-          onChangeOptions={setOptions}
-          onChangeMetrics={setMetrics}
-          onSaveExcel={handleSaveExcel}
-          onApplyFilters={applyFilters}
-          onOpenSalesByDays={onOpenSalesByDays}
-          isMobile={isMobile}
-          dateError={
-            hasInvalidDateRange
-              ? 'Дата "від" не може бути більшою за дату "до".'
-              : undefined
-          }
-        />
-        <div>
-          <SalesTable
-            summaryData={summaryData}
-            activeColumns={activeColumns}
-            format={format}
+        {!isReportReady ? (
+          <SalesFilters
+            filters={filters}
+            updateFilters={handleUpdateFilters}
+            departments={departments}
+            agents={agents}
+            stores={stores}
+            brands={brands}
+            groups={groups}
+            subgroups={subgroups}
+            products={products}
+            isLaska={isLaska}
+            showDepartment={!isSupervisor && !isAgent}
+            showAgent={!isAgent}
+            representativeLabel={ownRepresentative}
+            options={options}
+            metrics={metrics}
+            onChangeOptions={setOptions}
+            onChangeMetrics={setMetrics}
+            onApplyFilters={handleGenerateReport}
+            onOpenSalesByDays={onOpenSalesByDays}
+            dateError={
+              hasInvalidDateRange
+                ? 'Дата "від" не може бути більшою за дату "до".'
+                : undefined
+            }
           />
+        ) : (
+          <section className={styles.reportBar}>
+            <div className={styles.reportSummary}>
+              {selectedSummary.map(item => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
 
-          {options.showByStore ||
-          options.showByDepartment ||
-          options.showByAgent ? (
+            <div className={styles.reportActions}>
+              <button type="button" onClick={() => setIsReportReady(false)}>
+                Змінити
+              </button>
+              <button type="button" onClick={() => void handleSaveExcel()}>
+                {isMobile ? 'Відправити' : 'Зберегти .xlsx'}
+              </button>
+            </div>
+          </section>
+        )}
+
+        <div className={styles.reportContent}>
+          {isReportReady ? (
             <SalesDetailed
               rows={detailedRows}
               totals={detailedTotals}
               metrics={metrics}
               format={format}
-              title={
-                options.showByStore
-                  ? 'Деталізація по ТТ'
-                  : options.showByDepartment
-                    ? 'Деталізація по відділам'
-                    : 'Деталізація по ТП'
-              }
+              title={reportTitle}
+              reportMeta={selectedSummary}
             />
-          ) : null}
+          ) : (
+            <div className={styles.emptyReport}>
+              Оберіть фільтри, параметри та показники, потім натисніть
+              «Сформувати».
+            </div>
+          )}
         </div>
       </div>
 
-      <button onClick={onBack} className={styles.button}>
-        ← Назад
+      <button onClick={handleBack} className={styles.button}>
+        {isReportReady ? '← До параметрів' : '← Назад'}
       </button>
     </div>
   );

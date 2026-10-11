@@ -168,3 +168,22 @@
     margin-top: 20px;
   }
 }
+.database {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.databaseSelect {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font: inherit;
+  background: #fff;
+}
+
+.database strong {
+  font-weight: 600;
+}

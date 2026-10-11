@@ -1,7 +1,7 @@
 import DateTime from '../DateTime/DateTime';
+
 import styles from './HomePage.module.css';
 
-// Home dashboard menu: exposes only actions/features allowed for current user role.
 type MenuItem = {
   key: string;
   label: string;
@@ -16,10 +16,10 @@ interface Props {
   onOpenBonus: () => void;
   onOpenGallery: () => void;
   onOpenSales: () => void;
-  activeDatabase: 'olgatorg' | 'laska';
-  canSwitchDatabase: boolean;
-  onToggleDatabase: () => void;
+  onOpenSalesByDays: () => void;
   onOpenRouteHistory: () => void;
+  activeDatabase: string;
+
   onOpenActiveCustomerBase: () => void;
   onOpenImplementation: () => void;
   onOpenStoreCheck: () => void;
@@ -32,7 +32,9 @@ interface Props {
   canOpenBonusReport: boolean;
   canOpenGallery: boolean;
   canOpenSales: boolean;
+  canOpenSalesByDays: boolean;
   canOpenRouteHistory: boolean;
+
   canOpenActiveCustomerBase: boolean;
   canOpenImplementation: boolean;
   canOpenMessages: boolean;
@@ -45,10 +47,10 @@ export default function HomePage({
   onOpenBonus,
   onOpenGallery,
   onOpenSales,
-  activeDatabase,
-  canSwitchDatabase,
-  onToggleDatabase,
+  onOpenSalesByDays,
   onOpenRouteHistory,
+  activeDatabase,
+
   onOpenActiveCustomerBase,
   onOpenImplementation,
   onOpenStoreCheck,
@@ -61,7 +63,9 @@ export default function HomePage({
   canOpenBonusReport,
   canOpenGallery,
   canOpenSales,
+  canOpenSalesByDays,
   canOpenRouteHistory,
+
   canOpenActiveCustomerBase,
   canOpenImplementation,
   canOpenMessages,
@@ -87,6 +91,13 @@ export default function HomePage({
       visible: canOpenSales,
     },
     {
+      key: 'route-history',
+      label: 'Історія продажів',
+      icon: withVersion('/icons/ClientProduct.svg'),
+      onClick: onOpenRouteHistory,
+      visible: canOpenRouteHistory,
+    },
+    {
       key: 'gallery',
       label: 'Фотогалерея',
       icon: withVersion('/icons/gallery-icon-64.svg'),
@@ -95,10 +106,10 @@ export default function HomePage({
     },
     {
       key: 'sales-by-days',
-      label: 'Історія продажів',
-      icon: withVersion('/icons/ClientProduct.svg'),
-      onClick: onOpenRouteHistory,
-      visible: canOpenRouteHistory,
+      label: 'Продажі по днях',
+      icon: withVersion('/icons/calendar-icon-64.svg'),
+      onClick: onOpenSalesByDays,
+      visible: canOpenSalesByDays,
     },
     {
       key: 'active-customer-base',
@@ -196,22 +207,9 @@ export default function HomePage({
         <div className={styles.brandBlock}>
           <span className={styles.brandLogo}>S</span>
           <div className={styles.brandMeta}>
-            <strong className={styles.brandName}>SODA</strong>
-            <span className={styles.brandSub}>Головна панель</span>
+            <strong className={styles.brandName}>S.O.D.A</strong>
           </div>
         </div>
-
-        {canSwitchDatabase ? (
-          <button
-            type="button"
-            className={styles.databaseSwitcher}
-            onClick={onToggleDatabase}
-            title="Перемкнути базу даних"
-          >
-            <span>База для роботи</span>
-            <strong>{activeDatabase === 'laska' ? 'LASKA' : 'OLGATORG'}</strong>
-          </button>
-        ) : null}
 
         <p className={styles.sidebarTitle}>Розділи</p>
         <div className={styles.topGroup}>

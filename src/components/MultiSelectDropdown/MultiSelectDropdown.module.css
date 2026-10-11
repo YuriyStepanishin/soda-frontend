@@ -1,70 +1,63 @@
 .wrapper {
   position: relative;
   width: 100%;
-  margin-bottom: 16px;
+  margin: 0;
 }
 
 .label {
   display: block;
   margin-bottom: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #183153;
+  font-size: 13px;
+  font-weight: 700;
+  color: #dbe8ff;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-
-  min-height: 42px;
-  padding: 10px 12px;
-
-  background: #fff;
-  border: 1px solid #cfd8e3;
-  border-radius: 8px;
-
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  background: linear-gradient(180deg, #ffffff, #eef3fb);
+  border: 1px solid #b9cdea;
+  border-radius: 10px;
   cursor: pointer;
-  transition: 0.2s;
   user-select: none;
-
-  color: #183153;
+  transition: 0.18s ease;
+  color: #18365c;
   font-size: 14px;
+  box-sizing: border-box;
+}
+
+.header:hover {
+  border-color: #5e9fff;
+  box-shadow: 0 0 0 2px rgba(94, 159, 255, 0.12);
 }
 
 .headerLabel {
-  flex: 0 0 auto;
+  display: none;
 }
 
 .headerValue {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
   min-width: 0;
-  flex: 1;
-
-  color: #1f3a5f;
   font-weight: 600;
-  text-align: right;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .headerPlaceholder {
-  color: #6b7f99;
+  color: #6f86a6;
   font-weight: 500;
 }
 
 .chipRow {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 6px;
-
   min-width: 0;
   flex: 1;
   overflow: hidden;
@@ -73,17 +66,14 @@
 .chip {
   display: inline-flex;
   align-items: center;
-
-  max-width: 120px;
+  max-width: 110px;
   padding: 4px 8px;
-
   border-radius: 999px;
-  background: #e8f0fe;
-  border: 1px solid #c9d9f5;
-
-  color: #1f3a8a;
+  background: #edf4ff;
+  border: 1px solid #d4e2f8;
+  color: #2454a3;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .chipText {
@@ -95,97 +85,82 @@
 .chipMore {
   display: inline-flex;
   align-items: center;
-
   padding: 4px 8px;
-
   border-radius: 999px;
-  background: #f2f4f8;
-  border: 1px solid #d6dde8;
-
-  color: #52657d;
+  background: #f4f6fb;
+  border: 1px solid #d9e2ef;
+  color: #61748f;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .headerArrow {
   flex: 0 0 auto;
-  color: #4b6d90;
-  font-size: 10px;
-}
-
-.header:hover {
-  border-color: #4b84d9;
+  color: #4d6d96;
+  font-size: 11px;
 }
 
 .dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
-
   z-index: 1000;
-
-  background: #fff;
-  border: 1px solid #cfd8e3;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-
+  background: #fefefe;
+  border: 1px solid #c8d6ea;
+  border-radius: 12px;
+  box-shadow: 0 18px 36px rgba(18, 44, 88, 0.18);
   overflow: hidden;
 }
 
 .search {
   width: calc(100% - 20px);
   margin: 10px;
-  padding: 8px 10px;
-
-  border: 1px solid #d6dde8;
-  border-radius: 6px;
-
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d9e2ee;
+  border-radius: 8px;
   outline: none;
   font-size: 14px;
   color: #183153;
   background: #fff;
+  box-sizing: border-box;
 }
 
 .search:focus {
-  border-color: #4b84d9;
+  border-color: #4f9dff;
+  box-shadow: 0 0 0 2px rgba(79, 157, 255, 0.12);
 }
 
 .actions {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-
   padding: 0 10px 10px;
 }
 
 .actions button {
   flex: 1;
-
-  padding: 7px 10px;
-
-  border: 1px solid #d6dde8;
-  border-radius: 6px;
-
-  background: #f7f9fc;
-
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #d7e0ec;
+  border-radius: 8px;
+  background: #f7faff;
   cursor: pointer;
-
-  transition: 0.2s;
-
+  transition: 0.18s ease;
   font-size: 13px;
-  color: #183153;
+  font-weight: 600;
+  color: #244267;
 }
 
 .actions button:hover {
   background: #edf4ff;
-  border-color: #4b84d9;
+  border-color: #70aaf7;
 }
 
 .list {
   max-height: 260px;
   overflow-y: auto;
-
   border-top: 1px solid #edf1f7;
 }
 
@@ -193,13 +168,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
-
-  padding: 9px 12px;
-
+  padding: 10px 12px;
   cursor: pointer;
-
-  transition: 0.15s;
-
+  transition: 0.15s ease;
   color: #183153;
   font-size: 14px;
 }
@@ -211,6 +182,7 @@
 .option input {
   cursor: pointer;
   flex-shrink: 0;
+  accent-color: #3f97ff;
 }
 
 .option span {
@@ -223,7 +195,7 @@
 }
 
 .list::-webkit-scrollbar-thumb {
-  background: #bfc9d8;
+  background: #c0cad8;
   border-radius: 10px;
 }
 

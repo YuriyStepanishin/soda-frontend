@@ -6,6 +6,9 @@ export interface SalesFiltersState {
 
   stores: string[];
   brands: string[];
+  groups: string[];
+  subgroups: string[];
+  packings: string[];
   products: string[];
 
   dateFrom: string;
@@ -19,6 +22,9 @@ export function useSalesFilters() {
 
     stores: [],
     brands: [],
+    groups: [],
+    subgroups: [],
+    packings: [],
     products: [],
 
     dateFrom: '',
@@ -29,6 +35,9 @@ export function useSalesFilters() {
     useState<SalesFiltersState>(emptyFilters);
 
   const [options, setOptions] = useState({
+    showGroups: false,
+    showSubgroups: false,
+    showBrands: true,
     showDates: false,
     showProducts: false,
     showPrice: false,

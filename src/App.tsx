@@ -1,44 +1,55 @@
 import { lazy, Suspense, useState } from 'react';
+
 import { useQueryClient } from '@tanstack/react-query';
 
 const HomePage = lazy(() => import('./components/HomePage/HomePage'));
+
 const StoreSelector = lazy(
   () => import('./components/StoreSelector/StoreSelector')
 );
+
 const ShowcasePromotion = lazy(
   () => import('./components/ShowcasePromotion/ShowcasePromotion')
 );
+
 const ReportBonusForm = lazy(
   () => import('./components/PhotoReport/PhotoReport')
 );
+
 const PhotoGallery = lazy(
   () => import('./components/PhotoGallery/PhotoGallery')
 );
+
 const SalesPage = lazy(() => import('./components/SalesPage/SalesPage'));
-const LaskaSalesPage = lazy(
-  () => import('./components/LaskaSalesPage/LaskaSalesPage')
-);
+
 const SalesByDaysPage = lazy(
   () => import('./components/SalesByDaysPage/SalesByDaysPage')
 );
+
 const RouteHistoryPage = lazy(
   () => import('./components/RouteHistoryPage/RouteHistoryPage')
 );
+
 const ActiveCustomerBase = lazy(
   () => import('./components/ActiveCustomerBase/ActiveCustomerBase')
 );
+
 const ImplementationPage = lazy(
   () => import('./components/ImplementationPage/ImplementationPage')
 );
+
 const InfoBoardPage = lazy(
   () => import('./components/InfoBoardPage/InfoBoardPage')
 );
+
 const StoreCheckPage = lazy(
   () => import('./components/StoreCheckPage/StoreCheckPage')
 );
+
 const StoreCheckReviewPage = lazy(
   () => import('./components/StoreCheckReviewPage')
 );
+
 const PlanTargetsPage = lazy(
   () => import('./components/PlanTargetsPage/PlanTargetsPage')
 );
@@ -46,29 +57,38 @@ const PlanTargetsPage = lazy(
 import InstallButton from './components/InstallButton/InstallButton';
 import Loader from './components/Loader/Loader';
 import UserMenu from './components/UserMenu/UserMenu';
+
 import { clearAuthSession, getAuthSession } from './api/auth';
 
 import { useMessagesCenter } from './hooks/useMessagesCenter';
+
 import {
   canAccessSection,
   getUserDepartment,
   getUserRole,
   getRoleLabel,
-  isSuperAdminEmail,
   type AppSection,
 } from './config/userRoles';
+
 import { backendFeatures } from './config/backendFeatures';
 
 // App is the top-level flow coordinator:
 // - keeps auth and navigation state
+// - keeps currently selected tenant
 // - enforces role/feature access
 // - routes user to page-level lazy modules
+//
+// IMPORTANT:
+// App does not contain company-specific sales pages.
+// All companies use the same SalesPage.
+// The active company is represented by activeDatabase.
+
 export default function App() {
   const queryClient = useQueryClient();
+
   const [page, setPage] = useState<
     | 'home'
     | 'sales'
-    | 'laska-sales'
     | 'sales-by-days'
     | 'route-history'
     | 'active-customer-base'
@@ -78,24 +98,27 @@ export default function App() {
     | 'messages'
     | 'plan-targets'
   >('home');
+
   const [email, setEmail] = useState<string | null>(
     () => getAuthSession()?.email ?? null
   );
-  const [activeDatabase, setActiveDatabase] = useState<'olgatorg' | 'laska'>(
-    'olgatorg'
-  );
+
+  const [activeDatabase, setActiveDatabase] = useState<string>(() => {
+    const user = getAuthSession()?.user;
+    return user?.role === 'admin'
+      ? (user.tenantAdmin ?? '')
+      : (user?.tenant ?? '');
+  });
+
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(() => !email);
+
   const [showStoreSelector, setShowStoreSelector] = useState(false);
 
   const [reportType, setReportType] = useState<'display' | 'bonus' | null>(
     null
   );
+
   const [showGallery, setShowGallery] = useState(false);
-  const messagesCenter = useMessagesCenter(email);
-  const userRole = getUserRole(email);
-  const userDepartment = getUserDepartment(email);
-  const canAccess = (section: AppSection) =>
-    canAccessSection(userRole, section);
 
   const [selectedStore, setSelectedStore] = useState<{
     department: string;
@@ -103,8 +126,15 @@ export default function App() {
     store: string;
   } | null>(null);
 
+  const messagesCenter = useMessagesCenter(email);
+
+  const userRole = getUserRole(email);
+  const userDepartment = getUserDepartment(email);
+
+  const canAccess = (section: AppSection) =>
+    canAccessSection(userRole, section);
+
   function resetToHome() {
-    // Reset all transient flow states when returning to dashboard.
     setPage('home');
     setShowStoreSelector(false);
     setReportType(null);
@@ -113,37 +143,69 @@ export default function App() {
   }
 
   function handleLogin(nextEmail: string) {
-    // Save user identity and refresh cached queries for newly authorized scope.
     setEmail(nextEmail);
+
+    const session = getAuthSession();
+
+    /**
+     * After login always start from user's own tenant.
+     *
+     * ADMIN can subsequently select another tenant
+     * from the cabinet.
+     */
+    const user = session?.user;
+
+    const tenant =
+      user?.role === 'admin' ? (user.tenantAdmin ?? '') : (user?.tenant ?? '');
+
+    setActiveDatabase(tenant);
+
+    if (tenant) {
+      localStorage.setItem('activeTenant', tenant);
+    } else {
+      localStorage.removeItem('activeTenant');
+    }
+
     void queryClient.invalidateQueries();
+
     setIsUserMenuOpen(false);
   }
 
   function handleLogout() {
-    // Full sign-out: drop auth storage and clear client-side cached data.
     clearAuthSession();
+
     setEmail(null);
+    localStorage.removeItem('activeTenant');
+
     void queryClient.clear();
+
     resetToHome();
+
     setIsUserMenuOpen(true);
   }
 
+  /**
+   * Centralized authorization for protected sections.
+   */
   function runProtectedAction(action: () => void, section?: AppSection) {
-    // Centralized gate for auth + role checks before opening protected sections.
     if (!email) {
-      // If guest tries protected action, open login panel instead.
       setIsUserMenuOpen(true);
       return;
     }
 
     if (section && !canAccess(section)) {
-      // Silently block sections unavailable for current role.
       return;
     }
 
     action();
   }
 
+  /**
+   * PHOTO GALLERY
+   *
+   * This module is currently available only for OLGATORG.
+   * This is a feature limitation, not tenant routing.
+   */
   if (
     showGallery &&
     activeDatabase === 'olgatorg' &&
@@ -158,6 +220,23 @@ export default function App() {
       </>
     );
   }
+
+  /**
+   * SALES
+   *
+   * IMPORTANT:
+   * There is ONE SalesPage for ALL companies.
+   *
+   * SalesPage/backend work with the currently selected
+   * activeDatabase.
+   *
+   * No:
+   *   laska-sales
+   *   olgatorg-sales
+   *   company3-sales
+   *
+   * This is what makes the architecture scalable.
+   */
   if (page === 'sales' && canAccess('sales')) {
     return (
       <>
@@ -171,15 +250,7 @@ export default function App() {
     );
   }
 
-  if (page === 'laska-sales' && isSuperAdminEmail(email)) {
-    return (
-      <Suspense fallback={<Loader />}>
-        <LaskaSalesPage onBack={() => setPage('home')} />
-      </Suspense>
-    );
-  }
-
-  if (page === 'sales-by-days' && activeDatabase === 'olgatorg' && canAccess('sales')) {
+  if (page === 'sales-by-days' && canAccess('sales')) {
     return (
       <>
         <Suspense fallback={<Loader />}>
@@ -189,11 +260,15 @@ export default function App() {
     );
   }
 
+  /**
+   * ROUTE HISTORY
+   */
   if (page === 'route-history' && canAccess('route-history')) {
     return (
       <>
         <Suspense fallback={<Loader />}>
           <RouteHistoryPage
+            key={activeDatabase}
             onBack={() => setPage('home')}
             database={activeDatabase}
           />
@@ -202,6 +277,9 @@ export default function App() {
     );
   }
 
+  /**
+   * ACTIVE CUSTOMER BASE
+   */
   if (
     page === 'active-customer-base' &&
     activeDatabase === 'olgatorg' &&
@@ -216,6 +294,9 @@ export default function App() {
     );
   }
 
+  /**
+   * IMPLEMENTATION
+   */
   if (
     page === 'implementation' &&
     activeDatabase === 'olgatorg' &&
@@ -230,6 +311,9 @@ export default function App() {
     );
   }
 
+  /**
+   * STORE CHECK
+   */
   if (
     page === 'store-check' &&
     activeDatabase === 'olgatorg' &&
@@ -244,6 +328,9 @@ export default function App() {
     );
   }
 
+  /**
+   * STORE CHECK REVIEW
+   */
   if (
     page === 'store-check-review' &&
     activeDatabase === 'olgatorg' &&
@@ -258,6 +345,9 @@ export default function App() {
     );
   }
 
+  /**
+   * PLAN TARGETS
+   */
   if (
     page === 'plan-targets' &&
     activeDatabase === 'olgatorg' &&
@@ -273,6 +363,9 @@ export default function App() {
     );
   }
 
+  /**
+   * MESSAGES
+   */
   if (
     page === 'messages' &&
     activeDatabase === 'olgatorg' &&
@@ -293,7 +386,9 @@ export default function App() {
     );
   }
 
-  // HOME PAGE
+  /**
+   * HOME
+   */
   if (!showStoreSelector) {
     return (
       <>
@@ -314,27 +409,23 @@ export default function App() {
             onOpenGallery={() =>
               runProtectedAction(() => setShowGallery(true), 'gallery')
             }
+            /**
+             * ONE sales page for ALL tenants.
+             *
+             * No tenant-specific page names here.
+             */
             onOpenSales={() =>
-              runProtectedAction(
-                () =>
-                  setPage(
-                    activeDatabase === 'laska' ? 'laska-sales' : 'sales'
-                  ),
-                'sales'
-              )
+              runProtectedAction(() => setPage('sales'), 'sales')
             }
             activeDatabase={activeDatabase}
-            canSwitchDatabase={isSuperAdminEmail(email)}
-            onToggleDatabase={() =>
-              setActiveDatabase(current =>
-                current === 'laska' ? 'olgatorg' : 'laska'
-              )
-            }
             onOpenRouteHistory={() =>
               runProtectedAction(
                 () => setPage('route-history'),
                 'route-history'
               )
+            }
+            onOpenSalesByDays={() =>
+              runProtectedAction(() => setPage('sales-by-days'), 'sales')
             }
             onOpenActiveCustomerBase={() =>
               runProtectedAction(
@@ -366,6 +457,7 @@ export default function App() {
             unreadMessagesCount={messagesCenter.unreadCount}
             canOpenGallery={canAccess('gallery') && backendFeatures.gallery}
             canOpenSales={canAccess('sales')}
+            canOpenSalesByDays={canAccess('sales')}
             canOpenRouteHistory={canAccess('route-history')}
             canOpenActiveCustomerBase={canAccess('active-customer-base')}
             canOpenMessages={canAccess('messages') && backendFeatures.messages}
@@ -376,22 +468,33 @@ export default function App() {
             canOpenStoreCheckReview={backendFeatures.storeCheckReview}
           />
         </Suspense>
+
         <UserMenu
           email={email}
           roleLabel={userRole ? getRoleLabel(userRole) : undefined}
           departmentLabel={userDepartment ?? undefined}
+          activeDatabase={activeDatabase}
+          canSwitchDatabase={getAuthSession()?.user.role === 'admin'}
+          onSelectDatabase={tenantId => {
+            setActiveDatabase(tenantId);
+            localStorage.setItem('activeTenant', tenantId);
+            void queryClient.invalidateQueries();
+          }}
           isOpen={isUserMenuOpen}
           onOpen={() => setIsUserMenuOpen(true)}
           onClose={() => setIsUserMenuOpen(false)}
           onLogin={handleLogin}
           onLogout={handleLogout}
         />
+
         <InstallButton />
       </>
     );
   }
 
-  // STORE SELECTOR
+  /**
+   * STORE SELECTOR
+   */
   if (!selectedStore) {
     return (
       <>
@@ -405,12 +508,15 @@ export default function App() {
             }}
           />
         </Suspense>
+
         <InstallButton />
       </>
     );
   }
 
-  // REPORT FORMS
+  /**
+   * REPORT FORMS
+   */
   return (
     <>
       <Suspense fallback={<Loader />}>
@@ -426,6 +532,7 @@ export default function App() {
           />
         )}
       </Suspense>
+
       <InstallButton />
     </>
   );

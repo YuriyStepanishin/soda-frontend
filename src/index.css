@@ -58,6 +58,10 @@ textarea {
   min-width: 0;
 }
 
+input[type='date'] {
+  cursor: pointer;
+}
+
 :root {
   --field-bg-light: #f4f7fb;
   --field-text-dark: #18202c;
