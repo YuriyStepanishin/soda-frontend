@@ -4,6 +4,7 @@
 
 - Auth: `POST /api/auth/login`
 - Sales: `GET /api/sales`
+- Sales route history: `GET /api/sales/route-history` (LASKA; OLGATORG returns 501)
 - Uploads: `POST /api/upload/photos`
 
 ## Frontend modules mapped to active backend

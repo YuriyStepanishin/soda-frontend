@@ -1,6 +1,7 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
+import { ApiError } from '../../api/client';
 import {
   fetchRouteHistory,
   type RouteHistoryResponse,
@@ -142,7 +143,16 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
     : groupingFields.length > 0
       ? groupingFields
       : DEFAULT_GROUPING_FIELDS;
-  const asOfDate = useMemo(() => getKyivDateKey(), []);
+  const [asOfDate, setAsOfDate] = useState(getKyivDateKey);
+  useEffect(() => {
+    const updateDate = () => setAsOfDate(getKyivDateKey());
+    const timer = window.setInterval(updateDate, 60_000);
+    document.addEventListener('visibilitychange', updateDate);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', updateDate);
+    };
+  }, []);
   const asOfDateLabel = useMemo(
     () => formatKyivDateLabel(asOfDate),
     [asOfDate]
@@ -165,11 +175,12 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
 
       ta: activeAgent || undefined,
 
-      storeSearch: debouncedSearchTerm || undefined,
+      storeSearch: isOlgatorg ? debouncedSearchTerm || undefined : undefined,
 
       department: department || undefined,
 
-      groupingFields: activeGroupingFields.join(','),
+      groupingFields: isOlgatorg ? activeGroupingFields.join(',') : 'group',
+      view: isOlgatorg ? undefined : ('stores' as const),
     }),
     [
       periodMode,
@@ -178,6 +189,7 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
       debouncedSearchTerm,
       department,
       activeGroupingFields,
+      isOlgatorg,
     ]
   );
 
@@ -188,11 +200,20 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
    */
 
   const { data, isLoading, error, refetch } = useQuery<RouteHistoryResponse>({
-    queryKey: [...queryKeys.sales, 'route-history', database, historyQuery],
+    queryKey: [
+      ...queryKeys.sales,
+      'route-history',
+      database,
+      authEmail,
+      historyQuery,
+    ],
 
     queryFn: ({ signal }) => fetchRouteHistory(historyQuery, signal),
 
     staleTime: 60 * 1000,
+    retry: (count, error) =>
+      !(error instanceof ApiError && [400, 401, 403].includes(error.status)) &&
+      count < 1,
   });
 
   /*
@@ -202,12 +223,75 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
    */
 
   const periods = data?.periods ?? [];
-  const stores = data?.stores ?? [];
+  const stores = useMemo(() => {
+    const allStores = data?.stores ?? [];
+    const search = debouncedSearchTerm.toLocaleLowerCase('uk-UA');
+    if (isOlgatorg || !search) return allStores;
+    return allStores.filter(
+      store =>
+        store.store.toLocaleLowerCase('uk-UA').includes(search) ||
+        store.code.toLocaleLowerCase('uk-UA').includes(search)
+    );
+  }, [data?.stores, debouncedSearchTerm, isOlgatorg]);
 
-  const summary = data?.summary ?? {
-    allStores: 0,
-    withoutHistory: 0,
+  const detailQuery = {
+    ...historyQuery,
+    view: 'details' as const,
+    storeCode: expandedStore ?? undefined,
+    groupingFields: activeGroupingFields.join(','),
   };
+  const detailsEnabled = !isOlgatorg && expandedStore !== null;
+  const {
+    data: detailData,
+    isLoading: detailLoading,
+    error: detailError,
+    refetch: refetchDetails,
+  } = useQuery<RouteHistoryResponse>({
+    queryKey: [
+      ...queryKeys.sales,
+      'route-history-detail',
+      database,
+      authEmail,
+      detailQuery,
+    ],
+    queryFn: ({ signal }) => fetchRouteHistory(detailQuery, signal),
+    enabled: detailsEnabled,
+    staleTime: 60 * 1000,
+    retry: (count, error) =>
+      !(error instanceof ApiError && [400, 401, 403].includes(error.status)) &&
+      count < 1,
+  });
+
+  const summary = !isOlgatorg
+    ? {
+        allStores: stores.length,
+        withoutHistory: stores.filter(store => !store.hasHistory).length,
+      }
+    : (data?.summary ?? { allStores: 0, withoutHistory: 0 });
+
+  const modalRef = useRef<HTMLDialogElement>(null);
+  const modalTrigger = useRef<HTMLButtonElement | null>(null);
+  const openedStore = data?.stores.find(store => store.code === expandedStore);
+  const openedDetail = !isOlgatorg
+    ? detailData?.stores.find(store => store.code === expandedStore)
+    : undefined;
+  const modalStore =
+    openedDetail && openedStore
+      ? { ...openedDetail, store: openedStore.store }
+      : openedStore;
+
+  useEffect(() => {
+    const dialog = modalRef.current;
+    if (!dialog || expandedStore === null) return;
+    const previousOverflow = document.body.style.overflow;
+    if (!dialog.open) dialog.showModal();
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (dialog.open) dialog.close();
+      if (modalTrigger.current?.isConnected) modalTrigger.current.focus();
+    };
+  }, [expandedStore]);
 
   /*
    * ------------------------------------------------------------
@@ -268,8 +352,11 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
       {error && (
         <div className={styles.error} role="alert">
           <p>
-            Не вдалося завантажити історію продажів
-            {error instanceof Error ? `: ${error.message}` : '.'}
+            {error instanceof ApiError && error.status === 501 && isOlgatorg
+              ? 'Історія продажів для OLGATORG поки не підтримується сервером.'
+              : `Не вдалося завантажити історію продажів${
+                  error instanceof Error ? `: ${error.message}` : '.'
+                }`}
           </p>
 
           <button type="button" onClick={() => void refetch()}>
@@ -279,46 +366,6 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
       )}
 
       <section className={styles.filtersCard}>
-        <div className={styles.field}>
-          <span>Період історії</span>
-
-          <div
-            className={styles.periodToggle}
-            role="group"
-            aria-label="Період історії"
-          >
-            <button
-              type="button"
-              className={
-                periodMode === 'weeks'
-                  ? styles.periodToggleActive
-                  : styles.periodToggleButton
-              }
-              onClick={() => {
-                setPeriodMode('weeks');
-                setExpandedStore(null);
-              }}
-            >
-              4 тижні
-            </button>
-
-            <button
-              type="button"
-              className={
-                periodMode === 'months'
-                  ? styles.periodToggleActive
-                  : styles.periodToggleButton
-              }
-              onClick={() => {
-                setPeriodMode('months');
-                setExpandedStore(null);
-              }}
-            >
-              4 місяці
-            </button>
-          </div>
-        </div>
-
         <div className={styles.field}>
           <span>Групування</span>
 
@@ -426,166 +473,275 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
           </p>
         )}
 
-        {stores.map(store => {
-          const isOpen = expandedStore === store.store;
-
-          const nextExpanded = isOpen ? null : store.store;
-
-          return (
-            <article
-              key={store.store}
-              className={`${styles.storeCard} ${
-                !store.hasHistory ? styles.storeCardAlert : ''
-              }`}
+        {stores.map(store => (
+          <article
+            key={store.code}
+            className={[
+              styles.storeCard,
+              !store.hasHistory ? styles.storeCardAlert : '',
+            ].join(' ')}
+          >
+            <button
+              type="button"
+              className={styles.storeHead}
+              aria-haspopup="dialog"
+              onClick={event => {
+                modalTrigger.current = event.currentTarget;
+                setExpandedStore(store.code);
+              }}
             >
-              <button
-                type="button"
-                className={styles.storeHead}
-                onClick={() => setExpandedStore(nextExpanded)}
-              >
-                <span className={styles.storeName}>{store.store}</span>
+              <span className={styles.storeName}>{store.store}</span>
+              {!store.hasHistory && (
+                <span className={styles.alertChip}>
+                  Немає відвантажень за встановлений період
+                </span>
+              )}
+              <span className={styles.expandIcon} aria-hidden="true">
+                ≡
+              </span>
+            </button>
+          </article>
+        ))}
+      </section>
 
-                {!store.hasHistory && (
-                  <span className={styles.alertChip}>
-                    Немає відвантажень за встановлений період
-                  </span>
-                )}
+      <dialog
+        ref={modalRef}
+        className={styles.historyModal}
+        aria-labelledby="route-history-modal-title"
+        onCancel={event => {
+          event.preventDefault();
+          setExpandedStore(null);
+        }}
+        onClick={event => {
+          if (event.target === event.currentTarget) setExpandedStore(null);
+        }}
+      >
+        <header className={styles.modalHeader}>
+          <div>
+            <p className={styles.modalEyebrow}>Історія продажів</p>
+            <h3 id="route-history-modal-title" className={styles.modalTitle}>
+              {modalStore?.store ?? 'Торгова точка'}
+            </h3>
+            <p className={styles.modalPeriod}>
+              {periodMode === 'months' ? '4 місяці' : '4 тижні'} ·{' '}
+              {asOfDateLabel}
+            </p>
+          </div>
+          <button
+            type="button"
+            className={styles.modalClose}
+            aria-label="Закрити історію торгової точки"
+            onClick={() => setExpandedStore(null)}
+            autoFocus
+          >
+            ×
+          </button>
+        </header>
+        <div className={styles.modalControls}>
+          <div
+            className={styles.periodToggle}
+            role="group"
+            aria-label="Період історії торгової точки"
+          >
+            <button
+              type="button"
+              className={
+                periodMode === 'weeks'
+                  ? styles.periodToggleActive
+                  : styles.periodToggleButton
+              }
+              aria-pressed={periodMode === 'weeks'}
+              onClick={() => setPeriodMode('weeks')}
+            >
+              4 тижні
+            </button>
 
-                <span className={styles.expandIcon}>{isOpen ? '−' : '+'}</span>
+            <button
+              type="button"
+              className={
+                periodMode === 'months'
+                  ? styles.periodToggleActive
+                  : styles.periodToggleButton
+              }
+              aria-pressed={periodMode === 'months'}
+              onClick={() => setPeriodMode('months')}
+            >
+              4 місяці
+            </button>
+          </div>
+        </div>
+        <div className={styles.modalBody}>
+          {!isOlgatorg && detailLoading && <Loader />}
+          {!isOlgatorg && detailError && (
+            <div className={styles.error} role="alert">
+              <p>Не вдалося завантажити історію цієї ТТ.</p>
+              <button type="button" onClick={() => void refetchDetails()}>
+                Повторити
               </button>
+            </div>
+          )}
+          {modalStore && (isOlgatorg || (!detailLoading && !detailError)) && (
+            <div className={styles.historyWrap}>
+              <div className={styles.desktopHistory}>
+                <table className={styles.historyTable}>
+                  <thead>
+                    <tr>
+                      <th>Товар</th>
 
-              {isOpen && (
-                <div className={styles.historyWrap}>
-                  <div className={styles.desktopHistory}>
-                    <table className={styles.historyTable}>
-                      <thead>
-                        <tr>
-                          <th>Товар</th>
+                      {periods.map(period => (
+                        <th key={`${modalStore.store}-${period.key}`}>
+                          {period.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
 
-                          {periods.map(period => (
-                            <th key={`${store.store}-${period.key}`}>
-                              {period.label}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
+                  <tbody>
+                    {modalStore.brands.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={periods.length + 1}
+                          className={styles.emptyCell}
+                        >
+                          Немає відвантажень за встановлений період.
+                        </td>
+                      </tr>
+                    )}
 
-                      <tbody>
-                        {store.brands.length === 0 && (
-                          <tr>
-                            <td
-                              colSpan={periods.length + 1}
-                              className={styles.emptyCell}
-                            >
-                              Немає відвантажень за встановлений період.
+                    {modalStore.brands.map(brand => (
+                      <Fragment key={`${modalStore.store}-${brand.label}`}>
+                        {brand.isEmpty ? (
+                          <tr className={styles.brandOnlyRowAlert}>
+                            <td colSpan={periods.length + 1}>
+                              <b>{brand.label}</b>
                             </td>
+                          </tr>
+                        ) : (
+                          <tr className={styles.brandRow}>
+                            <td>
+                              <b>{brand.label}</b>
+                            </td>
+
+                            {brand.totals.map((value, index) => (
+                              <td
+                                key={`${modalStore.store}-${brand.label}-total-${index}`}
+                              >
+                                <b>{formatHistoryCell(value)}</b>
+                              </td>
+                            ))}
                           </tr>
                         )}
 
-                        {store.brands.map(brand => (
-                          <Fragment key={`${store.store}-${brand.label}`}>
-                            {brand.isEmpty ? (
-                              <tr className={styles.brandOnlyRowAlert}>
-                                <td colSpan={periods.length + 1}>
-                                  <b>{brand.label}</b>
-                                </td>
-                              </tr>
-                            ) : (
-                              <tr className={styles.brandRow}>
-                                <td>
-                                  <b>{brand.label}</b>
-                                </td>
-
-                                {brand.totals.map((value, index) => (
-                                  <td
-                                    key={`${store.store}-${brand.label}-total-${index}`}
-                                  >
-                                    <b>{formatHistoryCell(value)}</b>
-                                  </td>
-                                ))}
-                              </tr>
-                            )}
-
-                            {brand.products.map(product => (
-                              <tr
-                                key={`${store.store}-${brand.label}-${product.name}`}
-                              >
-                                <td>{product.name}</td>
-
-                                {product.values.map((value, index) => (
-                                  <td
-                                    key={`${store.store}-${brand.label}-${product.name}-${index}`}
-                                  >
-                                    {formatHistoryCell(value)}
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </Fragment>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className={styles.mobileHistory}>
-                    {store.brands.length === 0 && (
-                      <p className={styles.emptyCell}>
-                        Немає відвантажень за встановлений період.
-                      </p>
-                    )}
-
-                    {store.brands.map(brand => (
-                      <section
-                        key={`${store.store}-${brand.label}-mobile`}
-                        className={`${styles.mobileBrandBlock} ${
-                          brand.isEmpty ? styles.mobileBrandBlockAlert : ''
-                        }`}
-                      >
-                        <div className={styles.mobileBrandHeader}>
-                          <h4
-                            className={`${styles.mobileBrandTitle} ${
-                              brand.isEmpty ? styles.mobileBrandTitleAlert : ''
-                            }`}
+                        {brand.products.map(product => (
+                          <tr
+                            key={`${modalStore.store}-${brand.label}-${product.name}`}
                           >
-                            {brand.label}
-                          </h4>
+                            <td>{product.name}</td>
 
-                          {!brand.isEmpty && (
-                            <span className={styles.mobileWeekHeader}>
-                              {periods.map(period => period.label).join(' | ')}
-                            </span>
-                          )}
-                        </div>
-
-                        {!brand.isEmpty && (
-                          <>
-                            {brand.products.map(product => (
-                              <div
-                                key={`${store.store}-${brand.label}-${product.name}-mobile`}
-                                className={styles.mobileProductRow}
+                            {product.values.map((value, index) => (
+                              <td
+                                key={`${modalStore.store}-${brand.label}-${product.name}-${index}`}
                               >
-                                <p className={styles.mobileProductName}>
-                                  {product.name}
-                                </p>
+                                {formatHistoryCell(value)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                                <p className={styles.mobileWeeksLine}>
-                                  {product.values
-                                    .map(value => formatHistoryCell(value))
-                                    .join(' | ')}
-                                </p>
+              <div className={styles.mobileHistory}>
+                {modalStore.brands.length === 0 && (
+                  <p className={styles.emptyCell}>
+                    Немає відвантажень за встановлений період.
+                  </p>
+                )}
+
+                {modalStore.brands.map(brand => (
+                  <section
+                    key={`${modalStore.code}-${brand.label}-mobile`}
+                    className={[
+                      styles.mobileBrandBlock,
+                      brand.isEmpty ? styles.mobileBrandBlockAlert : '',
+                    ].join(' ')}
+                  >
+                    <h4
+                      className={[
+                        styles.mobileBrandTitle,
+                        brand.isEmpty ? styles.mobileBrandTitleAlert : '',
+                      ].join(' ')}
+                    >
+                      {brand.label}
+                    </h4>
+
+                    {brand.isEmpty ? (
+                      <p className={styles.mobileNoSales}>
+                        Немає відвантажень за період
+                      </p>
+                    ) : (
+                      <>
+                        <div className={styles.mobileTotals}>
+                          <p className={styles.mobileTotalsLabel}>
+                            Разом по групі
+                          </p>
+
+                          <div className={styles.periodGrid}>
+                            {periods.map((period, index) => (
+                              <div
+                                key={period.key}
+                                className={styles.periodCell}
+                              >
+                                <span className={styles.periodLabel}>
+                                  {period.label}
+                                </span>
+                                <strong className={styles.periodValue}>
+                                  {formatHistoryCell(brand.totals[index] ?? 0)}
+                                </strong>
                               </div>
                             ))}
-                          </>
-                        )}
-                      </section>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </article>
-          );
-        })}
-      </section>
+                          </div>
+                        </div>
+
+                        {brand.products.map((product, productIndex) => (
+                          <div
+                            key={`${product.name}-${productIndex}`}
+                            className={styles.mobileProductRow}
+                          >
+                            <p className={styles.mobileProductName}>
+                              {product.name}
+                            </p>
+
+                            <div className={styles.periodGrid}>
+                              {periods.map((period, index) => (
+                                <div
+                                  key={period.key}
+                                  className={styles.periodCell}
+                                >
+                                  {/* <span className={styles.periodLabel}>
+                                    {period.label}
+                                  </span> */}
+                                  <strong className={styles.periodValue}>
+                                    {formatHistoryCell(
+                                      product.values[index] ?? 0
+                                    )}
+                                  </strong>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </section>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </dialog>
 
       <button onClick={onBack} className={styles.backButton}>
         ← Назад

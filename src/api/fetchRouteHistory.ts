@@ -18,6 +18,7 @@ export type RouteHistoryBrand = {
 };
 
 export type RouteHistoryStore = {
+  code: string;
   store: string;
   brands: RouteHistoryBrand[];
   totals: number[];
@@ -48,6 +49,8 @@ type RouteHistoryParams = {
   storeSearch?: string;
   department?: string;
   groupingFields: string;
+  view?: 'stores' | 'details';
+  storeCode?: string;
 };
 
 export async function fetchRouteHistory(
@@ -75,17 +78,20 @@ export async function fetchRouteHistory(
   }
 
   searchParams.set('groupingFields', params.groupingFields);
+  if (params.view) searchParams.set('view', params.view);
+  if (params.storeCode != null) searchParams.set('storeCode', params.storeCode);
 
-  const payload = await apiGet<RawRouteHistoryResponse>(
+  const response = await apiGet<RawRouteHistoryResponse>(
     `/api/sales/route-history?${searchParams.toString()}`,
     { authenticated: true, signal }
   );
 
+  const payload = 'data' in response ? response.data : response;
+
   return mapRouteHistory(payload, params);
 }
 
-type RawRouteHistoryResponse = {
-  success: boolean;
+type RawRouteHistoryData = {
   periods: Array<{
     key: string;
     label?: string;
@@ -111,6 +117,13 @@ type RawRouteHistoryResponse = {
     }>;
   }>;
 };
+
+type RawRouteHistoryResponse =
+  | RawRouteHistoryData
+  | {
+      success: boolean;
+      data: RawRouteHistoryData;
+    };
 
 const GROUPING_FALLBACK_LABELS: Record<string, string> = {
   group: 'Без групи',
@@ -146,7 +159,7 @@ function formatMonthPeriod(dateKey: string): string {
 }
 
 function mapRouteHistory(
-  data: RawRouteHistoryResponse,
+  data: RawRouteHistoryData,
   params: RouteHistoryParams
 ): RouteHistoryResponse {
   const periods = data.periods.map(period => ({
@@ -161,6 +174,7 @@ function mapRouteHistory(
   }));
 
   const fields = params.groupingFields.split(',').filter(Boolean);
+  const periodIndex = new Map(periods.map((period, index) => [period.key, index]));
   const sum = (target: number[], source: number[]) =>
     source.forEach((value, index) => (target[index] += value));
 
@@ -187,12 +201,15 @@ function mapRouteHistory(
       }
 
       const values = products.get(product)!;
-      periods.forEach((period, index) => {
-        values[index] += Number(
-          item.periods?.[period.key]?.quantity ??
-            (item.startDate === period.key ? item.quantity : 0)
-        );
-      });
+      if (item.periods) {
+        for (const [key, cell] of Object.entries(item.periods)) {
+          const index = periodIndex.get(key);
+          if (index !== undefined) values[index] += Number(cell.quantity || 0);
+        }
+      } else {
+        const index = periodIndex.get(item.startDate);
+        if (index !== undefined) values[index] += Number(item.quantity || 0);
+      }
     });
 
     const brands: RouteHistoryBrand[] = Array.from(grouped.entries())
@@ -216,6 +233,7 @@ function mapRouteHistory(
     brands.forEach(brand => sum(totals, brand.totals));
 
     return {
+      code: store.code ?? store.name,
       store: store.name,
       brands,
       totals,
