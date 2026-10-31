@@ -66,6 +66,7 @@ export default function LoginAppPage({
             value={activeDatabase}
             onChange={event => onSelectDatabase(event.target.value)}
           >
+            <option value="" disabled>Оберіть компанію для входу</option>
             {TENANTS.map(tenant => (
               <option key={tenant.id} value={tenant.id}>
                 {tenant.name}
@@ -81,7 +82,7 @@ export default function LoginAppPage({
       </div>
 
       <div className={styles.info}>
-        <button className={styles.ok} onClick={onOk}>
+        <button className={styles.ok} onClick={onOk} disabled={!activeDatabase}>
           {okLabel}
         </button>
 

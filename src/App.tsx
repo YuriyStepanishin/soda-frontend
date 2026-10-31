@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -106,11 +106,16 @@ export default function App() {
   const [activeDatabase, setActiveDatabase] = useState<string>(() => {
     const user = getAuthSession()?.user;
     return user?.role === 'admin'
-      ? (user.tenantAdmin ?? '')
+      ? ''
       : (user?.tenant ?? '');
   });
 
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(() => !email);
+  useEffect(() => {
+    if (activeDatabase) localStorage.setItem('activeTenant', activeDatabase);
+    else localStorage.removeItem('activeTenant');
+  }, [activeDatabase]);
+
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(() => !email || !activeDatabase);
 
   const [showStoreSelector, setShowStoreSelector] = useState(false);
 
@@ -147,16 +152,12 @@ export default function App() {
 
     const session = getAuthSession();
 
-    /**
-     * After login always start from user's own tenant.
-     *
-     * ADMIN can subsequently select another tenant
-     * from the cabinet.
-     */
+    // Admin must explicitly select a working company after signing in.
+    // tenantAdmin identifies the credential store, not a default company.
     const user = session?.user;
 
     const tenant =
-      user?.role === 'admin' ? (user.tenantAdmin ?? '') : (user?.tenant ?? '');
+      user?.role === 'admin' ? '' : (user?.tenant ?? '');
 
     setActiveDatabase(tenant);
 
@@ -166,15 +167,16 @@ export default function App() {
       localStorage.removeItem('activeTenant');
     }
 
-    void queryClient.invalidateQueries();
+    queryClient.clear();
 
-    setIsUserMenuOpen(false);
+    setIsUserMenuOpen(!tenant);
   }
 
   function handleLogout() {
     clearAuthSession();
 
     setEmail(null);
+    setActiveDatabase('');
     localStorage.removeItem('activeTenant');
 
     void queryClient.clear();
@@ -189,6 +191,11 @@ export default function App() {
    */
   function runProtectedAction(action: () => void, section?: AppSection) {
     if (!email) {
+      setIsUserMenuOpen(true);
+      return;
+    }
+
+    if (!activeDatabase) {
       setIsUserMenuOpen(true);
       return;
     }
@@ -254,7 +261,7 @@ export default function App() {
     return (
       <>
         <Suspense fallback={<Loader />}>
-          <SalesByDaysPage onBack={() => setPage('sales')} />
+          <SalesByDaysPage key={activeDatabase} database={activeDatabase} onBack={() => setPage('sales')} />
         </Suspense>
       </>
     );
@@ -475,14 +482,17 @@ export default function App() {
           departmentLabel={userDepartment ?? undefined}
           activeDatabase={activeDatabase}
           canSwitchDatabase={getAuthSession()?.user.role === 'admin'}
-          onSelectDatabase={tenantId => {
+          onSelectDatabase={async tenantId => {
+            if (!['olgatorg', 'laska'].includes(tenantId)) return;
+            await queryClient.cancelQueries();
+            queryClient.clear();
+            resetToHome();
             setActiveDatabase(tenantId);
             localStorage.setItem('activeTenant', tenantId);
-            void queryClient.invalidateQueries();
           }}
           isOpen={isUserMenuOpen}
           onOpen={() => setIsUserMenuOpen(true)}
-          onClose={() => setIsUserMenuOpen(false)}
+          onClose={() => { if (!email || activeDatabase) setIsUserMenuOpen(false); }}
           onLogin={handleLogin}
           onLogout={handleLogout}
         />

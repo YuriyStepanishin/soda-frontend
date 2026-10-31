@@ -634,7 +634,8 @@ export interface SalesByDaysRow {
 }
 
 export async function fetchSalesByDays(
-  filtersInput: unknown = {}
+  filtersInput: unknown = {},
+  signal?: AbortSignal
 ): Promise<SalesByDaysRow[]> {
   const filters = isSalesFilters(filtersInput) ? filtersInput : {};
 
@@ -657,6 +658,7 @@ export async function fetchSalesByDays(
     data: SalesByDaysRow[];
   }>('/api/sales/by-days', {
     authenticated: true,
+    signal,
     query,
   });
 
@@ -669,4 +671,15 @@ export async function fetchSalesByDays(
     week_year: Number(item.week_year),
     week_number: Number(item.week_number),
   }));
+}
+
+export function fetchSalesByDaysFilters(
+  filters: { department: string; agent: string; dateFrom: string; dateTo: string },
+  signal?: AbortSignal
+): Promise<SalesFiltersResponse> {
+  return apiGet('/api/sales/by-days/filters', {
+    authenticated: true,
+    query: filters,
+    signal,
+  });
 }
