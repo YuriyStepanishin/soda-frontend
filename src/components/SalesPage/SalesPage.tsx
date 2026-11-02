@@ -7,7 +7,7 @@ import {
   fetchSalesFilters,
   fetchSalesReport,
 } from '../../api/fetchSales';
-import { getAuthSession } from '../../api/auth';
+import { getActiveTenant } from '../../api/client';
 import { queryKeys } from '../../api/queryKeys';
 import {
   getCurrentAuthorizedEmail,
@@ -44,22 +44,7 @@ export default function SalesPage({
   const ownRepresentative = getUserRepresentative(authEmail) ?? '';
   const isSupervisor = userRole === 'supervisor';
   const isAgent = userRole === 'agent';
-  const activeTenant = useMemo(() => {
-    const session = getAuthSession();
-
-    if (session?.user.role !== 'admin' && session?.user.tenant) {
-      return session.user.tenant;
-    }
-
-    return (
-      (typeof window !== 'undefined'
-        ? window.localStorage.getItem('activeTenant')
-        : '') ||
-      session?.user.tenantAdmin ||
-      session?.user.tenant ||
-      ''
-    );
-  }, []);
+  const activeTenant = getActiveTenant();
   const isLaska = activeTenant === 'laska';
 
   const {

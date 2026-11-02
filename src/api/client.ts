@@ -17,7 +17,7 @@ function getToken(): string | null {
   return window.localStorage.getItem(AUTH_TOKEN_KEY);
 }
 
-function getActiveTenant(): string | null {
+export function getActiveTenant(): string | null {
   if (typeof window === 'undefined') return null;
 
   const userRaw = window.localStorage.getItem(AUTH_USER_KEY);
@@ -30,14 +30,15 @@ function getActiveTenant(): string | null {
       };
 
       if (user.role !== 'admin' && user.tenant) {
-        return user.tenant;
+        return ['olgatorg', 'laska'].includes(user.tenant) ? user.tenant : null;
       }
     } catch {
       // Fall through to active tenant.
     }
   }
 
-  return window.localStorage.getItem('activeTenant');
+  const tenant = window.localStorage.getItem('activeTenant');
+  return tenant && ['olgatorg', 'laska'].includes(tenant) ? tenant : null;
 }
 
 function buildUrl(path: string, query?: Record<string, QueryValue>): string {
@@ -96,6 +97,9 @@ export async function apiGet<T>(
     }
 
     const tenant = getActiveTenant();
+    if (path.startsWith('/api/sales') && !tenant) {
+      throw new ApiError('Оберіть компанію для роботи.', 400);
+    }
 
     if (tenant) {
       headers.set('x-tenant-id', tenant);
