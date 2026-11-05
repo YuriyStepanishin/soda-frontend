@@ -130,3 +130,13 @@ textarea:-webkit-autofill:focus {
     max-width: 100%;
   }
 }
+
+/* Shared SODA palette for new feature modules; fields use the existing tokens above. */
+:root {
+  --soda-surface: rgba(8, 30, 71, 0.9);
+  --soda-control: rgba(12, 37, 84, 0.85);
+  --soda-border: rgba(110, 154, 232, 0.3);
+  --soda-text: #dce8ff;
+  --soda-muted: #abc1e5;
+  --soda-primary: linear-gradient(165deg, #2e8cff, #1767e7);
+}

@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 
+const MotivationPage = lazy(() => import('./components/MotivationPage/MotivationPage'));
+
 const HomePage = lazy(() => import('./components/HomePage/HomePage'));
 
 const StoreSelector = lazy(
@@ -97,6 +99,7 @@ export default function App() {
     | 'store-check-review'
     | 'messages'
     | 'plan-targets'
+    | 'motivation'
   >('home');
 
   const [email, setEmail] = useState<string | null>(
@@ -135,6 +138,8 @@ export default function App() {
 
   const userRole = getUserRole(email);
   const userDepartment = getUserDepartment(email);
+
+  const canOpenMotivation = activeDatabase === 'laska' && ['admin', 'manager'].includes(getAuthSession()?.user.role ?? '');
 
   const canAccess = (section: AppSection) =>
     canAccessSection(userRole, section);
@@ -370,6 +375,10 @@ export default function App() {
     );
   }
 
+  if (page === 'motivation' && canOpenMotivation) {
+    return <Suspense fallback={<Loader />}><MotivationPage key={activeDatabase} database={activeDatabase} onBack={() => setPage('home')} /></Suspense>;
+  }
+
   /**
    * MESSAGES
    */
@@ -424,6 +433,8 @@ export default function App() {
             onOpenSales={() =>
               runProtectedAction(() => setPage('sales'), 'sales')
             }
+            onOpenMotivation={() => runProtectedAction(() => setPage('motivation'))}
+            canOpenMotivation={canOpenMotivation}
             activeDatabase={activeDatabase}
             onOpenRouteHistory={() =>
               runProtectedAction(
