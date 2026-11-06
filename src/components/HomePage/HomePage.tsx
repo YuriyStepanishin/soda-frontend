@@ -19,6 +19,8 @@ interface Props {
   onOpenSalesByDays: () => void;
   onOpenRouteHistory: () => void;
   activeDatabase: string;
+  onOpenMotivation: () => void;
+  canOpenMotivation: boolean;
 
   onOpenActiveCustomerBase: () => void;
   onOpenImplementation: () => void;
@@ -50,6 +52,8 @@ export default function HomePage({
   onOpenSalesByDays,
   onOpenRouteHistory,
   activeDatabase,
+  onOpenMotivation,
+  canOpenMotivation,
 
   onOpenActiveCustomerBase,
   onOpenImplementation,
@@ -83,6 +87,7 @@ export default function HomePage({
   };
 
   const topMenuItems: MenuItem[] = [
+    { key: 'motivation', label: 'Контроль мотивації', icon: withVersion('/icons/implementation.svg'), onClick: onOpenMotivation, visible: activeDatabase === 'laska' && canOpenMotivation },
     {
       key: 'sales',
       label: 'Продажі',

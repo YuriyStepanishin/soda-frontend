@@ -123,10 +123,11 @@ export async function apiGet<T>(
 export async function apiPostJson<TResponse, TBody>(
   path: string,
   body: TBody,
-  options?: { authenticated?: boolean }
+  options?: { authenticated?: boolean; tenant?: string }
 ): Promise<TResponse> {
   const headers = new Headers();
   headers.set('Content-Type', 'application/json');
+  if (options?.tenant) headers.set('x-tenant-id', options.tenant);
 
   if (options?.authenticated) {
     const token = getToken();

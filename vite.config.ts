@@ -12,6 +12,7 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(version),
   },
   server: {
+    allowedHosts: ['terminal.local'],
     proxy: {
       '/api/sales': {
         target:
