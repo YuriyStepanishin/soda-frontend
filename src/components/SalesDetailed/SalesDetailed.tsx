@@ -1,11 +1,15 @@
-import { useMemo, useState } from 'react';
+import { buildReportTree } from '../../utils/reportHierarchy';
+import { useEffect, useMemo, useState } from 'react';
 import {
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
   type SortingState,
+  type ExpandedState,
+  type Row,
 } from '@tanstack/react-table';
 import styles from './SalesDetailed.module.css';
 
@@ -32,6 +36,8 @@ type Props = {
   format: (value: number) => string;
   title: string;
   reportMeta?: string[];
+  hierarchyFields?: string[];
+  onVisibleRowsChange?: (rows: DetailedRow[], source: DetailedRow[]) => void;
 };
 
 export default function SalesDetailed({
@@ -41,10 +47,14 @@ export default function SalesDetailed({
   format,
   title,
   reportMeta = [],
+  hierarchyFields = [],
+  onVisibleRowsChange,
 }: Props) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [expanded, setExpanded] = useState<ExpandedState>(true);
+  const tree = useMemo(() => buildReportTree(rows, hierarchyFields), [rows, hierarchyFields]);
 
-  const columns = useMemo<ColumnDef<DetailedRow>[]>(() => {
+  const columns = useMemo<ColumnDef<(typeof tree)[number]>[]>(() => {
     const metricColumns = [
       { key: 'stores', label: 'АКБ' },
       { key: 'quantity', label: 'Кількість, шт' },
@@ -53,7 +63,7 @@ export default function SalesDetailed({
       { key: 'amount', label: 'Сума, грн' },
     ]
       .filter(column => metrics[column.key as MetricKey])
-      .map<ColumnDef<DetailedRow>>(column => ({
+      .map<ColumnDef<(typeof tree)[number]>>(column => ({
         id: column.key,
         accessorFn: row => row[column.key as MetricKey],
         header: column.label,
@@ -78,6 +88,14 @@ export default function SalesDetailed({
                 className={`${styles.label} ${styles[`level${Math.min(level, 4)}`]}`}
               style={{ paddingLeft: `${Math.min(level, 4) * 14}px` }}
             >
+              {info.row.getCanExpand() ? (
+                <button type="button" className={styles.expandButton}
+                  aria-label={`${info.row.getIsExpanded() ? 'Згорнути' : 'Розгорнути'} ${info.row.original.label}`}
+                  aria-expanded={info.row.getIsExpanded()}
+                  onClick={info.row.getToggleExpandedHandler()}>
+                  {info.row.getIsExpanded() ? '−' : '+'}
+                </button>
+              ) : null}
               {String(info.getValue())}
             </span>
           );
@@ -90,13 +108,31 @@ export default function SalesDetailed({
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: rows,
+    data: tree,
+    getSubRows: row => row.subRows,
+    getRowId: row => row.treeId,
     columns,
-    state: { sorting },
+    state: { sorting, expanded },
+    onExpandedChange: setExpanded,
+    autoResetExpanded: false,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
   });
+
+  useEffect(() => {
+    // Export the complete sorted tree, including groups collapsed on screen.
+    const sorted: DetailedRow[] = [];
+    const visit = (items: Row<(typeof tree)[number]>[]) => {
+      for (const item of items) {
+        sorted.push(item.original);
+        visit(item.subRows);
+      }
+    };
+    visit(table.getSortedRowModel().rows);
+    onVisibleRowsChange?.(sorted, rows);
+  }, [onVisibleRowsChange, rows, sorting, table, tree]);
 
   return (
     <div className={styles.container}>
@@ -111,6 +147,12 @@ export default function SalesDetailed({
         ) : null}
       </div>
 
+      {tree.some(row => row.subRows.length) ? (
+        <div className={styles.treeActions}>
+          <button type="button" onClick={() => table.toggleAllRowsExpanded(true)}>Розгорнути все</button>
+          <button type="button" onClick={() => table.toggleAllRowsExpanded(false)}>Згорнути все</button>
+        </div>
+      ) : null}
       <table className={styles.table}>
         <thead>
           {table.getHeaderGroups().map(headerGroup => (

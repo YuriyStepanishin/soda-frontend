@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { reorderVisibleParameters } from '../../utils/reportHierarchy';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { exportSalesToExcel } from '../../utils/exportSalesToExcel';
+import type { ReportExportRow } from '../../utils/exportSalesToExcel';
+import { isMobileOrTablet, reportDeliveryMessage, sharePreparedReport } from '../../utils/reportDelivery';
+import type { PreparedReportFile } from '../../utils/reportDelivery';
 import {
-  fetchSales,
   fetchSalesFilters,
   fetchSalesReport,
 } from '../../api/fetchSales';
@@ -64,10 +67,17 @@ export default function SalesPage({
     stores: true,
   });
   const [isReportReady, setIsReportReady] = useState(false);
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(max-width: 1023px)').matches;
-  });
+  const [shareWithApps, setShareWithApps] = useState(isMobileOrTablet);
+  const [exporting, setExporting] = useState(false);
+  const [exportMessage, setExportMessage] = useState('');
+  const [exportError, setExportError] = useState('');
+  const [pendingShare, setPendingShare] = useState<PreparedReportFile | null>(null);
+  const exportController = useRef<AbortController | null>(null);
+  const visibleExportRows = useRef<{ source: ReportExportRow[]; rows: ReportExportRow[] } | null>(null);
+  const handleVisibleRowsChange = useCallback((rows: ReportExportRow[], source: ReportExportRow[]) => {
+    visibleExportRows.current = { rows, source };
+  }, []);
+  useEffect(() => () => exportController.current?.abort(), [activeTenant]);
 
   const numberFormatter = useMemo(
     () =>
@@ -148,6 +158,14 @@ export default function SalesPage({
     return nextFilters;
   }, [filters, hasInvalidDateRange, isLaska]);
 
+  const [hierarchyOrder, setHierarchyOrder] = useState(() => {
+    const defaults = Object.keys(HIERARCHY_LABELS);
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem('soda:sales:hierarchy-order') || 'null');
+      if (Array.isArray(saved)) return [...new Set([...saved.filter((field): field is string => typeof field === 'string' && field in HIERARCHY_LABELS), ...defaults])];
+    } catch { /* Use the default order if browser storage is unavailable. */ }
+    return defaults;
+  });
   const reportFields = useMemo(() => {
     const fields: string[] = [];
 
@@ -160,8 +178,9 @@ export default function SalesPage({
     if (options.showByDepartment) fields.push('department');
     if (options.showByAgent) fields.push('agent');
 
-    return fields.length ? fields : ['brand'];
+    return hierarchyOrder.filter(field => fields.includes(field));
   }, [
+    hierarchyOrder,
     isLaska,
     options.showByAgent,
     options.showByDepartment,
@@ -181,8 +200,8 @@ export default function SalesPage({
     [safeBackendFilters, reportFields]
   );
 
-  const { data: reportData } = useQuery({
-    queryKey: [queryKeys.sales, 'report', reportQuery],
+  const { data: reportData, isFetching: reportFetching, error: reportError } = useQuery({
+    queryKey: [queryKeys.sales, activeTenant, 'report', reportQuery],
     queryFn: () => fetchSalesReport(reportQuery),
     staleTime: 1000 * 60 * 5,
     enabled: isReportReady && isValidPeriod,
@@ -198,9 +217,9 @@ export default function SalesPage({
   });
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 1023px)');
-    const handleChange = (event: MediaQueryListEvent) => {
-      setIsMobile(event.matches);
+    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    const handleChange = () => {
+      setShareWithApps(isMobileOrTablet());
     };
 
     mediaQuery.addEventListener('change', handleChange);
@@ -234,34 +253,62 @@ export default function SalesPage({
   const format = (n: number) => numberFormatter.format(n);
 
   const handleSaveExcel = async () => {
-    if (!reportData) return;
+    if (!reportData || exporting || reportFetching || reportError) return;
+    setExportError('');
+    setExportMessage('');
+    setPendingShare(null);
+    setExporting(true);
+    const controller = new AbortController();
+    exportController.current = controller;
+    try {
+      const result = await exportSalesToExcel({
+        rows: visibleExportRows.current?.source === reportData.rows ? visibleExportRows.current.rows : reportData.rows,
+        totals: reportData.totals,
+        metrics,
+        title: reportTitle,
+        reportMeta: selectedSummary.slice(1),
+        tenant: activeTenant,
+        dateFrom: backendFilters.dateFrom,
+        dateTo: backendFilters.dateTo,
+        shareWithApps,
+        signal: controller.signal,
+      });
+      if (!controller.signal.aborted) {
+        setExportMessage(reportDeliveryMessage(result.status));
+        setPendingShare(result.status === 'retry' ? result.file : null);
+      }
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) {
+        setExportError(error instanceof Error ? error.message : 'Не вдалося експортувати дані.');
+      }
+    } finally {
+      exportController.current = null;
+      setExporting(false);
+    }
+  };
 
-    const sales = await fetchSales({
-      ...safeBackendFilters,
-      page: 1,
-      limit: 50000,
-    });
+  const handleShareSavedReport = async () => {
+    if (!pendingShare || exporting) return;
+    setExporting(true);
+    try {
+      const status = await sharePreparedReport(pendingShare);
+      setExportMessage(reportDeliveryMessage(status));
+      if (status !== 'retry') setPendingShare(null);
+    } finally {
+      setExporting(false);
+    }
+  };
 
-    const brandsList = reportData.rows.map(item => ({
-      brand: item.label,
-      stores: item.stores,
-      weight: item.weight,
-      amount: item.amount,
-    }));
-
-    await exportSalesToExcel({
-      sales,
-      brandsList,
-      totalRow: reportData.totals,
-      agent: filters.agent,
-      dateFrom: filters.dateFrom,
-      dateTo: filters.dateTo,
-      isMobile,
-    });
+  const handleEditReport = () => {
+    exportController.current?.abort();
+    setPendingShare(null);
+    setExportMessage('');
+    setExportError('');
+    setIsReportReady(false);
   };
 
   const handleGenerateReport = () => {
-    if (!isValidPeriod) return;
+    if (!isValidPeriod || !reportFields.length) return;
 
     applyFilters();
     setIsReportReady(true);
@@ -296,7 +343,7 @@ export default function SalesPage({
 
   const handleBack = () => {
     if (isReportReady) {
-      setIsReportReady(false);
+      handleEditReport();
       return;
     }
 
@@ -321,6 +368,14 @@ export default function SalesPage({
             showDepartment={!isSupervisor && !isAgent}
             showAgent={!isAgent}
             representativeLabel={ownRepresentative}
+            hierarchyOrder={hierarchyOrder}
+            onHierarchyOrderChange={ordered => {
+              setHierarchyOrder(previous => {
+                const next = reorderVisibleParameters(previous, ordered);
+                try { localStorage.setItem('soda:sales:hierarchy-order', JSON.stringify(next)); } catch { /* Keep order for this session. */ }
+                return next;
+              });
+            }}
             options={options}
             metrics={metrics}
             onChangeOptions={setOptions}
@@ -342,25 +397,34 @@ export default function SalesPage({
             </div>
 
             <div className={styles.reportActions}>
-              <button type="button" onClick={() => setIsReportReady(false)}>
+              <button type="button" onClick={handleEditReport}>
                 Змінити
               </button>
-              <button type="button" onClick={() => void handleSaveExcel()}>
-                {isMobile ? 'Відправити' : 'Зберегти .xlsx'}
+              <button type="button" disabled={exporting || !reportData || reportFetching || Boolean(reportError)} onClick={() => void handleSaveExcel()}>
+                {exporting ? 'Підготовка…' : shareWithApps ? 'Зберегти та відправити' : 'Зберегти Excel'}
               </button>
+              {shareWithApps && pendingShare ? (
+                <button type="button" disabled={exporting} onClick={() => void handleShareSavedReport()}>Вибрати програму</button>
+              ) : null}
             </div>
+            {exportMessage ? <p role="status">{exportMessage}</p> : null}
+            {exportError ? <p role="alert">{exportError}</p> : null}
           </section>
         )}
 
         <div className={styles.reportContent}>
+          {isReportReady && reportFetching ? <p role="status">Формування звіту…</p> : null}
+          {isReportReady && reportError ? <p role="alert">{reportError.message}</p> : null}
           {isReportReady ? (
             <SalesDetailed
+              hierarchyFields={reportFields}
               rows={detailedRows}
               totals={detailedTotals}
               metrics={metrics}
               format={format}
               title={reportTitle}
               reportMeta={selectedSummary}
+              onVisibleRowsChange={handleVisibleRowsChange}
             />
           ) : (
             <div className={styles.emptyReport}>

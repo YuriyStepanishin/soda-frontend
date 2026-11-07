@@ -1,3 +1,4 @@
+import SortableSalesParameters from './SortableSalesParameters';
 import type { Dispatch, SetStateAction } from 'react';
 import type { SalesFiltersState } from '../../hooks/useSalesFilters';
 
@@ -55,6 +56,8 @@ type Props = {
 
   isMobile?: boolean;
   dateError?: string;
+  hierarchyOrder?: string[];
+  onHierarchyOrderChange?: (fields: string[]) => void;
 };
 
 export default function SalesFilters({
@@ -85,7 +88,24 @@ export default function SalesFilters({
   onApplyFilters,
 
   dateError,
+  hierarchyOrder = ['group', 'subgroup', 'brand', 'product', 'date', 'store', 'department', 'agent'],
+  onHierarchyOrderChange,
 }: Props) {
+  const parameterOptions: Array<{ field: string; label: string; key: keyof OptionsState }> = [
+    { field: 'group', label: 'Група', key: 'showGroups' },
+    { field: 'subgroup', label: 'Підгрупа', key: 'showSubgroups' },
+    { field: 'brand', label: 'ТМ', key: 'showBrands' },
+    { field: 'product', label: 'Товар', key: 'showProducts' },
+    { field: 'date', label: 'Дата', key: 'showDates' },
+    { field: 'store', label: 'Торгові точки', key: 'showByStore' },
+    { field: 'department', label: 'Відділ', key: 'showByDepartment' },
+    { field: 'agent', label: 'Торговий представник', key: 'showByAgent' },
+  ];
+  const orderedParameters = hierarchyOrder.flatMap(field => {
+    const option = parameterOptions.find(item => item.field === field);
+    if (!option || (!isLaska && (field === 'group' || field === 'subgroup'))) return [];
+    return [{ field, label: option.label, checked: options[option.key] }];
+  });
   return (
     <aside className={styles.sidebar}>
       <div className={styles.filtersSticky}>
@@ -93,7 +113,7 @@ export default function SalesFilters({
           <div className={styles.filtersHeaderMain}>
             <div className={styles.filtersHeaderIcon}>S</div>
             <div>
-              <h2 className={styles.filtersHeaderTitle}>Фільтри аналітики</h2>
+              <h2 className={styles.filtersHeaderTitle}>Аналітика продажів</h2>
               <p className={styles.filtersHeaderText}>
                 Оберіть період, параметри та показники для формування звіту
               </p>
@@ -238,171 +258,17 @@ export default function SalesFilters({
           <div className={styles.cardHeader}>
             <div>
               <h3>Параметри</h3>
-              <p>Оберіть спосіб групування та відображення</p>
+              <p>Перетягуйте параметри за ⠿, щоб задати порядок ієрархії. У звіт потрапляють лише позначені.</p>
             </div>
           </div>
 
-          <div className={styles.optionGrid}>
-            {isLaska && (
-              <label
-                className={
-                  options.showGroups
-                    ? styles.optionCardActive
-                    : styles.optionCard
-                }
-              >
-                <input
-                  type="checkbox"
-                  checked={options.showGroups}
-                  onChange={() =>
-                    onChangeOptions(prev => ({
-                      ...prev,
-                      showGroups: !prev.showGroups,
-                    }))
-                  }
-                />
-                <span>Група</span>
-              </label>
-            )}
-
-            {isLaska && (
-              <label
-                className={
-                  options.showSubgroups
-                    ? styles.optionCardActive
-                    : styles.optionCard
-                }
-              >
-                <input
-                  type="checkbox"
-                  checked={options.showSubgroups}
-                  onChange={() =>
-                    onChangeOptions(prev => ({
-                      ...prev,
-                      showSubgroups: !prev.showSubgroups,
-                    }))
-                  }
-                />
-                <span>Підгрупа</span>
-              </label>
-            )}
-
-            <label
-              className={
-                options.showBrands ? styles.optionCardActive : styles.optionCard
-              }
-            >
-              <input
-                type="checkbox"
-                checked={options.showBrands}
-                onChange={() =>
-                  onChangeOptions(prev => ({
-                    ...prev,
-                    showBrands: !prev.showBrands,
-                  }))
-                }
-              />
-              <span>ТМ</span>
-            </label>
-
-            <label
-              className={
-                options.showProducts
-                  ? styles.optionCardActive
-                  : styles.optionCard
-              }
-            >
-              <input
-                type="checkbox"
-                checked={options.showProducts}
-                onChange={() =>
-                  onChangeOptions(prev => ({
-                    ...prev,
-                    showProducts: !prev.showProducts,
-                  }))
-                }
-              />
-              <span>Товар</span>
-            </label>
-
-            <label
-              className={
-                options.showDates ? styles.optionCardActive : styles.optionCard
-              }
-            >
-              <input
-                type="checkbox"
-                checked={options.showDates}
-                onChange={() =>
-                  onChangeOptions(prev => ({
-                    ...prev,
-                    showDates: !prev.showDates,
-                  }))
-                }
-              />
-              <span>Дата</span>
-            </label>
-
-            <label
-              className={
-                options.showByStore
-                  ? styles.optionCardActive
-                  : styles.optionCard
-              }
-            >
-              <input
-                type="checkbox"
-                checked={Boolean(options.showByStore)}
-                onChange={() =>
-                  onChangeOptions(prev => ({
-                    ...prev,
-                    showByStore: !prev.showByStore,
-                  }))
-                }
-              />
-              <span>Торгові точки</span>
-            </label>
-
-            <label
-              className={
-                options.showByDepartment
-                  ? styles.optionCardActive
-                  : styles.optionCard
-              }
-            >
-              <input
-                type="checkbox"
-                checked={Boolean(options.showByDepartment)}
-                onChange={() =>
-                  onChangeOptions(prev => ({
-                    ...prev,
-                    showByDepartment: !prev.showByDepartment,
-                  }))
-                }
-              />
-              <span>Відділ</span>
-            </label>
-
-            <label
-              className={
-                options.showByAgent
-                  ? styles.optionCardActive
-                  : styles.optionCard
-              }
-            >
-              <input
-                type="checkbox"
-                checked={Boolean(options.showByAgent)}
-                onChange={() =>
-                  onChangeOptions(prev => ({
-                    ...prev,
-                    showByAgent: !prev.showByAgent,
-                  }))
-                }
-              />
-              <span>Торговий представник</span>
-            </label>
-          </div>
+          <SortableSalesParameters items={orderedParameters}
+            onOrderChange={onHierarchyOrderChange}
+            onToggle={field => {
+              const option = parameterOptions.find(item => item.field === field);
+              if (option) onChangeOptions(previous => ({ ...previous, [option.key]: !previous[option.key] }));
+            }} />
+          {!orderedParameters.some(item => item.checked) ? <p role="status">Оберіть хоча б один параметр для звіту.</p> : null}
         </section>
 
         <section className={styles.cardSection}>
@@ -491,6 +357,7 @@ export default function SalesFilters({
             <button
               type="button"
               className={styles.sidebarSaveButton}
+              disabled={!orderedParameters.some(item => item.checked)}
               onClick={onApplyFilters}
             >
               Сформувати

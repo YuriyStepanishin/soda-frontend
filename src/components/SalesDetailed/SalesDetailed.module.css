@@ -174,3 +174,8 @@
     font-size: 13px;
   }
 }
+
+.expandButton { margin-right: 8px; min-width: 32px; min-height: 32px; border: 1px solid #93c5fd; border-radius: 6px; background: #163c70; color: white; cursor: pointer; }
+.treeActions { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; }
+.treeActions button { min-height: 40px; padding: 8px 12px; border: 1px solid #93c5fd; border-radius: 8px; background: #163c70; color: white; cursor: pointer; }
+.table td:first-child { text-align: left; }
