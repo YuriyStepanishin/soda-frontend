@@ -295,7 +295,7 @@
 @media (max-width: 767px) {
   .filtersSticky {
     gap: 12px;
-    padding-bottom: 160px;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
   }
 
   .filtersHeaderCard,
@@ -345,7 +345,7 @@
     position: fixed;
     left: 10px;
     right: 10px;
-    bottom: calc(78px + env(safe-area-inset-bottom));
+    bottom: calc(10px + env(safe-area-inset-bottom));
     z-index: 30;
     padding: 10px;
     border-radius: 16px;

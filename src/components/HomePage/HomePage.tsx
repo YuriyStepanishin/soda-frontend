@@ -184,7 +184,7 @@ export default function HomePage({
     gallery: 'Фото та результати перевірок', messages: 'Повідомлення для команди',
   };
   return <main className={styles.container}>
-    <header className={styles.hero}><div><p className={styles.eyebrow}>{activeDatabase ? activeDatabase.toUpperCase() : 'SODA'}</p><h1>Робочий простір</h1><p className={styles.subtitle}>Продажі, торгові точки та робота команди</p></div><DateTime /></header>
+    <header className={styles.hero}><div><p className={styles.eyebrow}>{activeDatabase ? activeDatabase.toUpperCase() : 'SODA'}</p></div><DateTime /></header>
     <section className={styles.grid} aria-label="Розділи SODA">{topMenuItems.filter(item => item.visible).map(item => <button type="button" key={item.key} onClick={item.onClick} className={styles.card}>
       <span className={styles.iconWrap}><img src={item.icon} alt="" width="28" height="28" /></span><span className={styles.cardCopy}><strong>{item.label}</strong><small>{descriptions[item.key] ?? 'Відкрити розділ'}</small></span>{item.badge ? <span className={styles.badge}>{item.badge}</span> : <span className={styles.arrow} aria-hidden="true">↗</span>}
     </button>)}</section>

@@ -2,9 +2,18 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 
 const { version } = JSON.parse(readFileSync('./package.json', 'utf-8')) as {
   version: string;
+};
+
+// Installed apps notice icon changes by URL. Change the URL when the image changes.
+const iconUrl = (name: string) => {
+  const revision = createHash('sha256')
+    .update(readFileSync(new URL(`./public/icons/${name}`, import.meta.url)))
+    .digest('hex').slice(0, 12);
+  return `/icons/${name}?v=${revision}`;
 };
 
 export default defineConfig({
@@ -38,9 +47,19 @@ export default defineConfig({
     },
   },
   plugins: [
+    {
+      name: 'soda-icon-urls',
+      transformIndexHtml: html => html.replace(
+        /href="\/icons\/(soda-favicon-32\.png|soda-apple-180\.png)"/g,
+        (_match, name: string) => `href="${iconUrl(name)}"`
+      ),
+    },
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
+      },
       includeAssets: [
         'icons/soda-apple-180.png',
         'icons/soda-favicon-32.png',
@@ -72,19 +91,19 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: '/icons/soda-192.png',
+            src: iconUrl('soda-192.png'),
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any',
           },
           {
-            src: '/icons/soda-512.png',
+            src: iconUrl('soda-512.png'),
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any',
           },
           {
-            src: '/icons/soda-maskable-512.png',
+            src: iconUrl('soda-maskable-512.png'),
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',

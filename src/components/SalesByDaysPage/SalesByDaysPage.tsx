@@ -259,7 +259,7 @@ export default function SalesByDaysPage({
     refetchOnWindowFocus: true,
     refetchInterval: 15 * 60 * 1000,
   });
-  const { data: filtersData, error: filtersError } = useQuery({
+  const { data: filtersData, isFetching: filtersFetching, error: filtersError } = useQuery({
     networkMode: 'always',
     refetchOnReconnect: 'always',
     retry: false,
@@ -665,6 +665,7 @@ export default function SalesByDaysPage({
         ))}
       </div>
       {isLoading && <Loader />}
+      {!isLoading && (isFetching || filtersFetching) && <Loader inline label="Оновлення продажів по днях…" />}
       {!isLoading && !error && validDates && rows.length === 0 && (
         <p>За обраний період продажів немає.</p>
       )}

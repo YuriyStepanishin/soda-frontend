@@ -268,6 +268,7 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
   const {
     data: detailData,
     isLoading: detailLoading,
+    isFetching: detailFetching,
     error: detailError,
     refetch: refetchDetails,
   } = useQuery<RouteHistoryResponse>({
@@ -392,6 +393,7 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
       </header>
 
       {isLoading && <Loader />}
+      {!isLoading && isFetching && expandedStore === null && <Loader inline label="Оновлення історії продажів…" />}
 
       {error && (
         <div className={styles.error} role="alert">
@@ -612,7 +614,7 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
           </div>
         </div>
         <div className={styles.modalBody}>
-          {!isOlgatorg && detailLoading && <Loader />}
+          {!isOlgatorg && detailFetching && <Loader inline label={detailLoading ? 'Завантаження картки клієнта…' : 'Оновлення картки клієнта…'} />}
           {!isOlgatorg && detailError && (
             <div className={styles.error} role="alert">
               <p>Не вдалося завантажити історію цієї ТТ: {detailError.message}</p>
