@@ -4,6 +4,11 @@
   color: #eef5ff;
 }
 
+.desktopHierarchy,
+.desktopActionLabel {
+  display: none;
+}
+
 .filtersSticky {
   display: flex;
   flex-direction: column;
@@ -353,3 +358,154 @@
 .dragHandle { touch-action: none; cursor: grab; flex-shrink: 0; min-width: 44px; min-height: 44px; padding: 0; color: #dbeafe; background: transparent; border: 1px solid rgba(147,197,253,.4); border-radius: 8px; font-size: 26px; }
 .dragHandle:active { cursor: grabbing; }
 .dragHandle:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+
+@media (min-width: 1181px) {
+  .filtersSticky {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    grid-template-areas:
+      'header header'
+      'period period'
+      'dictionary parameters'
+      'dictionary metrics'
+      'actions actions';
+    gap: 14px 18px;
+    align-items: stretch;
+  }
+
+  .filtersHeaderCard {
+    grid-area: header;
+    padding: 14px 18px;
+    border-radius: 14px;
+  }
+
+  .cardSection {
+    min-width: 0;
+    padding: 16px 18px;
+    border-radius: 14px;
+  }
+
+  .cardHeader {
+    margin-bottom: 12px;
+  }
+
+  .periodSection {
+    grid-area: period;
+    display: grid;
+    grid-template-columns: minmax(130px, 0.35fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 12px 24px;
+    padding-block: 12px;
+  }
+
+  .periodSection .cardHeader {
+    margin-bottom: 0;
+  }
+
+  .periodSection .dateError {
+    grid-column: 2;
+    margin: 0;
+  }
+
+  .dictionarySection {
+    grid-area: dictionary;
+  }
+
+  .parametersSection {
+    grid-area: parameters;
+  }
+
+  .metricsSection {
+    grid-area: metrics;
+  }
+
+  .filtersGrid,
+  .optionGrid,
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+  }
+
+  .filtersGrid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .optionCard,
+  .optionCardActive,
+  .metricCard {
+    min-height: 42px;
+    font-size: 13px;
+  }
+
+  .parameterLabel {
+    gap: 8px;
+    min-height: 38px;
+  }
+
+  .parameterLabel span {
+    overflow-wrap: anywhere;
+  }
+
+  .dragHandle {
+    min-height: 36px;
+    min-width: 36px;
+    font-size: 23px;
+  }
+
+  .sidebarButtons {
+    grid-area: actions;
+    position: sticky;
+    bottom: 12px;
+    z-index: 30;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 12px 16px;
+    border: 1px solid rgba(97, 154, 245, 0.4);
+    border-radius: 14px;
+    background: #09234d;
+    box-shadow: 0 8px 24px rgba(2, 14, 35, 0.35);
+  }
+
+  .desktopHierarchy {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    font-size: 13px;
+    color: #b8cfff;
+  }
+
+  .desktopHierarchy > span {
+    flex-shrink: 0;
+  }
+
+  .desktopHierarchy > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .desktopHierarchy > div > span {
+    padding: 6px 9px;
+    border: 1px solid #365b91;
+    border-radius: 8px;
+    background: #123568;
+    color: #eef5ff;
+  }
+
+  .sidebarSaveButton {
+    flex-shrink: 0;
+    min-height: 46px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .mobileActionLabel {
+    display: none;
+  }
+
+  .desktopActionLabel {
+    display: inline;
+  }
+}

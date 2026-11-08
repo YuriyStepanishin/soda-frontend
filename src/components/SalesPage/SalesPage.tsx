@@ -1,10 +1,11 @@
 import { reorderVisibleParameters } from '../../utils/reportHierarchy';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { exportSalesToExcel } from '../../utils/exportSalesToExcel';
+import { prepareSalesReportFile } from '../../utils/exportSalesToExcel';
+import type { ResultsExportParams } from '../../utils/exportSalesToExcel';
 import type { ReportExportRow } from '../../utils/exportSalesToExcel';
-import { isMobileOrTablet, reportDeliveryMessage, sharePreparedReport } from '../../utils/reportDelivery';
+import { isMobileOrTablet, reportDeliveryMessage, sharePreparedReport, savePreparedReport } from '../../utils/reportDelivery';
 import type { PreparedReportFile } from '../../utils/reportDelivery';
 import {
   fetchSalesFilters,
@@ -18,6 +19,10 @@ import {
   getUserRole,
 } from '../../config/userRoles';
 import styles from './SalesPage.module.css';
+import BackButton from '../BackButton/BackButton';
+import SalesOfflineStatus from '../SalesOfflineStatus';
+import { getAuthSession } from '../../api/auth';
+import { saveSalesSettings } from '../../api/salesOffline';
 import SalesFilters from '../SalesFilters/SalesFilters';
 import SalesDetailed from '../SalesDetailed/SalesDetailed';
 import { useSalesFilters } from '../../hooks/useSalesFilters';
@@ -42,12 +47,15 @@ export default function SalesPage({
   onBack,
   onOpenSalesByDays,
 }: SalesPageProps) {
+  const queryClient = useQueryClient();
   const authEmail = getCurrentAuthorizedEmail();
   const userRole = getUserRole(authEmail);
   const ownRepresentative = getUserRepresentative(authEmail) ?? '';
   const isSupervisor = userRole === 'supervisor';
   const isAgent = userRole === 'agent';
+  const canViewVmd = ['admin', 'manager', 'supervisor'].includes(getAuthSession()?.user.role ?? '');
   const activeTenant = getActiveTenant();
+  const authScope = JSON.stringify(getAuthSession()?.user ?? null);
   const isLaska = activeTenant === 'laska';
 
   const {
@@ -65,17 +73,18 @@ export default function SalesPage({
     amount: true,
     sku: true,
     stores: true,
+    vmd: false,
   });
   const [isReportReady, setIsReportReady] = useState(false);
   const [shareWithApps, setShareWithApps] = useState(isMobileOrTablet);
   const [exporting, setExporting] = useState(false);
   const [exportMessage, setExportMessage] = useState('');
   const [exportError, setExportError] = useState('');
-  const [pendingShare, setPendingShare] = useState<PreparedReportFile | null>(null);
+  const [prepared, setPrepared] = useState<{ input: ResultsExportParams; file: PreparedReportFile } | null>(null);
   const exportController = useRef<AbortController | null>(null);
-  const visibleExportRows = useRef<{ source: ReportExportRow[]; rows: ReportExportRow[] } | null>(null);
+  const [visibleExportRows, setVisibleExportRows] = useState<{ source: ReportExportRow[]; rows: ReportExportRow[] } | null>(null);
   const handleVisibleRowsChange = useCallback((rows: ReportExportRow[], source: ReportExportRow[]) => {
-    visibleExportRows.current = { rows, source };
+    setVisibleExportRows(previous => previous?.rows === rows && previous.source === source ? previous : { rows, source });
   }, []);
   useEffect(() => () => exportController.current?.abort(), [activeTenant]);
 
@@ -200,21 +209,39 @@ export default function SalesPage({
     [safeBackendFilters, reportFields]
   );
 
-  const { data: reportData, isFetching: reportFetching, error: reportError } = useQuery({
-    queryKey: [queryKeys.sales, activeTenant, 'report', reportQuery],
-    queryFn: () => fetchSalesReport(reportQuery),
+  const reportKey = [queryKeys.sales, activeTenant, authScope, 'report', reportQuery];
+  const { data: reportData, isFetching: reportFetching, error: reportError, refetch: refetchReport } = useQuery({
+    queryKey: reportKey,
+    networkMode: 'always',
+    refetchOnReconnect: 'always',
+    retry: false,
+    queryFn: ({ signal }) => fetchSalesReport(reportQuery, signal),
     staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
     enabled: isReportReady && isValidPeriod,
+  });
+
+  useEffect(() => {
+    if (isReportReady && reportData && !reportFetching && !reportError) saveSalesSettings('sales', { filters, options });
+  }, [isReportReady, reportData, reportFetching, reportError, filters, options]);
+
+  const [debouncedFilterQuery, setDebouncedFilterQuery] = useState(liveFilterQuery);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedFilterQuery(liveFilterQuery), 250);
+    return () => window.clearTimeout(timer);
+  }, [liveFilterQuery]);
+  const { data: filtersData, error: filtersError } = useQuery({
+    queryKey: ['sales-filters', activeTenant, authScope, debouncedFilterQuery],
+    networkMode: 'always',
+    refetchOnReconnect: 'always',
+    retry: false,
+    queryFn: ({ signal }) => fetchSalesFilters(debouncedFilterQuery, signal),
+    staleTime: 1000 * 60 * 5,
+    enabled: isValidPeriod && !isReportReady,
+    refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
   });
 
-  const { data: filtersData } = useQuery({
-    queryKey: ['sales-filters', activeTenant, liveFilterQuery],
-    queryFn: () => fetchSalesFilters(liveFilterQuery),
-    staleTime: 1000 * 60 * 5,
-    enabled: isValidPeriod,
-    placeholderData: keepPreviousData,
-  });
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(pointer: coarse)');
@@ -253,47 +280,18 @@ export default function SalesPage({
   const format = (n: number) => numberFormatter.format(n);
 
   const handleSaveExcel = async () => {
-    if (!reportData || exporting || reportFetching || reportError) return;
+    if (!prepared || prepared.input !== exportInput || exporting || reportFetching || reportError) return;
     setExportError('');
     setExportMessage('');
-    setPendingShare(null);
     setExporting(true);
-    const controller = new AbortController();
-    exportController.current = controller;
     try {
-      const result = await exportSalesToExcel({
-        rows: visibleExportRows.current?.source === reportData.rows ? visibleExportRows.current.rows : reportData.rows,
-        totals: reportData.totals,
-        metrics,
-        title: reportTitle,
-        reportMeta: selectedSummary.slice(1),
-        tenant: activeTenant,
-        dateFrom: backendFilters.dateFrom,
-        dateTo: backendFilters.dateTo,
-        shareWithApps,
-        signal: controller.signal,
-      });
-      if (!controller.signal.aborted) {
-        setExportMessage(reportDeliveryMessage(result.status));
-        setPendingShare(result.status === 'retry' ? result.file : null);
-      }
+      const status = shareWithApps ? await sharePreparedReport(prepared.file) : 'saved';
+      savePreparedReport(prepared.file);
+      setExportMessage(reportDeliveryMessage(status));
     } catch (error) {
       if (!(error instanceof DOMException && error.name === 'AbortError')) {
         setExportError(error instanceof Error ? error.message : 'Не вдалося експортувати дані.');
       }
-    } finally {
-      exportController.current = null;
-      setExporting(false);
-    }
-  };
-
-  const handleShareSavedReport = async () => {
-    if (!pendingShare || exporting) return;
-    setExporting(true);
-    try {
-      const status = await sharePreparedReport(pendingShare);
-      setExportMessage(reportDeliveryMessage(status));
-      if (status !== 'retry') setPendingShare(null);
     } finally {
       setExporting(false);
     }
@@ -301,7 +299,7 @@ export default function SalesPage({
 
   const handleEditReport = () => {
     exportController.current?.abort();
-    setPendingShare(null);
+    setPrepared(null);
     setExportMessage('');
     setExportError('');
     setIsReportReady(false);
@@ -340,6 +338,33 @@ export default function SalesPage({
   }, [filters, isLaska, reportFields]);
 
   const reportTitle = 'Звіт по вибраній ієрархії';
+  const exportInput = useMemo<ResultsExportParams | null>(() => reportData && isReportReady && !reportFetching && !reportError ? ({
+    rows: visibleExportRows?.source === reportData.rows ? visibleExportRows.rows : reportData.rows,
+    totals: reportData.totals, metrics, title: reportTitle,
+    reportMeta: selectedSummary.slice(1), tenant: activeTenant,
+    dateFrom: backendFilters.dateFrom, dateTo: backendFilters.dateTo, shareWithApps,
+  }) : null, [reportData, isReportReady, reportFetching, reportError, visibleExportRows, metrics, selectedSummary, activeTenant, backendFilters.dateFrom, backendFilters.dateTo, shareWithApps]);
+
+  useEffect(() => {
+    if (!exportInput) return;
+    const controller = new AbortController();
+    exportController.current = controller;
+    const prepare = () => {
+      if (controller.signal.aborted) return;
+      void prepareSalesReportFile({ ...exportInput, signal: controller.signal }).then(file => {
+        if (!controller.signal.aborted) setPrepared({ input: exportInput, file });
+      }).catch(error => {
+        if (!controller.signal.aborted) setExportError(error instanceof Error ? error.message : 'Не вдалося підготувати Excel');
+      });
+    };
+    const idle = typeof window.requestIdleCallback === 'function' ? window.requestIdleCallback(prepare, { timeout: 1500 }) : null;
+    const timer = idle === null ? window.setTimeout(prepare, 100) : null;
+    return () => {
+      controller.abort();
+      if (idle !== null) window.cancelIdleCallback(idle);
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, [exportInput]);
 
   const handleBack = () => {
     if (isReportReady) {
@@ -352,7 +377,10 @@ export default function SalesPage({
 
   return (
     <div className={styles.container}>
-      <div className={styles.desktopLayout}>
+      <BackButton onBack={handleBack} label={isReportReady ? 'До параметрів' : 'До головної'} />
+      <SalesOfflineStatus />
+      {!isReportReady && filtersError ? <p role="alert">{filtersError.message}</p> : null}
+      <div className={`${styles.desktopLayout} ${!isReportReady ? styles.configurationLayout : ''}`}>
         {!isReportReady ? (
           <SalesFilters
             filters={filters}
@@ -378,6 +406,7 @@ export default function SalesPage({
             }}
             options={options}
             metrics={metrics}
+            canViewVmd={canViewVmd}
             onChangeOptions={setOptions}
             onChangeMetrics={setMetrics}
             onApplyFilters={handleGenerateReport}
@@ -400,12 +429,10 @@ export default function SalesPage({
               <button type="button" onClick={handleEditReport}>
                 Змінити
               </button>
-              <button type="button" disabled={exporting || !reportData || reportFetching || Boolean(reportError)} onClick={() => void handleSaveExcel()}>
-                {exporting ? 'Підготовка…' : shareWithApps ? 'Зберегти та відправити' : 'Зберегти Excel'}
+              <button type="button" disabled={reportFetching} onClick={() => { void queryClient.invalidateQueries({ queryKey: ['sales-filters', activeTenant, authScope] }); void refetchReport(); }}>Оновити дані</button>
+              <button type="button" disabled={exporting || !prepared || prepared.input !== exportInput} onClick={() => void handleSaveExcel()}>
+                {exporting ? 'Відправлення…' : !prepared || prepared.input !== exportInput ? 'Підготовка Excel…' : shareWithApps ? 'Зберегти та відправити' : 'Зберегти Excel'}
               </button>
-              {shareWithApps && pendingShare ? (
-                <button type="button" disabled={exporting} onClick={() => void handleShareSavedReport()}>Вибрати програму</button>
-              ) : null}
             </div>
             {exportMessage ? <p role="status">{exportMessage}</p> : null}
             {exportError ? <p role="alert">{exportError}</p> : null}
@@ -415,7 +442,7 @@ export default function SalesPage({
         <div className={styles.reportContent}>
           {isReportReady && reportFetching ? <p role="status">Формування звіту…</p> : null}
           {isReportReady && reportError ? <p role="alert">{reportError.message}</p> : null}
-          {isReportReady ? (
+          {isReportReady && reportData && !reportError ? (
             <SalesDetailed
               hierarchyFields={reportFields}
               rows={detailedRows}
@@ -435,9 +462,6 @@ export default function SalesPage({
         </div>
       </div>
 
-      <button onClick={handleBack} className={styles.button}>
-        {isReportReady ? '← До параметрів' : '← Назад'}
-      </button>
     </div>
   );
 }

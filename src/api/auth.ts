@@ -1,6 +1,7 @@
 import { AUTH_STORAGE_KEY, AUTH_TOKEN_KEY, AUTH_USER_KEY } from './config';
 import { ApiError, apiPostJson } from './client';
 import type { UserRole } from '../config/allowedEmails';
+import { clearSalesOffline, OFFLINE_SESSION_KEY } from './salesOffline';
 
 type BackendRole =
   | 'admin'
@@ -76,6 +77,7 @@ export function saveAuthSession(session: AuthSession): void {
 
   // Keep normalized email so role lookup stays stable across case variants.
   const normalizedEmail = session.email.trim().toLowerCase();
+  window.localStorage.setItem(OFFLINE_SESSION_KEY, crypto.randomUUID());
 
   window.localStorage.setItem(AUTH_STORAGE_KEY, normalizedEmail);
   window.localStorage.setItem(AUTH_TOKEN_KEY, session.token);
@@ -84,6 +86,7 @@ export function saveAuthSession(session: AuthSession): void {
 
 export function clearAuthSession(): void {
   if (typeof window === 'undefined') return;
+  void clearSalesOffline();
 
   // Remove all auth-related keys to force clean logout state.
   window.localStorage.removeItem(AUTH_STORAGE_KEY);

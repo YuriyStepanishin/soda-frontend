@@ -522,7 +522,7 @@ function StoreCheckForm({
       </form>
 
       <button onClick={onChangeStore} className={styles.backButton}>
-        ← Назад
+        ← До вибору торгової точки
       </button>
     </div>
   );

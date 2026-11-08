@@ -9,6 +9,7 @@ import {
 import { queryKeys } from '../../api/queryKeys';
 import Popup from '../Popup/Popup';
 import Loader from '../Loader/Loader';
+import BackButton from '../BackButton/BackButton';
 import {
   getCurrentAuthorizedEmail,
   getUserDepartment,
@@ -217,7 +218,7 @@ export default function StoreSelector({ source, onSelect, onBack }: Props) {
   }
 
   if (isLoading) {
-    return <Loader />;
+    return <div className={styles.wrapper}>{onBack && <BackButton onBack={onBack} />}<Loader /></div>;
   }
 
   if (isError) {
@@ -235,6 +236,7 @@ export default function StoreSelector({ source, onSelect, onBack }: Props) {
 
   return (
     <div className={styles.wrapper}>
+      {onBack && <BackButton onBack={onBack} />}
       {isAgent ? (
         <>
           <div className={styles.lockedField}>

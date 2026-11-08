@@ -1,11 +1,16 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import SalesOfflineStatus from '../SalesOfflineStatus';
+import { readSalesSettings, saveSalesSettings, salesOfflineScope } from '../../api/salesOffline';
 import {
   fetchSalesByDays,
   fetchSalesByDaysFilters,
   type SalesByDaysRow,
 } from '../../api/fetchSales';
 import Loader from '../Loader/Loader';
+import BackButton from '../BackButton/BackButton';
+import MultiSelectDropdown from '../MultiSelectDropdown/MultiSelectDropdown';
+import DailySalesTrend from './DailySalesTrend';
 import styles from './SalesByDaysPage.module.css';
 import { openDatePicker } from '../../utils/openDatePicker';
 
@@ -34,11 +39,9 @@ type DayStats = {
   amount: number;
   weight: number;
   storesCount: number;
-  tt500: number;
 };
 type Totals = {
   storesCount: number;
-  tt500: number;
   weight: number;
   amount: number;
 };
@@ -117,14 +120,7 @@ function SalesFilter({
   onChangeDateTo: (value: string) => void;
 }) {
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: 12,
-        marginBottom: 12,
-      }}
-    >
+    <div className={styles.filterGrid}>
       <label style={{ display: 'grid', gap: 6 }}>
         <span style={{ fontSize: 12, color: '#cfe1ff' }}>Відділ</span>
         <select
@@ -172,10 +168,12 @@ function SalesFilter({
   );
 }
 export default function SalesByDaysPage({ onBack, database }: { onBack: () => void; database: string }) {
-  const [agent, setAgent] = useState('');
-  const [department, setDepartment] = useState('');
-  const [brands, setBrands] = useState<Set<string>>(new Set());
-  const [initialDates] = useState(getInitialDates);
+  const [saved] = useState(() => readSalesSettings<{ agent: string; department: string; brands: string[]; dateFrom: string; dateTo: string }>('daily'));
+  const [agent, setAgent] = useState(typeof saved?.agent === 'string' ? saved.agent : '');
+  const [department, setDepartment] = useState(typeof saved?.department === 'string' ? saved.department : '');
+  const [brands, setBrands] = useState<Set<string>>(new Set(Array.isArray(saved?.brands) ? saved.brands.filter(value => typeof value === 'string') : []));
+  const [showComparisons, setShowComparisons] = useState(false);
+  const [initialDates] = useState(() => saved && /^\d{4}-\d{2}-\d{2}$/.test(saved.dateFrom) && /^\d{4}-\d{2}-\d{2}$/.test(saved.dateTo) ? saved : getInitialDates());
   const [dateFrom, setDateFrom] = useState(initialDates.dateFrom);
   const [dateTo, setDateTo] = useState(initialDates.dateTo);
   const validDates = Boolean(dateFrom && dateTo && dateFrom <= dateTo);
@@ -183,10 +181,17 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
   const {
     data = [],
     isLoading,
+    isFetching,
     error,
+    dataUpdatedAt,
+    refetch,
   } = useQuery<SalesByDaysRow[]>({
+    networkMode: 'always',
+    refetchOnReconnect: 'always',
+    retry: false,
     queryKey: [
       'sales-by-days',
+      salesOfflineScope(),
       database,
       department,
       agent,
@@ -205,8 +210,11 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
     enabled: Boolean(database) && validDates,
     staleTime: 1000 * 60,
   });
-  const { data: filtersData } = useQuery({
-    queryKey: ['sales-by-days-filters', database, department, agent, dateFrom, dateTo],
+  const { data: filtersData, error: filtersError } = useQuery({
+    networkMode: 'always',
+    refetchOnReconnect: 'always',
+    retry: false,
+    queryKey: ['sales-by-days-filters', database, salesOfflineScope(), department, agent, dateFrom, dateTo],
     queryFn: ({ signal }) =>
       fetchSalesByDaysFilters({
         department,
@@ -218,8 +226,11 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
     staleTime: 1000 * 60 * 5,
   });
   const uniqueDepartments = filtersData?.departments ?? [];
+  useEffect(() => {
+    if (dataUpdatedAt && !isFetching && !error) saveSalesSettings('daily', { agent, department, brands: selectedBrands, dateFrom, dateTo });
+  }, [dataUpdatedAt, isFetching, error, agent, department, selectedBrands, dateFrom, dateTo]);
   const uniqueAgents = filtersData?.agents ?? [];
-  const uniqueBrands = useMemo(() => filtersData?.brands ?? [], [filtersData?.brands]);
+  const uniqueBrands = useMemo(() => (filtersData?.brands ?? []).filter(brand => normalizeBrandValue(brand) !== 'інше'), [filtersData?.brands]);
   const isOlgatorg = database === 'olgatorg';
   const orimiBrands = useMemo(
     () =>
@@ -264,7 +275,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
           amount: Number(item.amount) || 0,
           weight: Number(item.weight) || 0,
           storesCount: Number(item.storesCount) || 0,
-          tt500: Number(item.tt500) || 0,
         };
       })
       .sort((a, b) => {
@@ -292,7 +302,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
           label: row.weekLabel,
           totals: {
             storesCount: 0,
-            tt500: 0,
             weight: 0,
             amount: 0,
           },
@@ -301,7 +310,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
       const week = map.get(row.weekKey);
       if (!week) return;
       week.totals.storesCount += row.storesCount;
-      week.totals.tt500 += row.tt500;
       week.totals.weight += row.weight;
       week.totals.amount += row.amount;
     });
@@ -311,14 +319,12 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
     return rows.reduce(
       (acc, row) => {
         acc.storesCount += row.storesCount;
-        acc.tt500 += row.tt500;
         acc.weight += row.weight;
         acc.amount += row.amount;
         return acc;
       },
       {
         storesCount: 0,
-        tt500: 0,
         weight: 0,
         amount: 0,
       }
@@ -438,6 +444,14 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
   ];
   return (
     <div className={styles.container}>
+      <SalesOfflineStatus daily />
+      <button type="button" disabled={isFetching || !validDates} onClick={() => { void refetch(); }}>Оновити дані</button>
+      <BackButton onBack={onBack} label="Назад" />
+      <header className={styles.pageHeader}>
+        <div className={styles.pageIdentity}><span className={styles.pageIcon}>S</span><div><h1>Продажі по днях</h1><p>Період, торгові марки та динаміка показників</p></div></div>
+        <span className={styles.companyBadge}>{isOlgatorg ? 'OLGATORG' : 'LASKA'}</span>
+      </header>
+      <section className={styles.filterPanel} aria-label="Фільтри продажів по днях">
       <SalesFilter
         departments={uniqueDepartments}
         agents={uniqueAgents}
@@ -450,6 +464,16 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
         onChangeDateFrom={value => { setDateFrom(value); setBrands(new Set()); }}
         onChangeDateTo={value => { setDateTo(value); setBrands(new Set()); }}
       />
+      <div className={styles.desktopBrandPicker}>
+        <MultiSelectDropdown label="Торгові марки" items={uniqueBrands} selected={selectedBrands} onChange={values => setBrands(new Set(values))} searchable />
+        <div className={styles.brandQuickActions}>
+          <button type="button" onClick={() => setBrands(new Set())}>Усі ТМ</button>
+          {isOlgatorg && <button type="button" aria-pressed={isOrimiBrandsSelected} onClick={() => setBrands(new Set(orimiBrands))}>Усі ТМ Orimi</button>}
+          <button type="button" onClick={() => { setDepartment(''); setAgent(''); setBrands(new Set()); setDateFrom(initialDates.dateFrom); setDateTo(initialDates.dateTo); }}>Скинути фільтри</button>
+        </div>
+      </div>
+      </section>
+      {filtersError && <p role="alert">Не вдалося завантажити довідники фільтрів. Оновіть сторінку, щоб повторити запит.</p>}
       {error && <p role="alert" className={styles.error}>Помилка: {error.message}</p>}
       {!validDates && <p role="alert">Вкажіть коректний період: дата початку має бути не пізніше дати завершення.</p>}
       <div className={styles.brandFilters}>
@@ -491,6 +515,16 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
       </div>
       {isLoading && <Loader />}
       {!isLoading && !error && validDates && rows.length === 0 && <p>За обраний період продажів немає.</p>}
+      {!isLoading && !error && validDates && rows.length > 0 && <div className={styles.desktopOverview} aria-busy={isFetching}>
+        {isFetching && <p role="status">Оновлення даних…</p>}
+        <div className={styles.summaryGrid}>
+          <article><span>Сума продажів</span><strong>{format(grandTotal.amount)} <small>грн</small></strong></article>
+          <article><span>Вага</span><strong>{format(grandTotal.weight)} <small>кг</small></strong></article>
+          <article><span>Σ ТТ за днями</span><strong>{format(grandTotal.storesCount)}</strong><small>Не унікальні ТТ за період</small></article>
+        </div>
+        <DailySalesTrend rows={data} />
+      </div>}
+      {!isLoading && !error && validDates && rows.length > 0 && <>
       <section className={styles.section}>
         <h3 className={styles.title}>Продажі по днях</h3>
         <div className={styles.tableWrap}>
@@ -499,7 +533,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
               <tr>
                 <th>Дата</th>
                 <th title="Кількість ТТ за день; підсумки — сума денних значень">ТТ за день</th>
-                <th>ТТ 500+</th>
                 <th>Вага</th>
                 <th>Сума</th>
               </tr>
@@ -511,9 +544,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
                 </td>
                 <td>
                   <b>{grandTotal.storesCount}</b>
-                </td>
-                <td>
-                  <b>{grandTotal.tt500}</b>
                 </td>
                 <td>
                   <b>{format(grandTotal.weight)}</b>
@@ -531,7 +561,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
                     <tr>
                       <td>{row.dateDisplay}</td>
                       <td>{row.storesCount}</td>
-                      <td>{row.tt500}</td>
                       <td>{format(row.weight)}</td>
                       <td>{format(row.amount)}</td>
                     </tr>
@@ -542,9 +571,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
                         </td>
                         <td>
                           <b>{weekData.totals.storesCount}</b>
-                        </td>
-                        <td>
-                          <b>{weekData.totals.tt500}</b>
                         </td>
                         <td>
                           <b>{format(weekData.totals.weight)}</b>
@@ -560,9 +586,10 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
             </tbody>
           </table>
         </div>
-        <p>Підсумки ТТ та ТТ 500+ — сума денних значень.</p>
+        <p>Підсумки ТТ — сума денних значень.</p>
       </section>
-      <section className={styles.chartsSection}>
+      <button type="button" className={styles.comparisonToggle} aria-expanded={showComparisons} aria-controls="daily-comparison-charts" onClick={() => setShowComparisons(value => !value)}>{showComparisons ? 'Приховати' : 'Показати'} порівняння днів тижня та тижневих підсумків</button>
+      <section id="daily-comparison-charts" className={`${styles.chartsSection} ${showComparisons ? styles.comparisonsOpen : ''}`}>
         <div className={styles.chartsGrid}>
           {chartMetrics.map(metric => (
             <article key={`day-${metric.key}`} className={styles.chartCard}>
@@ -663,9 +690,7 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
           ))}
         </div>
       </section>
-      <button onClick={onBack} className={styles.backButton}>
-        ← Назад
-      </button>
+      </>}
     </div>
   );
 }

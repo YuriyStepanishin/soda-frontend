@@ -1,4 +1,5 @@
 import { API_BASE_URL, AUTH_TOKEN_KEY, AUTH_USER_KEY } from './config';
+import { offlineSalesGet } from './salesOffline';
 
 type QueryValue = string | number | boolean | undefined | null;
 
@@ -111,6 +112,9 @@ export async function apiGet<T>(
     console.debug('[sales-api:get]', url, options?.query ?? {});
   }
 
+  if (options?.authenticated) {
+    return offlineSalesGet<T>(path, url, headers, options.signal, parseResponse<T>);
+  }
   const response = await fetch(url, {
     method: 'GET',
     headers,

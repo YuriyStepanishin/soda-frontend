@@ -1,7 +1,7 @@
 import { savePreparedReport, sharePreparedReport } from './reportDelivery';
 import type { PreparedReportFile, ReportSharingStatus } from './reportDelivery';
 
-export type ReportMetric = 'quantity' | 'stores' | 'weight' | 'amount' | 'sku';
+export type ReportMetric = 'quantity' | 'stores' | 'weight' | 'amount' | 'sku' | 'vmd';
 export type ReportExportRow = {
   label: string;
   level?: number;
@@ -25,6 +25,7 @@ const metricColumns: Array<{
   label: string;
   format: string;
 }> = [
+  { key: 'vmd', label: 'ВМД, грн', format: '#,##0.00;[Red](#,##0.00);0.00' },
   { key: 'stores', label: 'АКБ', format: '#,##0;[Red](#,##0);0' },
   {
     key: 'quantity',
@@ -42,7 +43,7 @@ export async function buildResultsWorkbook(params: ResultsExportParams) {
   params.signal?.throwIfAborted();
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'SODA';
-  const sheet = workbook.addWorksheet('Результати', {
+  const sheet = workbook.addWorksheet('Звіт', {
     properties: {
       tabColor: { argb: 'FF17365D' },
       outlineProperties: { summaryBelow: false, summaryRight: false },
@@ -93,7 +94,7 @@ export async function buildResultsWorkbook(params: ResultsExportParams) {
       cell.alignment = { vertical: 'middle', wrapText: true };
     });
   };
-  addBanner(params.title, 'FF17365D', 'FFFFFFFF', 34, 17);
+  addBanner(params.title, 'FFDCE6F1', 'FF17365D', 34, 17);
   const period = `${params.dateFrom || 'початок'} — ${params.dateTo || 'кінець'}`;
   addBanner(
     `SODA · ${(params.tenant || '').toUpperCase()} · Період: ${period}`,
@@ -129,13 +130,13 @@ export async function buildResultsWorkbook(params: ResultsExportParams) {
     cell.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF17365D' },
+      fgColor: { argb: 'FFDCE6F1' },
     };
     cell.font = {
       name: 'Calibri',
       size: 11,
       bold: true,
-      color: { argb: 'FFFFFFFF' },
+      color: { argb: 'FF17365D' },
     };
     cell.alignment = {
       vertical: 'middle',
@@ -144,27 +145,20 @@ export async function buildResultsWorkbook(params: ResultsExportParams) {
     };
   });
 
-  const appendResult = (
-    source: ReportExportRow,
-    index: number,
-    total: boolean
-  ) => {
+  const appendResult = (source: ReportExportRow, total: boolean) => {
     const level = Math.max(0, source.level ?? 0);
     const parent = !total && level < maxLevel;
-    const background = total
-      ? 'FFE2F0D9'
-      : parent
-        ? level === 0
-          ? 'FFDCE6F1'
-          : 'FFE2EFDA'
-        : index % 2
-          ? 'FFF3F6FA'
-          : 'FFFFFFFF';
-    const foreground = total ? 'FF375623' : 'FF17365D';
+    const background = parent
+      ? level === 0
+        ? 'FFDCE6F1'
+        : 'FFE2EFDA'
+      : 'FFFFFFFF';
+    const foreground = 'FF17365D';
     const row = sheet.addRow([
       total ? 'Разом' : source.label,
       ...columns.map(column => {
         const value = source[column.key];
+        if (column.key === 'vmd' && value == null) return 'не перевірено';
         return typeof value === 'number' && Number.isFinite(value)
           ? value
           : null;
@@ -202,9 +196,9 @@ export async function buildResultsWorkbook(params: ResultsExportParams) {
       if (columnNumber > 1) cell.numFmt = columns[columnNumber - 2].format;
     });
   };
-  params.rows.forEach((row, index) => appendResult(row, index, false));
+  params.rows.forEach(row => appendResult(row, false));
   const lastResultRow = sheet.rowCount;
-  appendResult(params.totals, params.rows.length, true);
+  appendResult(params.totals, true);
   sheet.views = [
     { state: 'frozen', xSplit: 1, ySplit: header.number, showGridLines: false },
   ];
@@ -218,10 +212,7 @@ export async function buildResultsWorkbook(params: ResultsExportParams) {
   return workbook;
 }
 
-export async function exportSalesToExcel(params: ResultsExportParams): Promise<{
-  status: 'saved' | ReportSharingStatus;
-  file: PreparedReportFile;
-}> {
+export async function prepareSalesReportFile(params: ResultsExportParams): Promise<PreparedReportFile> {
   const workbook = await buildResultsWorkbook(params);
   params.signal?.throwIfAborted();
   const buffer = await workbook.xlsx.writeBuffer();
@@ -239,6 +230,14 @@ export async function exportSalesToExcel(params: ResultsExportParams): Promise<{
   const fileName = `Звіт_${safePart(params.tenant || 'SODA')}_${safePart(params.dateFrom || 'початок')}_${safePart(params.dateTo || 'кінець')}.xlsx`;
   const file = { blob, fileName, title: params.title };
   params.signal?.throwIfAborted();
+  return file;
+}
+
+export async function exportSalesToExcel(params: ResultsExportParams): Promise<{
+  status: 'saved' | ReportSharingStatus;
+  file: PreparedReportFile;
+}> {
+  const file = await prepareSalesReportFile(params);
   savePreparedReport(file);
   return {
     file,

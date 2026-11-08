@@ -86,7 +86,7 @@ export default function LoginAppPage({
           {okLabel}
         </button>
 
-        <button className={styles.logout} onClick={onLogout}>
+        <button type="button" className={styles.logout} onClick={onLogout} aria-label="Вийти з облікового запису SODA">
           Вийти
         </button>
       </div>

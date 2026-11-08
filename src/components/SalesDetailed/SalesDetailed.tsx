@@ -1,5 +1,7 @@
 import { buildReportTree } from '../../utils/reportHierarchy';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   flexRender,
   getCoreRowModel,
@@ -13,11 +15,12 @@ import {
 } from '@tanstack/react-table';
 import styles from './SalesDetailed.module.css';
 
-type MetricKey = 'quantity' | 'stores' | 'weight' | 'amount' | 'sku';
+type MetricKey = 'quantity' | 'stores' | 'weight' | 'amount' | 'sku' | 'vmd';
 
 type MetricState = Record<MetricKey, boolean>;
 
 type DetailedRow = {
+  vmd?: number | null;
   id: string;
   label: string;
   level?: number;
@@ -52,6 +55,18 @@ export default function SalesDetailed({
 }: Props) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState<ExpandedState>(true);
+  const [printing, setPrinting] = useState(false);
+  const viewport = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const before = () => flushSync(() => setPrinting(true));
+    const after = () => setPrinting(false);
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => {
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+    };
+  }, []);
   const tree = useMemo(() => buildReportTree(rows, hierarchyFields), [rows, hierarchyFields]);
 
   const columns = useMemo<ColumnDef<(typeof tree)[number]>[]>(() => {
@@ -61,6 +76,7 @@ export default function SalesDetailed({
       { key: 'weight', label: 'Вага' },
       { key: 'sku', label: 'SKU' },
       { key: 'amount', label: 'Сума, грн' },
+      { key: 'vmd', label: 'ВМД, грн' },
     ]
       .filter(column => metrics[column.key as MetricKey])
       .map<ColumnDef<(typeof tree)[number]>>(column => ({
@@ -68,10 +84,12 @@ export default function SalesDetailed({
         accessorFn: row => row[column.key as MetricKey],
         header: column.label,
         cell: info => {
+          if (column.key === 'vmd' && info.getValue() == null) return 'не перевірено';
           const value = Number(info.getValue() ?? 0);
           return column.key === 'stores' ? value : format(value);
         },
         footer: () => {
+          if (column.key === 'vmd' && totals.vmd == null) return 'не перевірено';
           const value = totals[column.key as MetricKey] ?? 0;
           return column.key === 'stores' ? value : format(value);
         },
@@ -121,6 +139,29 @@ export default function SalesDetailed({
     getExpandedRowModel: getExpandedRowModel(),
   });
 
+  const displayRows = table.getRowModel().rows;
+  const virtualized = displayRows.length > 200 && !printing;
+  const getVirtualRowKey = useCallback((index: number) => displayRows[index]?.id ?? index, [displayRows]);
+  const rowVirtualizer = useVirtualizer({
+    count: virtualized ? displayRows.length : 0,
+    getScrollElement: () => viewport.current,
+    getItemKey: getVirtualRowKey,
+    estimateSize: () => 56,
+    overscan: 8,
+    enabled: virtualized,
+    initialRect: { height: 600, width: 1000 },
+  });
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const paddingTop = virtualRows[0]?.start ?? 0;
+  const paddingBottom = virtualRows.length ? rowVirtualizer.getTotalSize() - virtualRows[virtualRows.length - 1].end : 0;
+  const renderedRows = virtualized
+    ? virtualRows.map(item => ({ row: displayRows[item.index], index: item.index }))
+    : displayRows.map((row, index) => ({ row, index }));
+
+  useEffect(() => {
+    if (virtualized) rowVirtualizer.scrollToOffset(0);
+  }, [sorting, rows, virtualized, rowVirtualizer]);
+
   useEffect(() => {
     // Export the complete sorted tree, including groups collapsed on screen.
     const sorted: DetailedRow[] = [];
@@ -153,7 +194,8 @@ export default function SalesDetailed({
           <button type="button" onClick={() => table.toggleAllRowsExpanded(false)}>Згорнути все</button>
         </div>
       ) : null}
-      <table className={styles.table}>
+      <div ref={viewport} className={virtualized ? styles.virtualized : undefined}>
+      <table className={styles.table} aria-rowcount={displayRows.length + 2}>
         <thead>
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id}>
@@ -185,9 +227,10 @@ export default function SalesDetailed({
         </thead>
 
         <tbody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map(row => (
-              <tr key={row.id}>
+          {virtualized && paddingTop > 0 && <tr aria-hidden="true"><td colSpan={columns.length} style={{ height: paddingTop, padding: 0, border: 0 }} /></tr>}
+          {displayRows.length ? (
+            renderedRows.map(({ row, index }) => (
+              <tr key={row.id} data-index={index} aria-rowindex={index + 2} ref={virtualized ? rowVirtualizer.measureElement : undefined}>
                 {row.getVisibleCells().map(cell => (
                   <td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -202,6 +245,7 @@ export default function SalesDetailed({
               </td>
             </tr>
           )}
+          {virtualized && paddingBottom > 0 && <tr aria-hidden="true"><td colSpan={columns.length} style={{ height: paddingBottom, padding: 0, border: 0 }} /></tr>}
         </tbody>
 
         <tfoot>
@@ -221,6 +265,7 @@ export default function SalesDetailed({
           ))}
         </tfoot>
       </table>
+      </div>
     </div>
   );
 }

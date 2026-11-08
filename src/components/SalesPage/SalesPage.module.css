@@ -124,6 +124,22 @@
     transform 0.15s ease;
 }
 
+@media (min-width: 1181px) {
+  .container {
+    max-width: 1600px;
+    margin-inline: auto;
+    padding: 18px 24px 24px;
+  }
+
+  .configurationLayout {
+    min-height: 0;
+  }
+
+  .configurationLayout .reportContent {
+    display: none;
+  }
+}
+
 .button:hover {
   background: rgba(20, 52, 107, 0.58);
   transform: translateY(-1px);

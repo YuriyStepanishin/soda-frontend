@@ -11,6 +11,20 @@
   color: #dce9ff;
 }
 
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pageHeader,
+.desktopBrandPicker,
+.desktopOverview,
+.comparisonToggle {
+  display: none;
+}
+
 .error {
   padding: 40px;
   text-align: center;
@@ -170,11 +184,9 @@
 .table td:nth-child(2),
 .table td:nth-child(3),
 .table td:nth-child(4),
-.table td:nth-child(5),
 .table th:nth-child(2),
 .table th:nth-child(3),
-.table th:nth-child(4),
-.table th:nth-child(5) {
+.table th:nth-child(4) {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -256,5 +268,315 @@
 
   .chartsSection {
     margin-top: 24px;
+  }
+}
+
+@media (min-width: 1181px) {
+  .container {
+    max-width: 1600px;
+    padding: 18px 24px 36px;
+  }
+
+  .pageHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 14px;
+    padding: 16px 20px;
+    border: 1px solid #294e80;
+    border-radius: 14px;
+    background: #0b2853;
+  }
+
+  .pageIdentity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .pageIcon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #176de7;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 800;
+  }
+
+  .pageHeader h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+  }
+
+  .pageHeader p {
+    margin: 0;
+    color: #b8cfff;
+    font-size: 13px;
+  }
+
+  .companyBadge {
+    padding: 8px 14px;
+    border: 1px solid #365b91;
+    border-radius: 8px;
+    font-weight: 700;
+  }
+
+  .filterPanel {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+    align-items: start;
+    gap: 18px;
+    padding: 18px 20px;
+    border: 1px solid #294e80;
+    border-radius: 14px;
+    background: #09234d;
+  }
+
+  .filterGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .filterGrid label {
+    min-width: 0;
+  }
+
+  .filterGrid input,
+  .filterGrid select {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    padding: 0 10px;
+    border: 1px solid #b9cdea;
+    border-radius: 10px;
+    background: #f5f8ff;
+    color: #18365c;
+    font-size: 13px;
+  }
+
+  .desktopBrandPicker {
+    display: block;
+    min-width: 0;
+  }
+
+  .brandFilters {
+    display: none;
+  }
+
+  .brandQuickActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .brandQuickActions button,
+  .comparisonToggle {
+    min-height: 36px;
+    padding: 7px 12px;
+    border: 1px solid #365b91;
+    border-radius: 8px;
+    background: #123568;
+    color: #eef5ff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+  }
+
+  .brandQuickActions button[aria-pressed='true'] {
+    background: #176de7;
+  }
+
+  .desktopOverview {
+    display: block;
+    margin-top: 18px;
+  }
+
+  .summaryGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .summaryGrid article {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    padding: 16px 18px;
+    border: 1px solid #294e80;
+    border-radius: 12px;
+    background: #0b2853;
+  }
+
+  .summaryGrid span,
+  .summaryGrid small {
+    color: #b8cfff;
+    font-size: 12px;
+  }
+
+  .summaryGrid strong {
+    font-size: clamp(18px, 1.7vw, 27px);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  .trendPanel {
+    padding: 18px 20px 12px;
+    border: 1px solid #c8d9eb;
+    border-radius: 14px;
+    background: #f8fbff;
+    color: #18365c;
+  }
+
+  .trendHeader {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px 20px;
+  }
+
+  .trendHeader h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+  }
+
+  .trendHeader p,
+  .chartNote {
+    margin: 0;
+    color: #526780;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .chartControls {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid #c8d9eb;
+    border-radius: 10px;
+    background: #eaf1fa;
+  }
+
+  .chartControls button {
+    min-height: 34px;
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #18365c;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .chartControls button[aria-pressed='true'] {
+    background: #c7dcf8;
+    color: #0b3f84;
+  }
+
+  .chartControls button:focus-visible,
+  .brandQuickActions button:focus-visible,
+  .comparisonToggle:focus-visible {
+    outline: 3px solid #438bdf;
+    outline-offset: 3px;
+  }
+
+  .trendValue {
+    min-height: 28px;
+    padding-top: 12px;
+    color: #18365c;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .trendPlot svg {
+    display: block;
+    width: 100%;
+    max-height: 320px;
+  }
+
+  .trendPlot circle {
+    cursor: crosshair;
+  }
+
+  .trendPlot circle:focus-visible {
+    outline: 2px solid #18365c;
+  }
+
+  .section {
+    padding: 18px 20px;
+    border: 1px solid #294e80;
+    border-radius: 14px;
+    background: #09234d;
+  }
+
+  .tableWrap {
+    max-height: 720px;
+    border: 1px solid #c8d9eb;
+    border-radius: 10px;
+  }
+
+  .table {
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    overflow: visible;
+  }
+
+  .table th,
+  .table td {
+    border-color: #dbe5f1;
+    color: #18365c;
+  }
+
+  .table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #dce8f7;
+  }
+
+  .table td:not(:first-child) {
+    text-align: right;
+  }
+
+  .weekTotalRow,
+  .grandTotalRow {
+    background: #eaf1fa;
+  }
+
+  .comparisonToggle {
+    display: block;
+    align-self: flex-start;
+    margin-top: 16px;
+    min-height: 42px;
+    font-size: 13px;
+  }
+
+  .chartsSection {
+    display: none;
+    padding-bottom: 0;
+  }
+
+  .comparisonsOpen {
+    display: block;
+  }
+
+  .chartBody {
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .chartRow {
+    grid-template-columns: minmax(100px, 0.8fr) minmax(70px, 1.5fr) minmax(90px, 1fr);
   }
 }

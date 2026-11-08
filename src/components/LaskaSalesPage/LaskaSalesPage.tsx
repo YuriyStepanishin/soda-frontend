@@ -72,6 +72,7 @@ export default function LaskaSalesPage({ onBack }: Props) {
     amount: true,
     sku: true,
     stores: true,
+    vmd: false,
   });
   const laskaQueryFilters = {
     dateFrom: backendFilters.dateFrom || undefined,

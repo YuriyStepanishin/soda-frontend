@@ -4,6 +4,7 @@ import { fetchSales, type Sale } from '../../api/fetchOlgatorgSales';
 import { fetchRoutes, type RouteRow } from '../../api/fetchOlgatorgRoutes';
 import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
+import BackButton from '../BackButton/BackButton';
 import SearchInput from '../SearchInput';
 import {
   canUserSeeBrand,
@@ -675,11 +676,12 @@ export default function ActiveCustomerBase({ onBack }: Props) {
       maximumFractionDigits: 2,
     });
 
-  if (isLoading || isRoutesLoading || isPlanLoading) return <Loader />;
-  if (error) return <div className={styles.error}>Помилка</div>;
+  if (isLoading || isRoutesLoading || isPlanLoading) return <div className={styles.container}><BackButton onBack={onBack} /><Loader /></div>;
+  if (error) return <div className={styles.container}><BackButton onBack={onBack} /><div className={styles.error}>Помилка</div></div>;
 
   return (
     <div className={styles.container}>
+      <BackButton onBack={onBack} />
       <header className={styles.header}>
         <h2 className={styles.pageTitle}>Цілі маршрута</h2>
         <p className={styles.pageMeta}>
@@ -877,9 +879,6 @@ export default function ActiveCustomerBase({ onBack }: Props) {
         )}
       </section>
 
-      <button onClick={onBack} className={styles.backButton}>
-        ← Назад
-      </button>
     </div>
   );
 }

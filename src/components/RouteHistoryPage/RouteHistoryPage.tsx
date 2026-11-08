@@ -4,12 +4,16 @@ import { useQuery } from '@tanstack/react-query';
 import { ApiError } from '../../api/client';
 import {
   fetchRouteHistory,
+  routeHistoryRequestPath,
   type RouteHistoryResponse,
 } from '../../api/fetchRouteHistory';
 
 import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
+import BackButton from '../BackButton/BackButton';
 import SearchInput from '../SearchInput';
+import SalesOfflineStatus from '../SalesOfflineStatus';
+import { readSalesSettings, saveSalesSettings, salesOfflineScope } from '../../api/salesOffline';
 
 import {
   getCurrentAuthorizedEmail,
@@ -38,6 +42,16 @@ const GROUPING_OPTIONS: Array<{
 
 const DEFAULT_GROUPING_FIELDS: GroupingField[] = ['group'];
 const OLGATORG_GROUPING_FIELDS: GroupingField[] = ['tm'];
+
+type HistorySettings = { department: string; agent: string; period: 'weeks' | 'months'; groupingFields: GroupingField[]; asOfDate: string };
+function restoredHistorySettings(): HistorySettings | null {
+  const saved = readSalesSettings<HistorySettings>('history');
+  if (!saved || typeof saved.department !== 'string' || typeof saved.agent !== 'string' ||
+    !['weeks', 'months'].includes(saved.period) || !/^\d{4}-\d{2}-\d{2}$/.test(saved.asOfDate) ||
+    !Array.isArray(saved.groupingFields) || !saved.groupingFields.length ||
+    !saved.groupingFields.every(field => GROUPING_OPTIONS.some(option => option.key === field))) return null;
+  return saved;
+}
 
 function getKyivDateKey(): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -90,8 +104,10 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
    * ------------------------------------------------------------
    */
 
-  const [department, setDepartment] = useState('');
-  const [agent, setAgent] = useState('');
+  const savedHistory = restoredHistorySettings();
+  const [department, setDepartment] = useState(savedHistory?.department ?? '');
+  const [agent, setAgent] = useState(savedHistory?.agent ?? '');
+  const [useSavedDate, setUseSavedDate] = useState(!navigator.onLine && Boolean(savedHistory));
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
@@ -100,10 +116,10 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
   const [periodModeState, setPeriodModeState] = useState<{
     database: string;
     value: 'weeks' | 'months';
-  }>({ database, value: 'weeks' });
+  }>({ database, value: savedHistory?.period ?? 'weeks' });
 
   const [groupingFields, setGroupingFields] = useState<GroupingField[]>(
-    DEFAULT_GROUPING_FIELDS
+    savedHistory?.groupingFields ?? DEFAULT_GROUPING_FIELDS
   );
 
   const periodMode =
@@ -143,16 +159,18 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
     : groupingFields.length > 0
       ? groupingFields
       : DEFAULT_GROUPING_FIELDS;
-  const [asOfDate, setAsOfDate] = useState(getKyivDateKey);
+  const [asOfDate, setAsOfDate] = useState(() => useSavedDate && savedHistory ? savedHistory.asOfDate : getKyivDateKey());
   useEffect(() => {
-    const updateDate = () => setAsOfDate(getKyivDateKey());
+    const updateDate = () => {
+      if (!useSavedDate && navigator.onLine) setAsOfDate(getKyivDateKey());
+    };
     const timer = window.setInterval(updateDate, 60_000);
     document.addEventListener('visibilitychange', updateDate);
     return () => {
       window.clearInterval(timer);
       document.removeEventListener('visibilitychange', updateDate);
     };
-  }, []);
+  }, [useSavedDate]);
   const asOfDateLabel = useMemo(
     () => formatKyivDateLabel(asOfDate),
     [asOfDate]
@@ -199,22 +217,29 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
    * ------------------------------------------------------------
    */
 
-  const { data, isLoading, error, refetch } = useQuery<RouteHistoryResponse>({
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } = useQuery<RouteHistoryResponse>({
     queryKey: [
       ...queryKeys.sales,
       'route-history',
       database,
-      authEmail,
+      salesOfflineScope(),
       historyQuery,
     ],
 
     queryFn: ({ signal }) => fetchRouteHistory(historyQuery, signal),
 
     staleTime: 60 * 1000,
-    retry: (count, error) =>
-      !(error instanceof ApiError && [400, 401, 403].includes(error.status)) &&
-      count < 1,
+    enabled: Boolean(database),
+    networkMode: 'always',
+    refetchOnReconnect: 'always',
+    retry: false,
   });
+
+  useEffect(() => {
+    if (!dataUpdatedAt || !data || isFetching || error) return;
+    const saved: HistorySettings = { department, agent, period: periodMode, groupingFields, asOfDate };
+    saveSalesSettings('history', saved);
+  }, [dataUpdatedAt, data, isFetching, error, department, agent, periodMode, groupingFields, asOfDate]);
 
   /*
    * ------------------------------------------------------------
@@ -222,7 +247,6 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
    * ------------------------------------------------------------
    */
 
-  const periods = data?.periods ?? [];
   const stores = useMemo(() => {
     const allStores = data?.stores ?? [];
     const search = debouncedSearchTerm.toLocaleLowerCase('uk-UA');
@@ -251,16 +275,17 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
       ...queryKeys.sales,
       'route-history-detail',
       database,
-      authEmail,
+      salesOfflineScope(),
       detailQuery,
     ],
     queryFn: ({ signal }) => fetchRouteHistory(detailQuery, signal),
     enabled: detailsEnabled,
     staleTime: 60 * 1000,
-    retry: (count, error) =>
-      !(error instanceof ApiError && [400, 401, 403].includes(error.status)) &&
-      count < 1,
+    networkMode: 'always',
+    refetchOnReconnect: 'always',
+    retry: false,
   });
+  const periods = (detailsEnabled && !detailError ? detailData?.periods : undefined) ?? data?.periods ?? [];
 
   const summary = !isOlgatorg
     ? {
@@ -276,8 +301,8 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
     ? detailData?.stores.find(store => store.code === expandedStore)
     : undefined;
   const modalStore =
-    openedDetail && openedStore
-      ? { ...openedDetail, store: openedStore.store }
+    openedDetail
+      ? { ...openedDetail, store: openedStore?.store ?? openedDetail.store }
       : openedStore;
 
   useEffect(() => {
@@ -311,8 +336,6 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
 
       return [...prev, field];
     });
-
-    setExpandedStore(null);
   };
 
   /*
@@ -337,6 +360,30 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
 
   return (
     <div className={styles.container}>
+      <BackButton onBack={onBack} />
+      <SalesOfflineStatus requestPaths={[routeHistoryRequestPath(historyQuery)]} />
+      <button type="button" disabled={isFetching} onClick={() => {
+        void refetch();
+        if (detailsEnabled) void refetchDetails();
+      }}>Оновити дані</button>
+      {savedHistory && !useSavedDate && savedHistory.asOfDate !== asOfDate && (
+        <button type="button" onClick={() => {
+          setDepartment(savedHistory.department);
+          setAgent(savedHistory.agent);
+          setPeriodMode(savedHistory.period);
+          setGroupingFields(savedHistory.groupingFields);
+          setAsOfDate(savedHistory.asOfDate);
+          setUseSavedDate(true);
+          setExpandedStore(null);
+        }}>Відкрити збережену історію станом на {formatKyivDateLabel(savedHistory.asOfDate)}</button>
+      )}
+      {useSavedDate && (
+        <button type="button" onClick={() => {
+          setUseSavedDate(false);
+          setAsOfDate(getKyivDateKey());
+          setExpandedStore(null);
+        }}>Перейти до поточної дати</button>
+      )}
       <header className={styles.header}>
         <h2 className={styles.pageTitle}>Історія продажів по маршруту</h2>
 
@@ -366,29 +413,6 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
       )}
 
       <section className={styles.filtersCard}>
-        <div className={styles.field}>
-          <span>Групування</span>
-
-          <div
-            className={styles.groupingChecks}
-            role="group"
-            aria-label="Групування історії"
-          >
-            {GROUPING_OPTIONS.map(option => (
-              <label key={option.key} className={styles.groupingCheckLabel}>
-                <input
-                  type="checkbox"
-                  checked={activeGroupingFields.includes(option.key)}
-                  disabled={isOlgatorg && option.key !== 'tm'}
-                  onChange={() => toggleGroupingField(option.key)}
-                />
-
-                <span>{option.label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
         <label className={styles.field}>
           <span>Пошук ТТ</span>
 
@@ -453,7 +477,7 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
         )}
       </section>
 
-      <section className={styles.summaryCard}>
+      {data && !error && <section className={styles.summaryCard}>
         <p>
           {searchTerm.trim() ? 'Знайдено ТТ:' : 'ТТ у маршруті:'}{' '}
           <b>{summary.allStores}</b>
@@ -464,7 +488,7 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
           {periodMode === 'months' ? '4 місяці' : '4 тижні'}:{' '}
           <b>{summary.withoutHistory}</b>
         </p>
-      </section>
+      </section>}
 
       <section className={styles.routeList}>
         {!isLoading && !error && stores.length === 0 && (
@@ -473,7 +497,7 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
           </p>
         )}
 
-        {stores.map(store => (
+        {!error && stores.map(store => (
           <article
             key={store.code}
             className={[
@@ -538,6 +562,26 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
           </button>
         </header>
         <div className={styles.modalControls}>
+          <div className={styles.field}>
+            <span>Групування</span>
+            <div
+              className={styles.groupingChecks}
+              role="group"
+              aria-label="Групування історії торгової точки"
+            >
+              {GROUPING_OPTIONS.map(option => (
+                <label key={option.key} className={styles.groupingCheckLabel}>
+                  <input
+                    type="checkbox"
+                    checked={activeGroupingFields.includes(option.key)}
+                    disabled={isOlgatorg && option.key !== 'tm'}
+                    onChange={() => toggleGroupingField(option.key)}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
           <div
             className={styles.periodToggle}
             role="group"
@@ -571,10 +615,15 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
           </div>
         </div>
         <div className={styles.modalBody}>
+          {expandedStore !== null && <SalesOfflineStatus requestPaths={[routeHistoryRequestPath(isOlgatorg ? historyQuery : detailQuery)]} />}
+          {expandedStore !== null && <button type="button" disabled={detailLoading || isLoading} onClick={() => {
+            if (isOlgatorg) void refetch();
+            else void refetchDetails();
+          }}>Оновити дані</button>}
           {!isOlgatorg && detailLoading && <Loader />}
           {!isOlgatorg && detailError && (
             <div className={styles.error} role="alert">
-              <p>Не вдалося завантажити історію цієї ТТ.</p>
+              <p>Не вдалося завантажити історію цієї ТТ: {detailError.message}</p>
               <button type="button" onClick={() => void refetchDetails()}>
                 Повторити
               </button>
@@ -743,9 +792,6 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
         </div>
       </dialog>
 
-      <button onClick={onBack} className={styles.backButton}>
-        ← Назад
-      </button>
     </div>
   );
 }

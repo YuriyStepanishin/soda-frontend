@@ -19,6 +19,7 @@ type OptionsState = {
 };
 
 type MetricsState = {
+  vmd: boolean;
   quantity: boolean;
   weight: boolean;
   amount: boolean;
@@ -27,6 +28,7 @@ type MetricsState = {
 };
 
 type Props = {
+  canViewVmd?: boolean;
   departments: string[];
   agents: string[];
 
@@ -61,6 +63,7 @@ type Props = {
 };
 
 export default function SalesFilters({
+  canViewVmd = false,
   departments,
   agents,
 
@@ -88,22 +91,40 @@ export default function SalesFilters({
   onApplyFilters,
 
   dateError,
-  hierarchyOrder = ['group', 'subgroup', 'brand', 'product', 'date', 'store', 'department', 'agent'],
+  hierarchyOrder = [
+    'group',
+    'subgroup',
+    'brand',
+    'product',
+    'date',
+    'store',
+    'department',
+    'agent',
+  ],
   onHierarchyOrderChange,
 }: Props) {
-  const parameterOptions: Array<{ field: string; label: string; key: keyof OptionsState }> = [
+  const parameterOptions: Array<{
+    field: string;
+    label: string;
+    key: keyof OptionsState;
+  }> = [
     { field: 'group', label: 'Група', key: 'showGroups' },
     { field: 'subgroup', label: 'Підгрупа', key: 'showSubgroups' },
     { field: 'brand', label: 'ТМ', key: 'showBrands' },
     { field: 'product', label: 'Товар', key: 'showProducts' },
     { field: 'date', label: 'Дата', key: 'showDates' },
-    { field: 'store', label: 'Торгові точки', key: 'showByStore' },
+    {
+      field: 'store',
+      label: 'Найменування торгової точки',
+      key: 'showByStore',
+    },
     { field: 'department', label: 'Відділ', key: 'showByDepartment' },
     { field: 'agent', label: 'Торговий представник', key: 'showByAgent' },
   ];
   const orderedParameters = hierarchyOrder.flatMap(field => {
     const option = parameterOptions.find(item => item.field === field);
-    if (!option || (!isLaska && (field === 'group' || field === 'subgroup'))) return [];
+    if (!option || (!isLaska && (field === 'group' || field === 'subgroup')))
+      return [];
     return [{ field, label: option.label, checked: options[option.key] }];
   });
   return (
@@ -141,7 +162,7 @@ export default function SalesFilters({
           </button>
         </section>
 
-        <section className={styles.cardSection}>
+        <section className={`${styles.cardSection} ${styles.periodSection}`}>
           <div className={styles.cardHeader}>
             <div>
               <h3>Період</h3>
@@ -174,7 +195,7 @@ export default function SalesFilters({
           {dateError && <div className={styles.dateError}>{dateError}</div>}
         </section>
 
-        <section className={styles.cardSection}>
+        <section className={`${styles.cardSection} ${styles.dictionarySection}`}>
           <div className={styles.cardHeader}>
             <div>
               <h3>Фільтри довідників</h3>
@@ -219,7 +240,7 @@ export default function SalesFilters({
             {isLaska && (
               <MultiSelectDropdown
                 label="Група"
-                items={groups}
+                items={groups.filter(item => item.trim().toLocaleUpperCase('uk-UA') !== 'ІНШЕ')}
                 selected={filters.groups}
                 onChange={value => updateFilters({ groups: value })}
                 searchable
@@ -229,7 +250,7 @@ export default function SalesFilters({
             {isLaska && (
               <MultiSelectDropdown
                 label="Підгрупа"
-                items={subgroups}
+                items={subgroups.filter(item => item.trim().toLocaleUpperCase('uk-UA') !== 'ІНШЕ')}
                 selected={filters.subgroups}
                 onChange={value => updateFilters({ subgroups: value })}
                 searchable
@@ -238,7 +259,7 @@ export default function SalesFilters({
 
             <MultiSelectDropdown
               label="ТМ"
-              items={brands}
+              items={brands.filter(item => item.trim().toLocaleUpperCase('uk-UA') !== 'ІНШЕ')}
               selected={filters.brands}
               onChange={value => updateFilters({ brands: value })}
               searchable
@@ -254,24 +275,37 @@ export default function SalesFilters({
           </div>
         </section>
 
-        <section className={styles.cardSection}>
+        <section className={`${styles.cardSection} ${styles.parametersSection}`}>
           <div className={styles.cardHeader}>
             <div>
               <h3>Параметри</h3>
-              <p>Перетягуйте параметри за ⠿, щоб задати порядок ієрархії. У звіт потрапляють лише позначені.</p>
+              <p>
+                Перетягуйте параметри за ⠿, щоб задати порядок ієрархії. У звіт
+                потрапляють лише позначені.
+              </p>
             </div>
           </div>
 
-          <SortableSalesParameters items={orderedParameters}
+          <SortableSalesParameters
+            items={orderedParameters}
             onOrderChange={onHierarchyOrderChange}
             onToggle={field => {
-              const option = parameterOptions.find(item => item.field === field);
-              if (option) onChangeOptions(previous => ({ ...previous, [option.key]: !previous[option.key] }));
-            }} />
-          {!orderedParameters.some(item => item.checked) ? <p role="status">Оберіть хоча б один параметр для звіту.</p> : null}
+              const option = parameterOptions.find(
+                item => item.field === field
+              );
+              if (option)
+                onChangeOptions(previous => ({
+                  ...previous,
+                  [option.key]: !previous[option.key],
+                }));
+            }}
+          />
+          {!orderedParameters.some(item => item.checked) ? (
+            <p role="status">Оберіть хоча б один параметр для звіту.</p>
+          ) : null}
         </section>
 
-        <section className={styles.cardSection}>
+        <section className={`${styles.cardSection} ${styles.metricsSection}`}>
           <div className={styles.cardHeader}>
             <div>
               <h3>Показники</h3>
@@ -305,7 +339,7 @@ export default function SalesFilters({
                   }))
                 }
               />
-              <span>Торгові точки</span>
+              <span>АКБ</span>
             </label>
 
             <label className={styles.metricCard}>
@@ -349,10 +383,18 @@ export default function SalesFilters({
               />
               <span>SKU</span>
             </label>
+            {canViewVmd && <label className={styles.metricCard}>
+              <input type="checkbox" checked={metrics.vmd} onChange={() => onChangeMetrics(prev => ({ ...prev, vmd: !prev.vmd }))} />
+              <span>ВМД, грн</span>
+            </label>}
           </div>
         </section>
 
         <div className={styles.sidebarButtons}>
+          <div className={styles.desktopHierarchy} aria-label="Вибрана ієрархія звіту">
+            <span>Вибрана ієрархія:</span>
+            <div>{orderedParameters.filter(item => item.checked).map(item => <span key={item.field}>{item.label}</span>)}</div>
+          </div>
           {onApplyFilters ? (
             <button
               type="button"
@@ -360,7 +402,8 @@ export default function SalesFilters({
               disabled={!orderedParameters.some(item => item.checked)}
               onClick={onApplyFilters}
             >
-              Сформувати
+              <span className={styles.mobileActionLabel}>Сформувати</span>
+              <span className={styles.desktopActionLabel}>Сформувати звіт</span>
             </button>
           ) : null}
         </div>

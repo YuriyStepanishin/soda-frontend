@@ -105,6 +105,7 @@ export default function App() {
   const [email, setEmail] = useState<string | null>(
     () => getAuthSession()?.email ?? null
   );
+  const [salesByDaysOrigin, setSalesByDaysOrigin] = useState<'home' | 'sales'>('home');
 
   const [activeDatabase, setActiveDatabase] = useState<string>(() => {
     const user = getAuthSession()?.user;
@@ -177,7 +178,9 @@ export default function App() {
     setIsUserMenuOpen(!tenant);
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    if (!window.confirm('Вийти з SODA?\n\nДля продовження роботи потрібно буде увійти знову. Незбережені зміни можуть бути втрачені.')) return;
+    await queryClient.cancelQueries();
     clearAuthSession();
 
     setEmail(null);
@@ -255,7 +258,7 @@ export default function App() {
         <Suspense fallback={<Loader />}>
           <SalesPage
             onBack={() => setPage('home')}
-            onOpenSalesByDays={() => setPage('sales-by-days')}
+            onOpenSalesByDays={() => { setSalesByDaysOrigin('sales'); setPage('sales-by-days'); }}
           />
         </Suspense>
       </>
@@ -266,7 +269,7 @@ export default function App() {
     return (
       <>
         <Suspense fallback={<Loader />}>
-          <SalesByDaysPage key={activeDatabase} database={activeDatabase} onBack={() => setPage('sales')} />
+          <SalesByDaysPage key={activeDatabase} database={activeDatabase} onBack={() => setPage(salesByDaysOrigin)} />
         </Suspense>
       </>
     );
@@ -443,7 +446,7 @@ export default function App() {
               )
             }
             onOpenSalesByDays={() =>
-              runProtectedAction(() => setPage('sales-by-days'), 'sales')
+              runProtectedAction(() => { setSalesByDaysOrigin('home'); setPage('sales-by-days'); }, 'sales')
             }
             onOpenActiveCustomerBase={() =>
               runProtectedAction(

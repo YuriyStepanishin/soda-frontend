@@ -4,6 +4,7 @@ import Select, { type MultiValue } from 'react-select';
 import { fetchSales, type Sale } from '../../api/fetchOlgatorgSales';
 import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
+import BackButton from '../BackButton/BackButton';
 import Popup from '../Popup/Popup';
 import {
   CALCULATION_MODE_OPTIONS,
@@ -138,11 +139,12 @@ export default function PlanTargetsPage({ onBack }: Props) {
   }
 
   if (isLoading && effectiveColumns.length === 0) {
-    return <Loader />;
+    return <div className={styles.container}><BackButton onBack={onBack} /><Loader /></div>;
   }
 
   return (
     <div className={styles.container}>
+      <BackButton onBack={onBack} />
       <header className={styles.header}>
         <h2 className={styles.title}>Планові показники</h2>
       </header>
@@ -181,9 +183,6 @@ export default function PlanTargetsPage({ onBack }: Props) {
         />
       )}
 
-      <button type="button" className={styles.backBtn} onClick={onBack}>
-        ← Назад
-      </button>
 
       {editing && (
         <ColumnEditorModal

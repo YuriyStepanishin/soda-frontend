@@ -1,0 +1,27 @@
+.button {
+  position: sticky;
+  top: max(8px, env(safe-area-inset-top));
+  z-index: 10;
+  display: block;
+  align-self: flex-start;
+  width: fit-content;
+  min-height: 44px;
+  margin: 0 0 16px;
+  padding: 10px 16px;
+  border: 1px solid #6386b7;
+  border-radius: 10px;
+  background: #10315f;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: #194477;
+}
+
+.button:focus-visible {
+  outline: 3px solid #8ac5ff;
+  outline-offset: 3px;
+}

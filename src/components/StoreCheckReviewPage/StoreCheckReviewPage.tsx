@@ -7,6 +7,7 @@ import {
 } from '../../api/fetchStoreCheckReports';
 import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
+import BackButton from '../BackButton/BackButton';
 import SearchInput from '../SearchInput';
 import styles from './StoreCheckReviewPage.module.css';
 
@@ -273,6 +274,7 @@ export default function StoreCheckReviewPage({ onBack }: Props) {
 
   return (
     <div className={styles.page}>
+      <BackButton onBack={onBack} />
       <div className={styles.topBar}>
         <div className={styles.statsCompact}>
           <div className={styles.statCard}>
@@ -345,9 +347,6 @@ export default function StoreCheckReviewPage({ onBack }: Props) {
         ))}
       </div>
 
-      <button type="button" className={styles.backButton} onClick={onBack}>
-        ← Назад
-      </button>
     </div>
   );
 }

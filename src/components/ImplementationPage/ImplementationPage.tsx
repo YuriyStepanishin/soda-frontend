@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchSales, type Sale } from '../../api/fetchOlgatorgSales';
 import Loader from '../Loader/Loader';
+import BackButton from '../BackButton/BackButton';
 import {
   getCurrentAuthorizedEmail,
   getUserDepartment,
@@ -299,11 +300,12 @@ export default function ImplementationPage({ onBack }: { onBack: () => void }) {
     });
   }
 
-  if (isLoading || isPlanLoading) return <Loader />;
-  if (error) return <div className={styles.error}>Помилка завантаження</div>;
+  if (isLoading || isPlanLoading) return <div className={styles.container}><BackButton onBack={onBack} /><Loader /></div>;
+  if (error) return <div className={styles.container}><BackButton onBack={onBack} /><div className={styles.error}>Помилка завантаження</div></div>;
 
   return (
     <div className={styles.container}>
+      <BackButton onBack={onBack} />
       <div className={styles.header}>
         <h2 className={styles.title}>Виконання показників</h2>
         <span className={styles.monthBadge}>{monthLabel}</span>
@@ -461,9 +463,6 @@ export default function ImplementationPage({ onBack }: { onBack: () => void }) {
         })}
       </div>
 
-      <button className={styles.backBtn} onClick={onBack}>
-        ← Назад
-      </button>
 
       {detailModal && (
         <div className={styles.modalLayer}>

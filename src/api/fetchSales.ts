@@ -443,6 +443,7 @@ export interface SalesDateRow {
 export type SalesReportBy = string;
 
 export interface SalesReportRow {
+  vmd?: number | null;
   id: string;
   label: string;
   path?: string;
@@ -462,7 +463,7 @@ export interface SalesReportResponse {
 }
 
 export async function fetchSalesReport(
-  filtersInput: unknown = {}
+  filtersInput: unknown = {}, signal?: AbortSignal
 ): Promise<SalesReportResponse> {
   const filters = isSalesFilters(filtersInput) ? filtersInput : {};
   const reportBy =
@@ -493,11 +494,13 @@ export async function fetchSalesReport(
     totals: SalesReportRow;
   }>('/api/sales/report', {
     authenticated: true,
+    signal,
     query,
   });
 
   const normalizeRow = (row: SalesReportRow): SalesReportRow => ({
     ...row,
+    ...(row.vmd === undefined ? {} : { vmd: row.vmd === null ? null : Number(row.vmd) }),
     quantity: Number(row.quantity ?? 0),
     stores: Number(row.stores ?? 0),
     weight: Number(row.weight ?? 0),
@@ -594,7 +597,7 @@ export type SalesFiltersResponse = {
 };
 
 export const fetchSalesFilters = async (
-  filtersInput: unknown = {}
+  filtersInput: unknown = {}, signal?: AbortSignal
 ): Promise<SalesFiltersResponse> => {
   // Returns dynamic filter dictionaries based on already selected constraints.
   const filters = isSalesFilters(filtersInput) ? filtersInput : {};
@@ -620,6 +623,7 @@ export const fetchSalesFilters = async (
 
   return apiGet<SalesFiltersResponse>('/api/sales/filters', {
     authenticated: true,
+    signal,
     query,
   });
 };
@@ -630,7 +634,6 @@ export interface SalesByDaysRow {
   amount: number;
   weight: number;
   storesCount: number;
-  tt500: number;
 }
 
 export async function fetchSalesByDays(
@@ -667,7 +670,6 @@ export async function fetchSalesByDays(
     amount: Number(item.amount),
     weight: Number(item.weight),
     storesCount: Number(item.storesCount),
-    tt500: Number(item.tt500),
     week_year: Number(item.week_year),
     week_number: Number(item.week_number),
   }));

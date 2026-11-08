@@ -53,10 +53,7 @@ type RouteHistoryParams = {
   storeCode?: string;
 };
 
-export async function fetchRouteHistory(
-  params: RouteHistoryParams,
-  signal?: AbortSignal
-): Promise<RouteHistoryResponse> {
+export function routeHistoryRequestPath(params: RouteHistoryParams): string {
   const searchParams = new URLSearchParams();
 
   searchParams.set('period', params.period);
@@ -80,9 +77,15 @@ export async function fetchRouteHistory(
   searchParams.set('groupingFields', params.groupingFields);
   if (params.view) searchParams.set('view', params.view);
   if (params.storeCode != null) searchParams.set('storeCode', params.storeCode);
+  return `/api/sales/route-history?${searchParams.toString()}`;
+}
 
+export async function fetchRouteHistory(
+  params: RouteHistoryParams,
+  signal?: AbortSignal
+): Promise<RouteHistoryResponse> {
   const response = await apiGet<RawRouteHistoryResponse>(
-    `/api/sales/route-history?${searchParams.toString()}`,
+    routeHistoryRequestPath(params),
     { authenticated: true, signal }
   );
 
@@ -158,6 +161,27 @@ function formatMonthPeriod(dateKey: string): string {
   return `${month}.${year}`;
 }
 
+const HISTORY_GROUP_ORDER = [
+  'Напівфабрикати',
+  'Риба',
+  'Морепродукти',
+  "М'ясо та птиця",
+  'Овочі та фрукти',
+  'Молочна продукція',
+  'Кондитерські вироби',
+  'Морозиво',
+  'Бакалія',
+  'Напої',
+  'ЛІД',
+  'Непродовольчі товари',
+];
+
+function historyGroupRank(value: string): number {
+  const normalized = normalizeText(value).replace(/[’ʼ]/g, "'").toLocaleLowerCase('uk-UA');
+  const index = HISTORY_GROUP_ORDER.findIndex(group => group.toLocaleLowerCase('uk-UA') === normalized);
+  return index < 0 ? HISTORY_GROUP_ORDER.length : index;
+}
+
 function mapRouteHistory(
   data: RawRouteHistoryData,
   params: RouteHistoryParams
@@ -182,6 +206,10 @@ function mapRouteHistory(
     const grouped = new Map<string, Map<string, number[]>>();
 
     store.items.forEach(item => {
+      const product = normalizeText(item.product);
+      if (!product && fields.some(field => normalizeText(
+        item[field as 'group' | 'subgroup' | 'tm' | 'packing']
+      ).toLocaleUpperCase('uk-UA') === 'ІНШЕ')) return;
       const label = fields
         .map(
           field =>
@@ -190,7 +218,6 @@ function mapRouteHistory(
             ) || GROUPING_FALLBACK_LABELS[field]
         )
         .join(' / ');
-      const product = normalizeText(item.product);
 
       if (!grouped.has(label)) grouped.set(label, new Map());
       if (!product) return;
@@ -213,7 +240,13 @@ function mapRouteHistory(
     });
 
     const brands: RouteHistoryBrand[] = Array.from(grouped.entries())
-      .sort(([a], [b]) => a.localeCompare(b, 'uk'))
+      .sort(([a], [b]) => {
+        const groupIndex = fields.indexOf('group');
+        const rankDifference = groupIndex < 0 ? 0
+          : historyGroupRank(a.split(' / ')[groupIndex] ?? '')
+            - historyGroupRank(b.split(' / ')[groupIndex] ?? '');
+        return rankDifference || a.localeCompare(b, 'uk');
+      })
       .map(([label, productsMap]) => {
         const products = Array.from(productsMap.entries())
           .map(([name, values]) => ({ name, values }))
