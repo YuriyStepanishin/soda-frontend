@@ -183,7 +183,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
     isFetching,
     error,
     dataUpdatedAt,
-    refetch,
   } = useQuery<SalesByDaysRow[]>({
     networkMode: 'always',
     refetchOnReconnect: 'always',
@@ -208,6 +207,8 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
       }, signal),
     enabled: Boolean(database) && validDates,
     staleTime: 1000 * 60,
+    refetchOnWindowFocus: true,
+    refetchInterval: 15 * 60 * 1000,
   });
   const { data: filtersData, error: filtersError } = useQuery({
     networkMode: 'always',
@@ -223,6 +224,8 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
       }, signal),
     enabled: Boolean(database) && validDates,
     staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: true,
+    refetchInterval: 15 * 60 * 1000,
   });
   const uniqueDepartments = filtersData?.departments ?? [];
   useEffect(() => {
@@ -443,7 +446,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
   ];
   return (
     <div className={styles.container}>
-      <button type="button" disabled={isFetching || !validDates} onClick={() => { void refetch(); }}>Оновити дані</button>
       <BackButton onBack={onBack} label="Назад" />
       <header className={styles.pageHeader}>
         <div className={styles.pageIdentity}><span className={styles.pageIcon}>S</span><div><h1>Продажі по днях</h1><p>Період, торгові марки та динаміка показників</p></div></div>
@@ -514,7 +516,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
       {isLoading && <Loader />}
       {!isLoading && !error && validDates && rows.length === 0 && <p>За обраний період продажів немає.</p>}
       {!isLoading && !error && validDates && rows.length > 0 && <div className={styles.desktopOverview} aria-busy={isFetching}>
-        {isFetching && <p role="status">Оновлення даних…</p>}
         <div className={styles.summaryGrid}>
           <article><span>Сума продажів</span><strong>{format(grandTotal.amount)} <small>грн</small></strong></article>
           <article><span>Вага</span><strong>{format(grandTotal.weight)} <small>кг</small></strong></article>

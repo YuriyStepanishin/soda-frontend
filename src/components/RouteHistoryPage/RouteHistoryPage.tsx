@@ -227,6 +227,8 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
     queryFn: ({ signal }) => fetchRouteHistory(historyQuery, signal),
 
     staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 15 * 60 * 1000,
     enabled: Boolean(database),
     networkMode: 'always',
     refetchOnReconnect: 'always',
@@ -279,6 +281,8 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
     queryFn: ({ signal }) => fetchRouteHistory(detailQuery, signal),
     enabled: detailsEnabled,
     staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 15 * 60 * 1000,
     networkMode: 'always',
     refetchOnReconnect: 'always',
     retry: false,
@@ -359,10 +363,6 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
   return (
     <div className={styles.container}>
       <BackButton onBack={onBack} />
-      <button type="button" disabled={isFetching} onClick={() => {
-        void refetch();
-        if (detailsEnabled) void refetchDetails();
-      }}>Оновити дані</button>
       {savedHistory && !useSavedDate && savedHistory.asOfDate !== asOfDate && (
         <button type="button" onClick={() => {
           setDepartment(savedHistory.department);
@@ -612,10 +612,6 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
           </div>
         </div>
         <div className={styles.modalBody}>
-          {expandedStore !== null && <button type="button" disabled={detailLoading || isLoading} onClick={() => {
-            if (isOlgatorg) void refetch();
-            else void refetchDetails();
-          }}>Оновити дані</button>}
           {!isOlgatorg && detailLoading && <Loader />}
           {!isOlgatorg && detailError && (
             <div className={styles.error} role="alert">

@@ -261,19 +261,6 @@ function MotivationWorkspace({ onBack }: { onBack: () => void }) {
             ))}
           </select>
         </label>
-        <button
-          disabled={mutation.isPending}
-          onClick={() => {
-            setEditor(null);
-            setImported(null);
-            setExtraHistory([]);
-            setEndHistory(false);
-            void state.refetch();
-            void history.refetch();
-          }}
-        >
-          Оновити дані
-        </button>
         <small>
           {range.start} — {range.end}
         </small>

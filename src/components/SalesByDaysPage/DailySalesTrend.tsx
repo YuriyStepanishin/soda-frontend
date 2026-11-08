@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { SalesByDaysRow } from '../../api/fetchSales';
 import { dailyChartPoints, dailyChartDomain, type DailyChartMetric } from '../../utils/dailySalesChart';
 import styles from './SalesByDaysPage.module.css';
@@ -16,20 +16,29 @@ export default function DailySalesTrend({ rows }: { rows: SalesByDaysRow[] }) {
   const [grain, setGrain] = useState<'day' | 'week'>('day');
   const [focused, setFocused] = useState<string | null>(null);
   const titleId = useId();
+  const plotRef = useRef<HTMLDivElement>(null);
+  const [plotWidth, setPlotWidth] = useState(960);
   const points = useMemo(() => dailyChartPoints(rows, metric, grain), [rows, metric, grain]);
+  const hasPoints = points.length > 0;
+  useEffect(() => {
+    if (!plotRef.current) return;
+    const observer = new ResizeObserver(entries => setPlotWidth(Math.max(280, Math.round(entries[0].contentRect.width))));
+    observer.observe(plotRef.current);
+    return () => observer.disconnect();
+  }, [hasPoints]);
   const { min, max } = dailyChartDomain(points);
   const current = metrics.find(item => item.key === metric)!;
   const timestamp = (date: string) => Date.parse(date + 'T00:00:00Z');
   const first = points[0] ? timestamp(points[0].date) : 0;
   const last = points.length ? timestamp(points[points.length - 1].date) : 0;
-  const x = (date: string) => first === last ? 510 : 90 + (timestamp(date) - first) / (last - first) * 840;
+  const x = (date: string) => first === last ? (65 + plotWidth - 20) / 2 : 65 + (timestamp(date) - first) / (last - first) * (plotWidth - 85);
   const y = (value: number) => 238 - (value - min) / (max - min) * 208;
   const path = points.map((point, index) => `${index ? 'L' : 'M'} ${x(point.date)} ${y(point.value)}`).join(' ');
   const selected = points.find(point => point.date === focused);
-  const labels = points.filter((_, index) => index === points.length - 1 || index % Math.max(1, Math.ceil(points.length / 6)) === 0);
+  const labels = points.filter((_, index) => index === points.length - 1 || index % Math.max(1, Math.ceil(points.length / (plotWidth < 600 ? 3 : 6))) === 0);
   return <section className={styles.trendPanel} aria-labelledby={titleId}>
     <div className={styles.trendHeader}>
-      <div><h2 id={titleId}>Динаміка продажів</h2><p>Наведіть на точку, щоб побачити значення</p></div>
+      <div><h2 id={titleId}>Динаміка продажів</h2><p>Оберіть точку на графіку, щоб побачити значення</p></div>
       <div className={styles.chartControls} role="group" aria-label="Показник графіка">
         {metrics.map(item => <button key={item.key} type="button" aria-pressed={metric === item.key} onClick={() => { setMetric(item.key); setFocused(null); }}>{item.label}</button>)}
       </div>
@@ -40,14 +49,20 @@ export default function DailySalesTrend({ rows }: { rows: SalesByDaysRow[] }) {
     </div>
     {points.length ? <>
       <div className={styles.trendValue} aria-live="polite">{selected ? `${selected.label}: ${fullNumber.format(selected.value)} ${current.unit}` : `${current.label}, ${current.unit}`}</div>
-      <div className={styles.trendPlot}>
-        <svg viewBox="0 0 960 285" role="img" aria-label={`${current.label}: динаміка за ${grain === 'day' ? 'днями' : 'тижнями'}`}>
+      <div ref={plotRef} className={styles.trendPlot}>
+        <svg viewBox={`0 0 ${plotWidth} 285`} role="img" aria-label={`${current.label}: динаміка за ${grain === 'day' ? 'днями' : 'тижнями'}`} onClick={event => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          if (!rect.width || !points.length) return;
+          const position = (event.clientX - rect.left) / rect.width * plotWidth;
+          const nearest = points.reduce((best, point) => Math.abs(x(point.date) - position) < Math.abs(x(best.date) - position) ? point : best);
+          setFocused(nearest.date);
+        }}>
           <title>{`${current.label} за вибраний період. Точні значення також наведені в таблиці нижче.`}</title>
           {Array.from({ length: 5 }, (_, index) => {
             const value = min + (max - min) * index / 4;
-            return <g key={index}><line x1="90" x2="930" y1={y(value)} y2={y(value)} stroke="#dbe5f1" /><text x="78" y={y(value) + 4} textAnchor="end" fill="#425466" fontSize="12">{shortNumber.format(value)}</text></g>;
+            return <g key={index}><line x1="65" x2={plotWidth - 20} y1={y(value)} y2={y(value)} stroke="#dbe5f1" /><text x="53" y={y(value) + 4} textAnchor="end" fill="#425466" fontSize="12">{shortNumber.format(value)}</text></g>;
           })}
-          <line x1="90" x2="930" y1={y(0)} y2={y(0)} stroke="#92a7c0" />
+          <line x1="65" x2={plotWidth - 20} y1={y(0)} y2={y(0)} stroke="#92a7c0" />
           <path d={path} fill="none" stroke="#1769ce" strokeWidth="2.5" />
           {points.map(point => <circle key={point.date} cx={x(point.date)} cy={y(point.value)} r={focused === point.date ? 5 : 3} fill={point.value < 0 ? '#a32939' : '#1769ce'} tabIndex={0}
             aria-label={`${point.label}: ${fullNumber.format(point.value)} ${current.unit}`}

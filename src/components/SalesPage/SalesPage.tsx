@@ -1,6 +1,6 @@
 import { reorderVisibleParameters } from '../../utils/reportHierarchy';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { prepareSalesReportFile } from '../../utils/exportSalesToExcel';
 import type { ResultsExportParams } from '../../utils/exportSalesToExcel';
@@ -46,7 +46,6 @@ export default function SalesPage({
   onBack,
   onOpenSalesByDays,
 }: SalesPageProps) {
-  const queryClient = useQueryClient();
   const authEmail = getCurrentAuthorizedEmail();
   const userRole = getUserRole(authEmail);
   const ownRepresentative = getUserRepresentative(authEmail) ?? '';
@@ -209,14 +208,15 @@ export default function SalesPage({
   );
 
   const reportKey = [queryKeys.sales, activeTenant, authScope, 'report', reportQuery];
-  const { data: reportData, isFetching: reportFetching, error: reportError, refetch: refetchReport } = useQuery({
+  const { data: reportData, isFetching: reportFetching, error: reportError } = useQuery({
     queryKey: reportKey,
     networkMode: 'always',
     refetchOnReconnect: 'always',
     retry: false,
     queryFn: ({ signal }) => fetchSalesReport(reportQuery, signal),
     staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: 15 * 60 * 1000,
     enabled: isReportReady && isValidPeriod,
   });
 
@@ -237,7 +237,8 @@ export default function SalesPage({
     queryFn: ({ signal }) => fetchSalesFilters(debouncedFilterQuery, signal),
     staleTime: 1000 * 60 * 5,
     enabled: isValidPeriod && !isReportReady,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: 15 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
 
@@ -427,7 +428,6 @@ export default function SalesPage({
               <button type="button" onClick={handleEditReport}>
                 Змінити
               </button>
-              <button type="button" disabled={reportFetching} onClick={() => { void queryClient.invalidateQueries({ queryKey: ['sales-filters', activeTenant, authScope] }); void refetchReport(); }}>Оновити дані</button>
               <button type="button" disabled={exporting || !prepared || prepared.input !== exportInput} onClick={() => void handleSaveExcel()}>
                 {exporting ? 'Відправлення…' : !prepared || prepared.input !== exportInput ? 'Підготовка Excel…' : shareWithApps ? 'Зберегти та відправити' : 'Зберегти Excel'}
               </button>

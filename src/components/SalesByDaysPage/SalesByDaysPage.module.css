@@ -251,6 +251,63 @@
   }
 }
 
+@media (max-width: 1180px) {
+  .container { max-width: 980px; gap: 12px; }
+  .pageHeader {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px; border: 1px solid #294e80; border-radius: 14px; background: #0b2853;
+  }
+  .pageIdentity { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .pageIcon { display: grid; place-items: center; flex: 0 0 36px; height: 36px; border-radius: 10px; background: #176de7; color: #fff; font-weight: 800; }
+  .pageHeader h1 { margin: 0; font-size: clamp(17px, 4.5vw, 22px); }
+  .pageHeader p { display: none; }
+  .companyBadge { font-size: 11px; font-weight: 700; color: #cfe1ff; }
+  .filterPanel { padding: 14px; border: 1px solid #294e80; border-radius: 14px; background: #09234d; }
+  .filterGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .filterGrid label { min-width: 0; }
+  .filterGrid input, .filterGrid select {
+    box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; min-height: 44px;
+    padding: 8px; border: 1px solid #b9cdea; border-radius: 8px; background: #f5f8ff; color: #18365c; font-size: 16px;
+  }
+  .desktopBrandPicker { display: block; min-width: 0; }
+  .brandFilters { display: none; }
+  .brandQuickActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .brandQuickActions button, .comparisonToggle {
+    min-height: 44px; padding: 8px 12px; border: 1px solid #365b91; border-radius: 8px;
+    background: #123568; color: #eef5ff; font: inherit; font-size: 13px;
+  }
+  .brandQuickActions button[aria-pressed='true'] { background: #176de7; }
+  .desktopOverview { display: block; min-width: 0; }
+  .summaryGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+  .summaryGrid article { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 14px; border: 1px solid #294e80; border-radius: 12px; background: #0b2853; }
+  .summaryGrid article:last-child { grid-column: 1 / -1; }
+  .summaryGrid span, .summaryGrid small { color: #b8cfff; font-size: 12px; }
+  .summaryGrid strong { font-size: clamp(17px, 4.8vw, 24px); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .trendPanel { min-width: 0; padding: 14px; border: 1px solid #c8d9eb; border-radius: 14px; background: #f8fbff; color: #18365c; }
+  .trendHeader { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .trendHeader > div:first-child { flex-basis: 100%; }
+  .trendHeader h2 { margin: 0 0 4px; font-size: 18px; }
+  .trendHeader p, .chartNote { margin: 0; color: #526780; font-size: 12px; line-height: 1.5; }
+  .chartControls { display: flex; gap: 2px; padding: 3px; border: 1px solid #c8d9eb; border-radius: 10px; background: #eaf1fa; }
+  .chartControls button { min-height: 44px; padding: 8px 12px; border: 0; border-radius: 7px; background: transparent; color: #18365c; font: inherit; font-size: 14px; font-weight: 600; }
+  .chartControls button[aria-pressed='true'] { background: #c7dcf8; color: #0b3f84; }
+  .trendValue { min-height: 36px; padding-top: 12px; color: #18365c; font-size: 14px; font-weight: 700; }
+  .trendPlot { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+  .trendPlot svg { display: block; width: 100%; height: 285px; max-height: 300px; }
+  .chartNote { margin-top: 8px; }
+  .section { margin-top: 0; min-width: 0; }
+  .tableWrap { border: 1px solid #c8d9eb; border-radius: 10px; }
+  .table { min-width: 560px; background: #fff; border: 0; border-radius: 0; }
+  .table th, .table td { border-color: #dbe5f1; padding: 10px; color: #18365c; font-size: 13px; }
+  .table th { background: #dce8f7; }
+  .table td:not(:first-child) { text-align: right; }
+  .weekTotalRow, .grandTotalRow { background: #eaf1fa; }
+  .weekTotalRow td, .grandTotalRow td { color: #18365c; }
+  .comparisonToggle { display: block; width: 100%; text-align: left; }
+  .chartsSection { display: none; margin-top: 0; padding-bottom: 16px; }
+  .comparisonsOpen { display: block; }
+}
+
 @media (min-width: 1024px) {
   .container {
     padding: 24px;
