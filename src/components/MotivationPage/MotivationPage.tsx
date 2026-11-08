@@ -24,6 +24,7 @@ import MotivationEditor from './MotivationEditor';
 import MotivationRecords from './MotivationRecords';
 import MotivationSettings from './MotivationSettings';
 import styles from './MotivationPage.module.css';
+import Loader from '../Loader/Loader';
 const tabs = [
   'Огляд',
   'Порівняння',
@@ -133,7 +134,7 @@ function MotivationWorkspace({ onBack }: { onBack: () => void }) {
     return (
       <section className={styles.page}>
         <button onClick={onBack}>← Назад</button>
-        <p role="status">Завантаження мотивації…</p>
+        <Loader inline label="Завантаження мотивації…" />
       </section>
     );
   if (!data || state.isError)
@@ -290,6 +291,7 @@ function MotivationWorkspace({ onBack }: { onBack: () => void }) {
         <section className={styles.panel}>
           <h2>Історія змін · усі періоди</h2>
           <p>Дата, користувач та повний знімок кожного успішного збереження.</p>
+          {(history.isFetching || historyBusy) && <Loader inline label="Завантаження журналу перевірок…" />}
           {history.isError && (
             <p role="alert" className={styles.errorText}>
               {history.error.message}

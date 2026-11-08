@@ -20,6 +20,7 @@ import {
 } from '../../config/userRoles';
 import styles from './SalesPage.module.css';
 import BackButton from '../BackButton/BackButton';
+import Loader from '../Loader/Loader';
 import { getAuthSession } from '../../api/auth';
 import { saveSalesSettings } from '../../api/salesOffline';
 import SalesFilters from '../SalesFilters/SalesFilters';
@@ -229,7 +230,7 @@ export default function SalesPage({
     const timer = window.setTimeout(() => setDebouncedFilterQuery(liveFilterQuery), 250);
     return () => window.clearTimeout(timer);
   }, [liveFilterQuery]);
-  const { data: filtersData, error: filtersError } = useQuery({
+  const { data: filtersData, isFetching: filtersFetching, error: filtersError } = useQuery({
     queryKey: ['sales-filters', activeTenant, authScope, debouncedFilterQuery],
     networkMode: 'always',
     refetchOnReconnect: 'always',
@@ -378,6 +379,7 @@ export default function SalesPage({
   return (
     <div className={styles.container}>
       <BackButton onBack={handleBack} label={isReportReady ? 'До параметрів' : 'До головної'} />
+      {!isReportReady && filtersFetching && <Loader inline label="Завантаження фільтрів…" />}
       {!isReportReady && filtersError ? <p role="alert">{filtersError.message}</p> : null}
       <div className={`${styles.desktopLayout} ${!isReportReady ? styles.configurationLayout : ''}`}>
         {!isReportReady ? (
@@ -438,7 +440,7 @@ export default function SalesPage({
         )}
 
         <div className={styles.reportContent}>
-          {isReportReady && reportFetching ? <p role="status">Формування звіту…</p> : null}
+          {isReportReady && reportFetching ? <Loader inline label="Формування звіту…" /> : null}
           {isReportReady && reportError ? <p role="alert">{reportError.message}</p> : null}
           {isReportReady && reportData && !reportError ? (
             <SalesDetailed
@@ -451,12 +453,12 @@ export default function SalesPage({
               reportMeta={selectedSummary}
               onVisibleRowsChange={handleVisibleRowsChange}
             />
-          ) : (
+          ) : !isReportReady ? (
             <div className={styles.emptyReport}>
               Оберіть фільтри, параметри та показники, потім натисніть
               «Сформувати».
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
