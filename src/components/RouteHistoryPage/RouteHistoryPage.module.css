@@ -84,7 +84,10 @@
 
 .field select {
   padding: 10px 12px;
-  color-scheme: dark;
+  background: var(--field-bg-light);
+  color: var(--field-text-dark);
+  border-color: var(--field-border);
+  color-scheme: light;
 }
 
 .lockedValue {
@@ -345,7 +348,7 @@
   border-radius: 18px;
   background: var(--rh-bg);
   color: var(--rh-text);
-  color-scheme: dark;
+  color-scheme: inherit;
   font-family: inherit;
   box-shadow: var(--soda-shadow);
 }
@@ -440,7 +443,7 @@
 
 /* Таблиця десктопа та планшета */
 
-.historyWrap {
+.desktopHistory {
   --rh-panel: var(--soda-paper);
   --rh-header: var(--soda-data-heading);
   --rh-border: var(--soda-data-border);

@@ -15,15 +15,14 @@ export default function AppShell({ children, items, active, account, onProfile, 
   return <div className={styles.shell}>
     <aside className={styles.sidebar} aria-label="Основна навігація">
       <a className={styles.brand} href="#" onClick={event => { event.preventDefault(); items[0]?.onClick(); }}><img src="/icons/soda-192.png" alt="" width="40" height="40" /><strong>SODA</strong></a>
-      <small className={styles.tenant}>{tenant ? tenant.toUpperCase() : 'РОБОЧИЙ ПРОСТІР'}</small>
+      <small className={styles.tenant}>{tenant.toUpperCase()}</small>
       <nav>{items.map(item => <button key={item.id} type="button" aria-current={active === item.id ? 'page' : undefined} onClick={item.onClick}><NavIcon name={item.symbol} /><span>{item.label}</span></button>)}<button type="button" onClick={onProfile}><span aria-hidden="true">◉</span><span>Профіль</span></button></nav>
       <small className={styles.version}>SODA · v{__APP_VERSION__}</small>
     </aside>
     <div className={styles.workspace}><header className={styles.topbar}>
       <a className={styles.mobileBrand} href="#" onClick={event => { event.preventDefault(); items[0]?.onClick(); }}><img src="/icons/soda-192.png" alt="" width="32" height="32" /><strong>SODA</strong></a>
-      <span className={styles.context}>{items.find(item => item.id === active)?.label ?? 'Робочий простір'}{tenant ? ` · ${tenant.toUpperCase()}` : ''}</span>
+      <span className={styles.context}>{items.find(item => item.id === active)?.label ?? 'SODA'}{tenant ? ` · ${tenant.toUpperCase()}` : ''}</span>
       <div className={styles.toolbar}>{showThemeSwitcher && <ThemeSwitcher />}{account}</div>
     </header><div className={styles.content}>{children}</div></div>
-    <nav className={styles.mobileNav} aria-label="Навігація телефону">{items.map(item => <button key={item.id} type="button" aria-current={active === item.id ? 'page' : undefined} onClick={item.onClick}><NavIcon name={item.symbol} /><span>{item.id === 'sales-by-days' ? 'По днях' : item.id === 'route-history' ? 'Точки' : item.label}</span></button>)}<button type="button" onClick={onProfile}><span className={styles.profileIcon} aria-hidden="true">◉</span><span>Профіль</span></button></nav>
   </div>;
 }

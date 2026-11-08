@@ -6,7 +6,7 @@
 .version { margin-top: auto; }
 .sidebar nav { display: grid; gap: 7px; }
 .sidebar nav button { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 12px; border: 0; border-radius: 10px; background: transparent; color: var(--soda-text); font-size: 14px; text-align: left; cursor: pointer; }
-.sidebar nav button[aria-current], .mobileNav button[aria-current] { background: var(--soda-accent-soft); color: var(--soda-accent-text); font-weight: 750; }
+.sidebar nav button[aria-current] { background: var(--soda-accent-soft); color: var(--soda-accent-text); font-weight: 750; }
 .sidebar nav button:hover { background: var(--soda-control); }
 .workspace { min-width: 0; margin-left: 224px; }
 .topbar { position: sticky; top: 0; min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-bottom: 1px solid var(--soda-border); background: var(--soda-nav); z-index: 50; }
@@ -17,16 +17,12 @@
 .themeSwitch button[aria-pressed='true'] { background: var(--soda-accent); color: var(--soda-on-accent); box-shadow: 0 2px 5px #00000015; --soda-text: var(--soda-on-accent); --soda-muted: var(--soda-on-accent); }
 .themeSwitch button > span:first-child { font-size: 19px; line-height: 1; }
 .content { min-width: 0; }
-.mobileBrand, .mobileNav { display: none; }
+.mobileBrand { display: none; }
 @media (max-width: 1180px) {
   .sidebar, .context { display: none; }
   .workspace { margin-left: 0; }
   .topbar { min-height: 68px; padding: max(10px, env(safe-area-inset-top)) 12px 10px; }
   .mobileBrand { display: flex; font-size: 21px; gap: 8px; }
-  .content { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
-  .mobileNav { position: fixed; inset: auto 0 0; display: flex; justify-content: space-around; align-items: stretch; padding: 5px 6px max(5px, env(safe-area-inset-bottom)); border-top: 1px solid var(--soda-border); background: var(--soda-nav); z-index: 40; }
-  .mobileNav button { display: flex; flex: 1; min-width: 0; min-height: 54px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 2px; border: 0; border-radius: 9px; background: transparent; color: var(--soda-muted); cursor: pointer; font-size: 10px; }
-  .profileIcon { font-size: 22px; line-height: 22px; }
 }
 @media (max-width: 480px) { .themeLabel { display: none; } .themeSwitch button { min-height: 44px; padding: 6px; } .toolbar { gap: 8px; } }
-@media print { .sidebar, .topbar, .mobileNav { display: none; } .workspace { margin: 0; } .content { padding: 0; } }
+@media print { .sidebar, .topbar { display: none; } .workspace { margin: 0; } .content { padding: 0; } }
