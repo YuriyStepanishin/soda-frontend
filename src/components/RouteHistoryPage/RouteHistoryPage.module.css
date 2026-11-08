@@ -5,6 +5,9 @@
   --rh-border: var(--soda-border);
   --rh-text: var(--soda-text);
   --rh-muted: var(--soda-text);
+  --rh-alert-bg: #492637;
+  --rh-alert-text: #ffd6d6;
+  --rh-alert-border: #a45b6b;
 
   box-sizing: border-box;
   display: flex;
@@ -16,6 +19,12 @@
   margin: 0 auto;
   padding: 24px;
   color: var(--rh-text);
+}
+
+:global([data-theme='light']) .container {
+  --rh-alert-bg: #fff0f1;
+  --rh-alert-text: #a1283a;
+  --rh-alert-border: #c36a78;
 }
 
 .container *,
@@ -237,7 +246,18 @@
 }
 
 .storeCardAlert {
-  border-color: var(--soda-border);
+  border-color: var(--rh-alert-border);
+}
+
+.storeCardAlert .storeHead,
+.storeCardAlert .storeHead:hover {
+  background: var(--rh-alert-bg);
+  color: var(--rh-alert-text);
+}
+
+.storeCardAlert .storeName,
+.storeCardAlert .expandIcon {
+  color: var(--rh-alert-text);
 }
 
 .storeHead {
@@ -272,10 +292,10 @@
 
 .alertChip {
   padding: 5px 9px;
-  border: 1px solid var(--soda-border);
+  border: 1px solid var(--rh-alert-border);
   border-radius: 8px;
-  background: var(--soda-surface);
-  color: var(--soda-text);
+  background: var(--rh-alert-bg);
+  color: var(--rh-alert-text);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -518,9 +538,9 @@
 
 .historyTable .brandRowAlert td,
 .historyTable .brandOnlyRowAlert td {
-  background: var(--soda-surface);
-  color: var(--soda-text);
-  border-color: var(--soda-border);
+  background: var(--rh-alert-bg);
+  color: var(--rh-alert-text);
+  border-color: var(--rh-alert-border);
 }
 
 /* Мобільна історія: чотири періоди в один рядок */
@@ -629,13 +649,13 @@
 }
 
 .mobileBrandBlockAlert {
-  background: var(--soda-surface);
-  border-color: var(--soda-border);
+  background: var(--rh-alert-bg);
+  border-color: var(--rh-alert-border);
 }
 
 .mobileBrandTitleAlert,
 .mobileNoSales {
-  color: var(--soda-text);
+  color: var(--rh-alert-text);
 }
 
 .mobileNoSales {
