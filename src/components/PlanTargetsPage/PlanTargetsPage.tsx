@@ -703,8 +703,8 @@ function ColumnEditorModal({
                     menuPortal: base => ({ ...base, zIndex: 1200 }),
                     control: (base, state) => ({
                       ...base,
-                      backgroundColor: '#ffffff',
-                      borderColor: state.isFocused ? '#1976d2' : '#9ca3af',
+                      backgroundColor: 'var(--soda-paper)',
+                      borderColor: state.isFocused ? 'var(--soda-accent)' : '#9ca3af',
                       boxShadow: state.isFocused
                         ? '0 0 0 2px rgba(25, 118, 210, 0.18)'
                         : 'none',
@@ -712,56 +712,56 @@ function ColumnEditorModal({
                     }),
                     menu: base => ({
                       ...base,
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #d1d5db',
+                      backgroundColor: 'var(--soda-paper)',
+                      border: '1px solid var(--soda-data-border)',
                       boxShadow: '0 10px 24px rgba(0, 0, 0, 0.14)',
                     }),
                     option: (base, state) => ({
                       ...base,
                       backgroundColor: state.isSelected
-                        ? '#1976d2'
+                        ? 'var(--soda-accent)'
                         : state.isFocused
                           ? '#e3f2fd'
-                          : '#ffffff',
-                      color: state.isSelected ? '#ffffff' : '#111827',
+                          : 'var(--soda-paper)',
+                      color: state.isSelected ? 'var(--soda-paper)' : 'var(--soda-ink)',
                       fontWeight: state.isSelected ? 700 : 500,
                     }),
-                    placeholder: base => ({ ...base, color: '#6b7280' }),
-                    singleValue: base => ({ ...base, color: '#111827' }),
-                    input: base => ({ ...base, color: '#111827' }),
+                    placeholder: base => ({ ...base, color: 'var(--soda-data-muted)' }),
+                    singleValue: base => ({ ...base, color: 'var(--soda-ink)' }),
+                    input: base => ({ ...base, color: 'var(--soda-ink)' }),
                     multiValue: base => ({
                       ...base,
-                      backgroundColor: '#e8f0fe',
+                      backgroundColor: 'var(--soda-data-heading)',
                     }),
                     multiValueLabel: base => ({
                       ...base,
-                      color: '#1f3a8a',
+                      color: 'var(--soda-ink)',
                       fontWeight: 600,
                     }),
                     multiValueRemove: base => ({
                       ...base,
-                      color: '#1f3a8a',
+                      color: 'var(--soda-ink)',
                       ':hover': {
-                        backgroundColor: '#dbeafe',
-                        color: '#1e40af',
+                        backgroundColor: 'var(--soda-data-heading)',
+                        color: 'var(--soda-ink)',
                       },
                     }),
                     indicatorSeparator: base => ({
                       ...base,
-                      backgroundColor: '#d1d5db',
+                      backgroundColor: 'var(--soda-data-border)',
                     }),
                     dropdownIndicator: (base, state) => ({
                       ...base,
-                      color: state.isFocused ? '#1976d2' : '#4b5563',
+                      color: state.isFocused ? 'var(--soda-accent)' : 'var(--soda-data-muted)',
                       ':hover': {
-                        color: '#1976d2',
+                        color: 'var(--soda-accent)',
                       },
                     }),
                     clearIndicator: base => ({
                       ...base,
-                      color: '#4b5563',
+                      color: 'var(--soda-data-muted)',
                       ':hover': {
-                        color: '#111827',
+                        color: 'var(--soda-ink)',
                       },
                     }),
                   }}
@@ -820,8 +820,8 @@ function ColumnEditorModal({
                       menuPortal: base => ({ ...base, zIndex: 1200 }),
                       control: (base, state) => ({
                         ...base,
-                        backgroundColor: '#ffffff',
-                        borderColor: state.isFocused ? '#1976d2' : '#9ca3af',
+                        backgroundColor: 'var(--soda-paper)',
+                        borderColor: state.isFocused ? 'var(--soda-accent)' : '#9ca3af',
                         boxShadow: state.isFocused
                           ? '0 0 0 2px rgba(25, 118, 210, 0.18)'
                           : 'none',
@@ -829,56 +829,56 @@ function ColumnEditorModal({
                       }),
                       menu: base => ({
                         ...base,
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #d1d5db',
+                        backgroundColor: 'var(--soda-paper)',
+                        border: '1px solid var(--soda-data-border)',
                         boxShadow: '0 10px 24px rgba(0, 0, 0, 0.14)',
                       }),
                       option: (base, state) => ({
                         ...base,
                         backgroundColor: state.isSelected
-                          ? '#1976d2'
+                          ? 'var(--soda-accent)'
                           : state.isFocused
                             ? '#e3f2fd'
-                            : '#ffffff',
-                        color: state.isSelected ? '#ffffff' : '#111827',
+                            : 'var(--soda-paper)',
+                        color: state.isSelected ? 'var(--soda-paper)' : 'var(--soda-ink)',
                         fontWeight: state.isSelected ? 700 : 500,
                       }),
-                      placeholder: base => ({ ...base, color: '#6b7280' }),
-                      singleValue: base => ({ ...base, color: '#111827' }),
-                      input: base => ({ ...base, color: '#111827' }),
+                      placeholder: base => ({ ...base, color: 'var(--soda-data-muted)' }),
+                      singleValue: base => ({ ...base, color: 'var(--soda-ink)' }),
+                      input: base => ({ ...base, color: 'var(--soda-ink)' }),
                       multiValue: base => ({
                         ...base,
-                        backgroundColor: '#e8f0fe',
+                        backgroundColor: 'var(--soda-data-heading)',
                       }),
                       multiValueLabel: base => ({
                         ...base,
-                        color: '#1f3a8a',
+                        color: 'var(--soda-ink)',
                         fontWeight: 600,
                       }),
                       multiValueRemove: base => ({
                         ...base,
-                        color: '#1f3a8a',
+                        color: 'var(--soda-ink)',
                         ':hover': {
-                          backgroundColor: '#dbeafe',
-                          color: '#1e40af',
+                          backgroundColor: 'var(--soda-data-heading)',
+                          color: 'var(--soda-ink)',
                         },
                       }),
                       indicatorSeparator: base => ({
                         ...base,
-                        backgroundColor: '#d1d5db',
+                        backgroundColor: 'var(--soda-data-border)',
                       }),
                       dropdownIndicator: (base, state) => ({
                         ...base,
-                        color: state.isFocused ? '#1976d2' : '#4b5563',
+                        color: state.isFocused ? 'var(--soda-accent)' : 'var(--soda-data-muted)',
                         ':hover': {
-                          color: '#1976d2',
+                          color: 'var(--soda-accent)',
                         },
                       }),
                       clearIndicator: base => ({
                         ...base,
-                        color: '#4b5563',
+                        color: 'var(--soda-data-muted)',
                         ':hover': {
-                          color: '#111827',
+                          color: 'var(--soda-ink)',
                         },
                       }),
                     }}

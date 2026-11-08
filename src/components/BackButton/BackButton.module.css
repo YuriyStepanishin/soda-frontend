@@ -8,20 +8,22 @@
   min-height: 44px;
   margin: 0 0 16px;
   padding: 10px 16px;
-  border: 1px solid #6386b7;
+  border: 1px solid var(--soda-border);
   border-radius: 10px;
-  background: #10315f;
-  color: #fff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
 }
 
 .button:hover {
-  background: #194477;
+  background: var(--soda-control);
 }
 
 .button:focus-visible {
-  outline: 3px solid #8ac5ff;
+  outline: 3px solid var(--soda-border);
   outline-offset: 3px;
 }
+
+.button { position: static; background: var(--soda-control); color: var(--soda-text); }

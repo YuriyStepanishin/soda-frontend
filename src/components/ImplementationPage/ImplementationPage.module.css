@@ -9,13 +9,8 @@
   padding: 10px 12px 80px;
   box-sizing: border-box;
   background:
-    radial-gradient(
-      circle at 20% 10%,
-      rgba(42, 126, 255, 0.2),
-      transparent 34%
-    ),
-    radial-gradient(circle at 82% 86%, rgba(0, 198, 255, 0.1), transparent 36%),
-    linear-gradient(160deg, #071f4a 0%, #041634 100%);
+    var(--soda-surface);
+  color: var(--soda-text);
 }
 
 /* ─── Header ─────────────────────────────────────────────── */
@@ -28,32 +23,32 @@
 }
 
 .backBtn {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
+  position: static;
   z-index: 20;
   height: 48px;
   padding: 0 18px;
-  border: 1px solid rgba(156, 185, 236, 0.42);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
-  background: rgba(14, 38, 79, 0.46);
-  color: #f7fbff;
-  text-shadow: 0 1px 2px rgba(2, 8, 20, 0.65);
+  background: var(--soda-surface);
+  color: var(--soda-text);
+  text-shadow: none;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 8px 20px rgba(3, 18, 45, 0.35);
+  box-shadow: var(--soda-shadow);
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
     transform 0.15s ease;
+  align-self: flex-start;
+  margin: 0 0 12px;
 }
 
 @media (hover: hover) {
   .backBtn:hover {
-    background: rgba(20, 52, 107, 0.58);
+    background: var(--soda-control);
     transform: translateY(-1px);
   }
 }
@@ -66,17 +61,17 @@
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: #eaf3ff;
+  color: var(--soda-text);
   flex: 1;
 }
 
 .monthBadge {
   font-size: 12px;
   font-weight: 600;
-  color: #d5e7ff;
+  color: var(--soda-text);
   white-space: nowrap;
-  background: rgba(15, 43, 89, 0.66);
-  border: 1px solid rgba(118, 163, 235, 0.34);
+  background: var(--soda-surface);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
   padding: 3px 10px;
 }
@@ -85,11 +80,11 @@
 .updatedAt {
   margin: 0 0 6px;
   font-size: 11px;
-  color: rgba(193, 214, 247, 0.92);
+  color: var(--soda-text);
 }
 
 .updatedAt strong {
-  color: #eff6ff;
+  color: var(--soda-text);
 }
 
 /* ─── Table wrapper (horizontal scroll on mobile) ─────────── */
@@ -98,8 +93,8 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   border-radius: 10px;
-  border: 1px solid rgba(110, 154, 232, 0.26);
-  box-shadow: 0 12px 30px rgba(2, 14, 36, 0.38);
+  border: 1px solid var(--soda-border);
+  box-shadow: var(--soda-shadow);
 }
 
 /* ─── Table ───────────────────────────────────────────────── */
@@ -109,12 +104,12 @@
   border-collapse: collapse;
   font-size: 12px;
   min-width: 920px;
-  background: rgba(8, 31, 73, 0.84);
+  background: var(--soda-surface);
 }
 
 .table th,
 .table td {
-  border: 1px solid rgba(96, 137, 208, 0.26);
+  border: 1px solid var(--soda-border);
   padding: 5px 6px;
   line-height: 1.25;
   vertical-align: middle;
@@ -123,16 +118,16 @@
 /* column widths */
 .colDept {
   min-width: 320px;
-  background: rgba(13, 43, 95, 0.86);
-  color: #e5f0ff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font-size: 11px;
   font-weight: 700;
   text-align: left;
 }
 
 .colGroup {
-  background: rgba(16, 53, 113, 0.88);
-  color: #8fc6ff;
+  background: var(--soda-control);
+  color: var(--soda-muted);
   font-size: 10px;
   font-weight: 700;
   text-align: center;
@@ -142,8 +137,8 @@
 }
 
 .colSub {
-  background: rgba(12, 42, 89, 0.86);
-  color: #d9eaff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font-size: 10px;
   font-weight: 700;
   text-align: center;
@@ -153,18 +148,18 @@
 
 /* ─── Rows ────────────────────────────────────────────────── */
 .deptRow td {
-  background: rgba(17, 58, 118, 0.58);
+  background: var(--soda-control);
   font-weight: 700;
-  color: #eff6ff;
+  color: var(--soda-text);
 }
 
 .agentRow td {
   background: transparent;
-  color: #d5e5fc;
+  color: var(--soda-text);
 }
 
 .agentRow:nth-child(even) td {
-  background: rgba(11, 40, 86, 0.5);
+  background: var(--soda-surface);
 }
 
 .nameCell {
@@ -180,7 +175,7 @@
 .agentRow .nameCell {
   padding-left: 14px;
   font-size: 11px;
-  color: #9bc8ff;
+  color: var(--soda-muted);
 }
 
 .numCell {
@@ -196,7 +191,7 @@
   padding: 0;
   margin: 0;
   background: transparent;
-  color: #7cc5ff;
+  color: var(--soda-muted);
   text-decoration: underline;
   text-underline-offset: 2px;
   font: inherit;
@@ -204,11 +199,11 @@
 }
 
 .factButton:hover {
-  color: #b2deff;
+  color: var(--soda-muted);
 }
 
 .factButton:focus-visible {
-  outline: 2px solid rgba(124, 197, 255, 0.4);
+  outline: 2px solid var(--soda-border);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -251,33 +246,39 @@
 }
 
 .pctGood {
-  color: #bbf7d0;
-  background: rgba(34, 197, 94, 0.2) !important;
+  color: var(--soda-success);
+  background: var(--soda-success-bg) !important;
+  --soda-text: var(--soda-success);
+  --soda-muted: var(--soda-success);
 }
 
 .pctMid {
-  color: #fde68a;
-  background: rgba(245, 158, 11, 0.22) !important;
+  color: var(--soda-error);
+  background: var(--soda-error-bg) !important;
+  --soda-text: var(--soda-error);
+  --soda-muted: var(--soda-error);
 }
 
 .pctBad {
-  color: #fecaca;
-  background: rgba(239, 68, 68, 0.2) !important;
+  color: var(--soda-error);
+  background: var(--soda-error-bg) !important;
+  --soda-text: var(--soda-error);
+  --soda-muted: var(--soda-error);
 }
 
 /* ─── Total row ───────────────────────────────────────────── */
 .totalRow td {
-  background: rgba(23, 77, 150, 0.62);
+  background: var(--soda-control);
   font-weight: 700;
-  color: #f3f8ff;
-  border-top: 2px solid rgba(129, 176, 247, 0.52);
+  color: var(--soda-text);
+  border-top: 2px solid var(--soda-border);
 }
 
 /* ─── Error ───────────────────────────────────────────────── */
 .error {
   padding: 40px;
   text-align: center;
-  color: #fecaca;
+  color: var(--soda-text);
 }
 
 .modalLayer {
@@ -289,7 +290,7 @@
 .modalBackdrop {
   position: absolute;
   inset: 0;
-  background: rgba(2, 11, 28, 0.68);
+  background: var(--soda-surface);
 }
 
 .modalDialog {
@@ -301,12 +302,12 @@
   max-height: calc(100vh - 24px);
   background: linear-gradient(
     160deg,
-    rgba(8, 31, 73, 0.97),
-    rgba(5, 22, 52, 0.96)
+    var(--soda-surface),
+    var(--soda-surface)
   );
-  border: 1px solid rgba(108, 152, 228, 0.3);
+  border: 1px solid var(--soda-border);
   border-radius: 12px;
-  box-shadow: 0 20px 42px rgba(1, 10, 26, 0.48);
+  box-shadow: var(--soda-shadow);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -318,12 +319,12 @@
   justify-content: space-between;
   gap: 10px;
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(98, 141, 214, 0.3);
+  border-bottom: 1px solid var(--soda-border);
 }
 
 .modalTitle {
   margin: 0;
-  color: #eef5ff;
+  color: var(--soda-text);
   font-size: 15px;
   font-weight: 700;
 }
@@ -331,10 +332,10 @@
 .modalClose {
   width: 34px;
   height: 34px;
-  border: 1px solid rgba(126, 168, 236, 0.42);
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
-  background: rgba(13, 43, 90, 0.72);
-  color: #e6f2ff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   cursor: pointer;
   font-size: 16px;
 }
@@ -347,21 +348,21 @@
 .detailsTable {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(7, 29, 69, 0.82);
+  background: var(--soda-surface);
 }
 
 .detailsTable th,
 .detailsTable td {
-  border: 1px solid rgba(95, 137, 206, 0.28);
+  border: 1px solid var(--soda-border);
   padding: 8px 10px;
   font-size: 12px;
-  color: #deedff;
+  color: var(--soda-text);
 }
 
 .detailsTable th {
   text-align: left;
-  background: rgba(14, 46, 98, 0.88);
-  color: #f0f7ff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
 }
 
 .detailsTable td:last-child,
@@ -373,7 +374,7 @@
 
 .emptyText {
   margin: 0;
-  color: #c9defb;
+  color: var(--soda-text);
   font-size: 13px;
 }
 
@@ -391,7 +392,7 @@
   margin: 14px 0 6px;
   font-size: 13px;
   font-weight: 700;
-  color: #deecff;
+  color: var(--soda-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }

@@ -15,23 +15,33 @@
 
 .photoButton {
   padding: 10px 18px;
-  background: #2196f3;
-  color: #fff;
+  background: var(--soda-accent);
+  color: var(--soda-on-accent);
   border: none;
   border-radius: 8px;
   font-size: 15px;
   cursor: pointer;
   transition: background 0.2s;
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .photoButton:disabled {
-  background: #90caf9;
+  background: var(--soda-disabled-bg);
   cursor: not-allowed;
+  opacity: 1;
+  color: var(--soda-disabled-text);
+  --soda-text: var(--soda-disabled-text);
+  --soda-muted: var(--soda-disabled-text);
 }
 
 @media (hover: hover) {
   .photoButton:not(:disabled):hover {
-    background: linear-gradient(165deg, #2a83f5, #145fd9);
+    background: var(--soda-disabled-bg);
+    color: var(--soda-disabled-text);
+    --soda-text: var(--soda-disabled-text);
+    --soda-muted: var(--soda-disabled-text);
+    opacity: 1;
   }
 }
 
@@ -43,19 +53,19 @@
 
 .statusPending {
   font-size: 13px;
-  color: #f57c00;
+  color: var(--soda-error);
 }
 
 .statusDone {
   font-size: 13px;
-  color: #388e3c;
+  color: var(--soda-success);
 }
 
 .retryButton {
   font-size: 13px;
-  color: #c62828;
+  color: var(--soda-error);
   background: none;
-  border: 1px solid #c62828;
+  border: 1px solid var(--soda-border);
   border-radius: 6px;
   padding: 2px 8px;
   cursor: pointer;
@@ -79,7 +89,7 @@
   height: 64px;
   object-fit: cover;
   border-radius: 6px;
-  border: 1px solid rgba(110, 154, 232, 0.26);
+  border: 1px solid var(--soda-border);
 }
 
 .thumbStatus {
@@ -87,22 +97,31 @@
   bottom: 2px;
   left: 2px;
   font-size: 12px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   border-radius: 4px;
   padding: 0 3px;
 }
 
 .status_done {
-  background: rgba(56, 142, 60, 0.8);
+  background: var(--soda-success-bg);
+  color: var(--soda-success);
+  --soda-text: var(--soda-success);
+  --soda-muted: var(--soda-success);
 }
 
 .status_error {
-  background: rgba(198, 40, 40, 0.8);
+  background: var(--soda-error-bg);
+  color: var(--soda-error);
+  --soda-text: var(--soda-error);
+  --soda-muted: var(--soda-error);
 }
 
 .status_uploading {
-  background: rgba(33, 150, 243, 0.8);
+  background: var(--soda-accent);
+  color: var(--soda-on-accent);
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .removeBtn {
@@ -111,8 +130,8 @@
   right: 2px;
   width: 18px;
   height: 18px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   border: none;
   border-radius: 50%;
   font-size: 13px;

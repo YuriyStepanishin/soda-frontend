@@ -2,7 +2,7 @@
   min-height: 100vh;
   min-height: 100dvh;
 
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--soda-control), var(--soda-control));
 
   display: flex;
   justify-content: center;
@@ -18,14 +18,14 @@
 }
 
 .card {
-  background: rgba(8, 30, 71, 0.86);
-  color: #dbe8ff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
 
   padding: 28px;
 
   border-radius: 20px;
 
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--soda-shadow);
 
   text-align: center;
 
@@ -41,7 +41,7 @@
   max-width: none;
   padding: 22px;
   border-radius: 18px;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.16);
+  box-shadow: var(--soda-shadow);
 }
 
 .email {
@@ -49,7 +49,7 @@
   margin-top: 4px;
 
   font-size: 16px;
-  color: #e9f0f3;
+  color: var(--soda-text);
 
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -65,11 +65,11 @@
 
 .card h2 {
   margin: 0;
-  color: #fff8e7;
+  color: var(--soda-text);
 }
 
 .card > div {
-  color: #4b6280;
+  color: var(--soda-text);
 }
 
 /* кнопки */
@@ -83,7 +83,7 @@
 
   border: none;
 
-  color: white;
+  color: var(--soda-text);
 
   cursor: pointer;
 
@@ -99,23 +99,35 @@
 
 /* кольори */
 .logout {
-  background: #e53e3e;
+  background: var(--soda-error-bg);
+  color: var(--soda-error);
+  --soda-text: var(--soda-error);
+  --soda-muted: var(--soda-error);
 }
 
 .ok {
-  background: #3182ce;
+  background: var(--soda-accent);
+  color: var(--soda-on-accent);
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 /* hover тільки desktop */
 @media (hover: hover) {
   .logout:hover {
     transform: translateY(-1px);
-    background: #c53030;
+    background: var(--soda-error-bg);
+    color: var(--soda-error);
+    --soda-text: var(--soda-error);
+    --soda-muted: var(--soda-error);
   }
 
   .ok:hover {
     transform: translateY(-1px);
-    background: #2b6cb0;
+    background: var(--soda-accent);
+    color: var(--soda-on-accent);
+    --soda-text: var(--soda-on-accent);
+    --soda-muted: var(--soda-on-accent);
   }
 }
 
@@ -179,9 +191,14 @@
   width: 100%;
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--soda-border);
   font: inherit;
-  background: #fff;
+  background: var(--soda-paper);
+  --soda-text: var(--soda-ink);
+  --soda-muted: var(--soda-data-muted);
+  --soda-border: var(--soda-data-border);
+  --soda-surface: var(--soda-paper);
+  --soda-control: var(--soda-paper-raised);
 }
 
 .database strong {

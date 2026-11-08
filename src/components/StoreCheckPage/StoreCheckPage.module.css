@@ -10,12 +10,12 @@
   padding-bottom: max(24px, env(safe-area-inset-bottom));
   background: linear-gradient(
     168deg,
-    rgba(7, 30, 70, 0.94),
-    rgba(5, 23, 55, 0.92)
+    var(--soda-surface),
+    var(--soda-surface)
   );
-  border: 1px solid rgba(105, 152, 232, 0.24);
+  border: 1px solid var(--soda-border);
   border-radius: 24px;
-  box-shadow: 0 24px 46px rgba(1, 11, 28, 0.48);
+  box-shadow: var(--soda-shadow);
   min-height: 100vh;
   min-height: 100dvh;
 }
@@ -27,14 +27,14 @@
 .title {
   font-size: 26px;
   font-weight: 800;
-  color: #f0f6ff;
+  color: var(--soda-text);
   line-height: 1.2;
 }
 
 .subtitle {
   margin-top: 6px;
   font-size: 14px;
-  color: rgba(181, 205, 245, 0.88);
+  color: var(--soda-muted);
 }
 
 .gridTwo {
@@ -63,26 +63,26 @@
   padding: 0 14px;
   font-size: 15px;
   border-radius: 12px;
-  border: 1px solid rgba(109, 154, 232, 0.28);
-  background: rgba(11, 41, 92, 0.68);
-  color: #e4eeff;
+  border: 1px solid var(--soda-border);
+  background: var(--soda-surface);
+  color: var(--soda-text);
 }
 /* =========================
    CARD
 ========================= */
 .contentCard {
-  background: rgba(9, 35, 80, 0.74);
+  background: var(--soda-surface);
   border-radius: 18px;
   padding: 16px;
-  border: 1px solid rgba(108, 152, 232, 0.24);
-  box-shadow: 0 14px 28px rgba(4, 16, 40, 0.26);
+  border: 1px solid var(--soda-border);
+  box-shadow: var(--soda-shadow);
 }
 
 .cardTitle {
   font-size: 16px;
   font-weight: 800;
   margin: 0;
-  color: #f0f6ff;
+  color: var(--soda-text);
 }
 
 .cardHeader,
@@ -113,7 +113,7 @@
 .metaLabel {
   font-size: 11px;
   font-weight: 700;
-  color: rgba(164, 197, 255, 0.86);
+  color: var(--soda-muted);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -124,9 +124,9 @@
   align-items: center;
   padding: 0 14px;
   border-radius: 12px;
-  border: 1px solid rgba(109, 154, 232, 0.28);
-  background: rgba(11, 41, 92, 0.62);
-  color: #e4eeff;
+  border: 1px solid var(--soda-border);
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font-size: 15px;
   font-weight: 600;
 }
@@ -151,13 +151,18 @@
   gap: 8px;
   padding: 12px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(126, 165, 231, 0.14);
+  background: var(--soda-paper);
+  border: 1px solid var(--soda-border);
+  --soda-text: var(--soda-ink);
+  --soda-muted: var(--soda-data-muted);
+  --soda-border: var(--soda-data-border);
+  --soda-surface: var(--soda-paper);
+  --soda-control: var(--soda-paper-raised);
 }
 
 .label {
   font-size: 13px;
-  color: #d5e4ff;
+  color: var(--soda-text);
   white-space: normal;
   font-weight: 600;
 }
@@ -172,9 +177,9 @@
   font-size: 15px;
   text-align: center;
   border-radius: 12px;
-  border: 1px solid rgba(109, 154, 232, 0.28);
-  background: rgba(11, 41, 92, 0.68);
-  color: #f4f8ff;
+  border: 1px solid var(--soda-border);
+  background: var(--soda-surface);
+  color: var(--soda-text);
 }
 
 .inputTerritory {
@@ -184,9 +189,9 @@
   font-size: 15px;
   text-align: left;
   border-radius: 12px;
-  border: 1px solid rgba(109, 154, 232, 0.28);
-  background: rgba(11, 41, 92, 0.68);
-  color: #f4f8ff;
+  border: 1px solid var(--soda-border);
+  background: var(--soda-surface);
+  color: var(--soda-text);
 }
 
 .input:focus,
@@ -194,8 +199,8 @@
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: rgba(119, 171, 255, 0.62);
-  box-shadow: 0 0 0 3px rgba(42, 135, 255, 0.18);
+  border-color: var(--soda-border);
+  box-shadow: var(--soda-shadow);
 }
 /* =========================
    TOTAL
@@ -205,7 +210,7 @@
   margin-top: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #d6e6ff;
+  color: var(--soda-text);
   display: flex;
   justify-content: space-between;
 }
@@ -214,11 +219,13 @@
   margin-top: 0;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(42, 135, 255, 0.12);
-  border: 1px solid rgba(108, 152, 232, 0.24);
-  color: #bcd6ff;
+  background: var(--soda-accent);
+  border: 1px solid var(--soda-border);
+  color: var(--soda-on-accent);
   justify-content: center;
   white-space: nowrap;
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .totalsSplit {
@@ -232,8 +239,13 @@
   justify-content: center;
   padding: 10px 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(126, 165, 231, 0.14);
+  background: var(--soda-paper);
+  border: 1px solid var(--soda-border);
+  --soda-text: var(--soda-ink);
+  --soda-muted: var(--soda-data-muted);
+  --soda-border: var(--soda-data-border);
+  --soda-surface: var(--soda-paper);
+  --soda-control: var(--soda-paper-raised);
 }
 
 /* =========================
@@ -244,10 +256,10 @@
   min-height: 112px;
   padding: 10px;
   border-radius: 14px;
-  border: 1px solid rgba(109, 154, 232, 0.28);
+  border: 1px solid var(--soda-border);
   font-size: 15px;
-  color: #f4f8ff;
-  background: rgba(11, 41, 92, 0.68);
+  color: var(--soda-text);
+  background: var(--soda-surface);
   resize: vertical;
 }
 
@@ -269,9 +281,9 @@
   width: 100%;
   min-height: 52px;
   border-radius: 14px;
-  border: 1px solid rgba(129, 176, 255, 0.42);
-  background: linear-gradient(166deg, #2a87ff, #1667e7);
-  color: #f4f8ff;
+  border: 1px solid var(--soda-border);
+  background: linear-gradient(166deg, var(--soda-accent), var(--soda-accent));
+  color: var(--soda-on-accent);
   font-weight: 800;
   font-size: 14px;
   letter-spacing: 0.04em;
@@ -280,42 +292,44 @@
     transform 0.15s ease,
     filter 0.15s ease,
     box-shadow 0.15s ease;
-  box-shadow: 0 14px 24px rgba(22, 103, 231, 0.28);
+  box-shadow: var(--soda-shadow);
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .backButton {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
+  position: static;
   z-index: 20;
   height: 48px;
   padding: 0 18px;
-  border: 1px solid rgba(156, 185, 236, 0.42);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
-  background: rgba(14, 38, 79, 0.46);
-  color: #f7fbff;
-  text-shadow: 0 1px 2px rgba(2, 8, 20, 0.65);
+  background: var(--soda-surface);
+  color: var(--soda-text);
+  text-shadow: none;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 8px 20px rgba(3, 18, 45, 0.35);
+  box-shadow: var(--soda-shadow);
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
     transform 0.15s ease;
+  align-self: flex-start;
+  margin: 0 0 12px;
 }
 
 @media (hover: hover) {
   .submitButton:hover {
     transform: translateY(-1px);
     filter: brightness(1.05);
-    box-shadow: 0 16px 28px rgba(22, 103, 231, 0.35);
+    box-shadow: var(--soda-shadow);
   }
 
   .backButton:hover {
-    background: rgba(20, 52, 107, 0.58);
+    background: var(--soda-control);
     transform: translateY(-1px);
   }
 }
@@ -329,26 +343,30 @@
 ========================= */
 .successMessage {
   margin-top: 8px;
-  background: rgba(19, 90, 55, 0.42);
-  border: 1px solid rgba(52, 199, 89, 0.45);
-  color: #c9f4de;
+  background: var(--soda-success-bg);
+  border: 1px solid var(--soda-border);
+  color: var(--soda-success);
   padding: 11px 12px;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
+  --soda-text: var(--soda-success);
+  --soda-muted: var(--soda-success);
 }
 
 .errorMessage {
   margin-top: 8px;
-  background: rgba(112, 21, 40, 0.35);
-  border: 1px solid rgba(242, 130, 149, 0.38);
-  color: #ffd5db;
+  background: var(--soda-error-bg);
+  border: 1px solid var(--soda-border);
+  color: var(--soda-error);
   padding: 11px 12px;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
+  --soda-text: var(--soda-error);
+  --soda-muted: var(--soda-error);
 }
 
 /* =========================

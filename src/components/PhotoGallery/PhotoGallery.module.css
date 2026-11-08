@@ -12,8 +12,8 @@
 
 .header {
   padding: 16px;
-  border-bottom: 1px solid rgba(110, 154, 232, 0.24);
-  background: rgba(8, 30, 71, 0.86);
+  border-bottom: 1px solid var(--soda-border);
+  background: var(--soda-surface);
 }
 
 .topBar {
@@ -25,7 +25,7 @@
   column-gap: 6px;
   row-gap: 6px;
   padding: 10px;
-  border-bottom: 1px solid rgba(183, 203, 189, 0.75);
+  border-bottom: 1px solid var(--soda-border);
   background: transparent;
   align-items: stretch;
 }
@@ -65,9 +65,9 @@
 .searchInput input {
   height: 56px;
   border-radius: 14px;
-  border: 2px solid rgba(110, 154, 232, 0.3);
-  background: rgba(10, 35, 80, 0.82);
-  color: #dbe8ff;
+  border: 2px solid var(--soda-border);
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font-size: 16px;
 }
 
@@ -77,16 +77,16 @@
   justify-content: center;
   gap: 0;
   min-height: 56px;
-  border: 2px solid rgba(110, 154, 232, 0.3);
+  border: 2px solid var(--soda-border);
   border-radius: 14px;
-  background: rgba(10, 35, 80, 0.82);
+  background: var(--soda-surface);
   padding: 0 10px;
 }
 
 .statLabel {
   display: block;
   font-size: 10px;
-  color: #9fbbe8;
+  color: var(--soda-muted);
   line-height: 1;
 }
 
@@ -95,7 +95,7 @@
   margin-top: 2px;
   font-size: 24px;
   line-height: 1;
-  color: #dbe8ff;
+  color: var(--soda-text);
 }
 
 .filtersHidden {
@@ -116,14 +116,14 @@
 }
 
 .card {
-  background: rgba(8, 30, 71, 0.86);
+  background: var(--soda-surface);
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 16px;
   display: flex;
   flex-direction: column;
 
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--soda-shadow);
 
   cursor: pointer;
 }
@@ -142,7 +142,7 @@
   padding: 12px;
   font-size: 14px;
   line-height: 1.4;
-  color: #dbe8ff;
+  color: var(--soda-text);
 }
 
 .infoContent {
@@ -153,14 +153,14 @@
   margin-top: 4px;
   font-size: 13px;
   font-weight: 600;
-  color: #dbe8ff;
+  color: var(--soda-text);
 }
 
 .comment {
   margin-top: 4px;
   font-size: 13px;
   font-style: italic;
-  color: #9fbbe8;
+  color: var(--soda-muted);
   line-height: 1.4;
 }
 
@@ -169,10 +169,10 @@
   margin-top: 12px;
   align-self: flex-start;
   padding: 4px 12px;
-  border: 1px solid #c0392b;
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
   background: transparent;
-  color: #c0392b;
+  color: var(--soda-error);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -182,8 +182,10 @@
 }
 
 .deleteBtn:hover {
-  background: #c0392b;
-  color: white;
+  background: var(--soda-error-bg);
+  color: var(--soda-error);
+  --soda-text: var(--soda-error);
+  --soda-muted: var(--soda-error);
 }
 
 .deleteBtn:active {
@@ -193,9 +195,9 @@
 .empty {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(183, 203, 189, 0.75);
-  background: rgba(8, 30, 71, 0.76);
-  color: #dbe8ff;
+  border: 1px solid var(--soda-border);
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font-weight: 600;
   text-align: center;
 
@@ -205,7 +207,7 @@
 .viewer {
   position: fixed;
   inset: 0;
-  background: black;
+  background: var(--soda-surface);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -241,11 +243,11 @@
 @media (hover: hover) {
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--soda-shadow);
   }
 
   .backButton:hover {
-    background: rgba(20, 52, 107, 0.58);
+    background: var(--soda-control);
     transform: translateY(-1px);
   }
 }
@@ -257,29 +259,29 @@
   user-select: none;
 }
 .backButton {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
+  position: static;
   z-index: 20;
   height: 48px;
   padding: 0 18px;
-  border: 1px solid rgba(156, 185, 236, 0.42);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
-  background: rgba(14, 38, 79, 0.46);
-  color: #f7fbff;
-  text-shadow: 0 1px 2px rgba(2, 8, 20, 0.65);
+  background: var(--soda-surface);
+  color: var(--soda-text);
+  text-shadow: none;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 8px 20px rgba(3, 18, 45, 0.35);
+  box-shadow: var(--soda-shadow);
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
     opacity 0.15s ease,
     visibility 0.15s ease,
     transform 0.15s ease;
+  align-self: flex-start;
+  margin: 0 0 12px;
 }
 
 .backButtonHidden {
@@ -295,13 +297,13 @@
 
   border-radius: 14px;
 
-  border: 2px solid rgba(110, 154, 232, 0.3);
+  border: 2px solid var(--soda-border);
 
-  background: rgba(10, 35, 80, 0.82);
+  background: var(--soda-surface);
 
   font-size: 16px;
 
-  color: #dbe8ff;
+  color: var(--soda-text);
 
   outline: none;
 
@@ -319,11 +321,11 @@
   height: 56px;
   padding: 0 16px;
   border-radius: 14px;
-  border: 2px solid rgba(110, 154, 232, 0.3);
-  background: rgba(10, 35, 80, 0.82);
+  border: 2px solid var(--soda-border);
+  background: var(--soda-surface);
   font-size: 16px;
   font-weight: 600;
-  color: #dbe8ff;
+  color: var(--soda-text);
   display: flex;
   align-items: center;
 }
@@ -332,8 +334,8 @@
   top: 15px;
   right: 15px;
   font-size: 26px;
-  color: white;
-  background: rgba(0, 0, 0, 0.5);
+  color: var(--soda-text);
+  background: var(--soda-surface);
   border: none;
   border-radius: 50%;
   width: 40px;

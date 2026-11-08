@@ -132,7 +132,7 @@ export default function SalesFilters({
       <div className={styles.filtersSticky}>
         <section className={styles.filtersHeaderCard}>
           <div className={styles.filtersHeaderMain}>
-            <div className={styles.filtersHeaderIcon}>S</div>
+            <div className={styles.filtersHeaderIcon}><img src="/icons/soda-192.png" alt="" width="48" height="48" /></div>
             <div>
               <h2 className={styles.filtersHeaderTitle}>Аналітика продажів</h2>
               <p className={styles.filtersHeaderText}>

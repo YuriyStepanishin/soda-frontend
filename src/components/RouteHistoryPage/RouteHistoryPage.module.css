@@ -1,10 +1,10 @@
 .container {
-  --rh-bg: #081f49;
-  --rh-panel: #10315f;
-  --rh-header: #0d2b59;
-  --rh-border: #365685;
-  --rh-text: #edf5ff;
-  --rh-muted: #c3d5ef;
+  --rh-bg: var(--soda-surface);
+  --rh-panel: var(--soda-surface);
+  --rh-header: var(--soda-surface);
+  --rh-border: var(--soda-border);
+  --rh-text: var(--soda-text);
+  --rh-muted: var(--soda-text);
 
   box-sizing: border-box;
   display: flex;
@@ -30,7 +30,7 @@
 
 .pageTitle {
   margin: 0;
-  color: #fff;
+  color: var(--soda-text);
   font-size: 26px;
   line-height: 1.35;
 }
@@ -76,7 +76,7 @@
   min-height: 44px;
   border: 1px solid var(--rh-border);
   border-radius: 10px;
-  background: #123568;
+  background: var(--soda-surface);
   color: var(--rh-text);
   font: inherit;
   font-size: 16px;
@@ -106,7 +106,7 @@
   min-width: 0;
   padding: 10px;
   border: 1px solid var(--rh-border);
-  color: #fff;
+  color: var(--soda-text);
   font: inherit;
   font-size: 15px;
   cursor: pointer;
@@ -114,13 +114,16 @@
 }
 
 .periodToggleButton {
-  background: #123568;
+  background: var(--soda-surface);
 }
 
 .periodToggleActive {
-  background: #2672c9;
-  border-color: #69b0ff;
+  background: var(--soda-accent);
+  border-color: var(--soda-border);
   font-weight: 700;
+  color: var(--soda-on-accent);
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .periodToggleButton:first-child,
@@ -141,7 +144,7 @@
   padding: 8px 12px;
   border: 1px solid var(--rh-border);
   border-radius: 10px;
-  background: #123568;
+  background: var(--soda-surface);
 }
 
 .groupingCheckLabel {
@@ -159,12 +162,16 @@
   width: 18px;
   height: 18px;
   margin: 0;
-  accent-color: #69b0ff;
+  accent-color: var(--soda-muted);
 }
 
 .groupingCheckLabel:has(input:disabled) {
-  opacity: 0.55;
+  opacity: 1;
   cursor: default;
+  color: var(--soda-disabled-text);
+  background: var(--soda-disabled-bg);
+  --soda-text: var(--soda-disabled-text);
+  --soda-muted: var(--soda-disabled-text);
 }
 
 .searchInput {
@@ -177,14 +184,14 @@
 }
 
 .searchInput input::placeholder {
-  color: #b8cdec;
+  color: var(--soda-muted);
   opacity: 1;
 }
 
 .container button:focus-visible,
 .container select:focus-visible,
 .container input:focus-visible {
-  outline: 3px solid #85c0ff;
+  outline: 3px solid var(--soda-border);
   outline-offset: 3px;
 }
 
@@ -227,7 +234,7 @@
 }
 
 .storeCardAlert {
-  border-color: #a45b6b;
+  border-color: var(--soda-border);
 }
 
 .storeHead {
@@ -253,7 +260,7 @@
 
 .storeName {
   min-width: 0;
-  color: #fff;
+  color: var(--soda-text);
   font-size: 16px;
   font-weight: 600;
   line-height: 1.5;
@@ -262,17 +269,17 @@
 
 .alertChip {
   padding: 5px 9px;
-  border: 1px solid #a45b6b;
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
-  background: #492637;
-  color: #ffd6d6;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font-size: 12px;
   line-height: 1.4;
 }
 
 .expandIcon {
   width: 24px;
-  color: #9cc9ff;
+  color: var(--soda-muted);
   font-size: 24px;
   text-align: center;
 }
@@ -291,9 +298,9 @@
 }
 
 .error {
-  background: #492637;
-  border-color: #a45b6b;
-  color: #ffd6d6;
+  background: var(--soda-surface);
+  border-color: var(--soda-border);
+  color: var(--soda-text);
 }
 
 .error p {
@@ -304,12 +311,14 @@
 .error button {
   min-height: 44px;
   padding: 8px 16px;
-  border: 1px solid #cc8494;
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
-  background: #6d3046;
-  color: #fff;
+  background: var(--soda-error-bg);
+  color: var(--soda-error);
   font: inherit;
   cursor: pointer;
+  --soda-text: var(--soda-error);
+  --soda-muted: var(--soda-error);
 }
 
 .emptyState,
@@ -338,7 +347,7 @@
   color: var(--rh-text);
   color-scheme: dark;
   font-family: inherit;
-  box-shadow: 0 24px 80px rgb(0 0 0 / 45%);
+  box-shadow: var(--soda-shadow);
 }
 
 .historyModal[open] {
@@ -347,7 +356,7 @@
 }
 
 .historyModal::backdrop {
-  background: rgb(2 10 26 / 78%);
+  background: var(--soda-surface);
   backdrop-filter: blur(5px);
 }
 
@@ -383,7 +392,7 @@
 
 .modalTitle {
   margin: 0;
-  color: #fff;
+  color: var(--soda-text);
   font-size: 24px;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -397,10 +406,10 @@
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 1px solid #5276a8;
+  border: 1px solid var(--soda-border);
   border-radius: 12px;
-  background: #173d70;
-  color: #fff;
+  background: var(--soda-control);
+  color: var(--soda-text);
   font-size: 30px;
   line-height: 1;
   cursor: pointer;
@@ -431,6 +440,20 @@
 
 /* Таблиця десктопа та планшета */
 
+.historyWrap {
+  --rh-panel: var(--soda-paper);
+  --rh-header: var(--soda-data-heading);
+  --rh-border: var(--soda-data-border);
+  --rh-text: var(--soda-ink);
+  --rh-muted: var(--soda-data-muted);
+  --soda-surface: var(--soda-paper);
+  --soda-control: var(--soda-paper-raised);
+  --soda-text: var(--soda-ink);
+  --soda-muted: var(--soda-data-muted);
+  --soda-border: var(--soda-data-border);
+  color-scheme: light;
+}
+
 .historyTable {
   width: 100%;
   min-width: 900px;
@@ -448,8 +471,8 @@
 }
 
 .historyTable th {
-  background: #173d70;
-  color: #fff;
+  background: var(--soda-control);
+  color: var(--soda-text);
   font-weight: 700;
 }
 
@@ -478,23 +501,23 @@
 }
 
 .historyTable tbody tr {
-  background: #0b2753;
+  background: var(--soda-surface);
 }
 
 .historyTable tbody tr:nth-child(even) {
-  background: #10315f;
+  background: var(--soda-surface);
 }
 
 .historyTable tbody .brandRow {
-  background: #1a457d;
+  background: var(--soda-control);
   font-weight: 700;
 }
 
 .historyTable .brandRowAlert td,
 .historyTable .brandOnlyRowAlert td {
-  background: #492637;
-  color: #ffd6d6;
-  border-color: #a45b6b;
+  background: var(--soda-surface);
+  color: var(--soda-text);
+  border-color: var(--soda-border);
 }
 
 /* Мобільна історія: чотири періоди в один рядок */
@@ -509,7 +532,7 @@
 
 .mobileBrandTitle {
   margin: 0 0 12px;
-  color: #fff;
+  color: var(--soda-text);
   font-size: 17px;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -539,7 +562,7 @@
 
 .mobileProductName {
   margin: 0 0 10px;
-  color: #fff;
+  color: var(--soda-text);
   font-size: 15px;
   font-weight: 600;
   line-height: 1.5;
@@ -557,7 +580,7 @@
   padding: 8px 4px;
   border: 1px solid var(--rh-border);
   border-radius: 6px;
-  background: #0a244c;
+  background: var(--soda-surface);
   text-align: center;
 }
 
@@ -572,7 +595,7 @@
 
 .periodValue {
   display: block;
-  color: #fff;
+  color: var(--soda-text);
   font-size: 14px;
   line-height: 1.4;
   font-variant-numeric: tabular-nums;
@@ -591,7 +614,7 @@
 }
 
 .mobileTotals .periodCell {
-  background: #194477;
+  background: var(--soda-control);
 }
 
 .mobileWeeksLine {
@@ -603,13 +626,13 @@
 }
 
 .mobileBrandBlockAlert {
-  background: #492637;
-  border-color: #a45b6b;
+  background: var(--soda-surface);
+  border-color: var(--soda-border);
 }
 
 .mobileBrandTitleAlert,
 .mobileNoSales {
-  color: #ffd6d6;
+  color: var(--soda-text);
 }
 
 .mobileNoSales {
@@ -621,37 +644,36 @@
 /* Кнопка повернення */
 
 .backButton {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  bottom: max(16px, env(safe-area-inset-bottom));
+  position: static;
   z-index: 20;
   min-height: 48px;
   padding: 10px 20px;
-  border: 1px solid #5276a8;
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
-  background: #123568;
-  color: #fff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font: inherit;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 30%);
+  box-shadow: var(--soda-shadow);
+  align-self: flex-start;
+  margin: 0 0 12px;
 }
 
 @media (hover: hover) {
   .storeHead:hover {
-    background: #194477;
+    background: var(--soda-control);
   }
 
   .periodToggleButton:hover,
   .modalClose:hover,
   .backButton:hover {
-    background: #24528d;
+    background: var(--soda-control);
   }
 
   .historyTable tbody tr:not(.brandRow):not(.brandOnlyRowAlert):hover {
-    background: #1b4276;
+    background: var(--soda-control);
   }
 }
 

@@ -11,26 +11,26 @@
   padding-top: max(24px, env(safe-area-inset-top));
   padding-bottom: max(24px, env(safe-area-inset-bottom));
   border-radius: 20px;
-  background: linear-gradient(168deg, rgba(7, 30, 70, 0.94), rgba(5, 23, 55, 0.92));
-  border: 1px solid rgba(105, 152, 232, 0.3);
-  box-shadow: 0 24px 46px rgba(1, 11, 28, 0.56);
+  background: linear-gradient(168deg, var(--soda-surface), var(--soda-surface));
+  border: 1px solid var(--soda-border);
+  box-shadow: var(--soda-shadow);
 }
 
 .title {
   font-size: 22px;
   font-weight: 800;
-  color: #f0f6ff;
+  color: var(--soda-text);
 }
 
 .subtitle {
   font-size: 14px;
-  color: rgba(181, 205, 245, 0.9);
+  color: var(--soda-muted);
 }
 
 .label {
   font-size: 11px;
   font-weight: 700;
-  color: rgba(164, 197, 255, 0.86);
+  color: var(--soda-muted);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -39,9 +39,9 @@
 .textarea {
   width: 100%;
   border-radius: 12px;
-  border: 1px solid rgba(109, 154, 232, 0.34);
-  background: rgba(11, 41, 92, 0.68);
-  color: #e4eeff;
+  border: 1px solid var(--soda-border);
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font-size: 15px;
 }
 
@@ -51,8 +51,8 @@
 }
 
 .readonly {
-  background: rgba(14, 46, 99, 0.46);
-  color: rgba(194, 216, 255, 0.86);
+  background: var(--soda-surface);
+  color: var(--soda-text);
 }
 
 .textarea {
@@ -77,26 +77,30 @@
 }
 
 .saveButton {
-  border: 1px solid rgba(129, 176, 255, 0.42);
-  background: linear-gradient(166deg, #2a87ff, #1667e7);
-  color: #f4f8ff;
-  box-shadow: 0 14px 24px rgba(22, 103, 231, 0.35);
+  border: 1px solid var(--soda-border);
+  background: linear-gradient(166deg, var(--soda-accent), var(--soda-accent));
+  color: var(--soda-on-accent);
+  box-shadow: var(--soda-shadow);
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .cancelButton {
-  border: 1px solid rgba(108, 152, 232, 0.28);
-  background: rgba(9, 35, 80, 0.76);
-  color: #c9dcff;
+  border: 1px solid var(--soda-border);
+  background: var(--soda-surface);
+  color: var(--soda-text);
 }
 
 .successMessage {
   border-radius: 12px;
-  border: 1px solid rgba(52, 199, 89, 0.45);
-  background: rgba(19, 90, 55, 0.42);
-  color: #c9f4de;
+  border: 1px solid var(--soda-border);
+  background: var(--soda-success-bg);
+  color: var(--soda-success);
   padding: 10px 12px;
   font-size: 14px;
   font-weight: 600;
+  --soda-text: var(--soda-success);
+  --soda-muted: var(--soda-success);
 }
 
 @media (max-width: 600px) {

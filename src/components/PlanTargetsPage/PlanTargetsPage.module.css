@@ -32,24 +32,29 @@
 
 .addBtn {
   padding: 9px 16px;
-  background: linear-gradient(165deg, #2e8cff, #1767e7);
-  color: #fff;
+  background: linear-gradient(165deg, var(--soda-accent), var(--soda-accent));
+  color: var(--soda-on-accent);
   border: none;
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
   font-weight: 600;
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .addBtn:hover {
-  background: linear-gradient(165deg, #2a83f5, #145fd9);
+  background: linear-gradient(165deg, var(--soda-accent), var(--soda-accent));
+  color: var(--soda-on-accent);
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .saveAllBtn {
   padding: 9px 16px;
-  background: rgba(15, 48, 108, 0.9);
-  color: #fff;
-  border: 1px solid rgba(110, 154, 232, 0.34);
+  background: var(--soda-control);
+  color: var(--soda-text);
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
@@ -57,7 +62,7 @@
 }
 
 .saveAllBtn:hover {
-  background: rgba(20, 56, 122, 0.92);
+  background: var(--soda-control);
 }
 
 .displayOptions {
@@ -69,16 +74,16 @@
 .displayLabel {
   font-size: 13px;
   font-weight: 600;
-  color: #a9c2eb;
+  color: var(--soda-muted);
 }
 
 .displayBtn {
   width: 32px;
   height: 32px;
   padding: 0;
-  background: rgba(12, 37, 84, 0.78);
-  color: #a9c2eb;
-  border: 1px solid rgba(110, 154, 232, 0.26);
+  background: var(--soda-surface);
+  color: var(--soda-muted);
+  border: 1px solid var(--soda-border);
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -87,18 +92,20 @@
 }
 
 .displayBtn:hover {
-  background: rgba(20, 48, 103, 0.7);
-  border-color: rgba(110, 154, 232, 0.5);
+  background: var(--soda-surface);
+  border-color: var(--soda-border);
 }
 
 .displayBtnActive {
-  background: linear-gradient(165deg, #2e8cff, #1767e7);
-  color: #fff;
-  border-color: rgba(96, 150, 243, 0.84);
+  background: linear-gradient(165deg, var(--soda-accent), var(--soda-accent));
+  color: var(--soda-on-accent);
+  border-color: var(--soda-border);
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .empty {
-  color: #9ab1d8;
+  color: var(--soda-muted);
   font-size: 14px;
   margin: 24px 0;
 }
@@ -115,11 +122,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: rgba(8, 30, 71, 0.86);
-  border: 1px solid rgba(110, 154, 232, 0.24);
+  background: var(--soda-surface);
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
   padding: 12px 14px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--soda-shadow);
 }
 
 .colInfo {
@@ -132,7 +139,7 @@
 .colLabel {
   font-size: 15px;
   font-weight: 600;
-  color: #e7f1ff;
+  color: var(--soda-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -140,7 +147,7 @@
 
 .colMeta {
   font-size: 12px;
-  color: #a9c2eb;
+  color: var(--soda-muted);
 }
 
 .colActions {
@@ -152,8 +159,8 @@
 .iconBtn {
   width: 30px;
   height: 30px;
-  background: rgba(9, 32, 74, 0.82);
-  border: 1px solid rgba(110, 154, 232, 0.24);
+  background: var(--soda-surface);
+  border: 1px solid var(--soda-border);
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -164,36 +171,50 @@
 }
 
 .iconBtn:disabled {
-  opacity: 0.3;
+  opacity: 1;
   cursor: default;
+  color: var(--soda-disabled-text);
+  background: var(--soda-disabled-bg);
+  --soda-text: var(--soda-disabled-text);
+  --soda-muted: var(--soda-disabled-text);
 }
 
 .editBtn {
   padding: 6px 12px;
-  background: linear-gradient(165deg, #2e8cff, #1767e7);
-  color: #fff;
+  background: linear-gradient(165deg, var(--soda-accent), var(--soda-accent));
+  color: var(--soda-on-accent);
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .editBtn:hover {
-  background: linear-gradient(165deg, #2a83f5, #145fd9);
+  background: linear-gradient(165deg, var(--soda-accent), var(--soda-accent));
+  color: var(--soda-on-accent);
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .deleteBtn {
   padding: 6px 10px;
-  background: #d32f2f;
-  color: #fff;
+  background: var(--soda-error-bg);
+  color: var(--soda-error);
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  --soda-text: var(--soda-error);
+  --soda-muted: var(--soda-error);
 }
 
 .deleteBtn:hover {
-  background: #c62828;
+  background: var(--soda-error-bg);
+  color: var(--soda-error);
+  --soda-text: var(--soda-error);
+  --soda-muted: var(--soda-error);
 }
 
 /* ─── Editor form ─────────────────────── */
@@ -213,12 +234,12 @@
 .formLabel {
   font-size: 13px;
   font-weight: 600;
-  color: #a9c2eb;
+  color: var(--soda-muted);
 }
 
 .formHint {
   font-size: 12px;
-  color: #9fbbe8;
+  color: var(--soda-muted);
 }
 
 .assortmentModeRadioGroup {
@@ -233,7 +254,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #d1e3ff;
+  color: var(--soda-text);
   cursor: pointer;
 }
 
@@ -244,12 +265,12 @@
 .formInput,
 .formSelect {
   padding: 9px 12px;
-  border: 1px solid rgba(110, 154, 232, 0.26);
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
   font-size: 15px;
   width: 100%;
   box-sizing: border-box;
-  background: rgba(8, 30, 71, 0.86);
+  background: var(--soda-surface);
 }
 
 .multiSelect {
@@ -259,7 +280,7 @@
 .formInput:focus,
 .formSelect:focus {
   outline: none;
-  border-color: rgba(112, 167, 255, 0.9);
+  border-color: var(--soda-border);
 }
 
 .calcGrid {
@@ -272,15 +293,15 @@
   flex-direction: column;
   gap: 6px;
   padding: 10px;
-  border: 1px solid rgba(110, 154, 232, 0.24);
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
-  background: rgba(9, 34, 80, 0.86);
+  background: var(--soda-surface);
 }
 
 .calcLabel {
   font-size: 12px;
   font-weight: 700;
-  color: #8dc0ff;
+  color: var(--soda-muted);
 }
 
 .chipRow {
@@ -292,19 +313,19 @@
 .chipBtn,
 .chipActive {
   padding: 7px 10px;
-  border: 1px solid rgba(110, 154, 232, 0.32);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
-  background: rgba(8, 30, 71, 0.86);
-  color: #8dc0ff;
+  background: var(--soda-surface);
+  color: var(--soda-muted);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .chipActive {
-  background: rgba(15, 48, 108, 0.9);
-  border-color: #8dc0ff;
-  color: #fff;
+  background: var(--soda-control);
+  border-color: var(--soda-border);
+  color: var(--soda-text);
 }
 
 .agentsTitle {
@@ -320,17 +341,17 @@
 }
 
 .deptBlock {
-  border: 1px solid rgba(110, 154, 232, 0.24);
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .deptHeader {
-  background: rgba(11, 37, 83, 0.84);
+  background: var(--soda-surface);
   font-size: 13px;
   font-weight: 700;
   padding: 8px 12px;
-  color: #a3c8ff;
+  color: var(--soda-muted);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -341,7 +362,7 @@
 .deptHeaderTotal {
   font-size: 13px;
   font-weight: 700;
-  color: #8dc0ff;
+  color: var(--soda-muted);
 }
 
 .modeToggle {
@@ -356,26 +377,26 @@
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid rgba(110, 154, 232, 0.34);
-  background: rgba(8, 30, 71, 0.86);
-  color: #8dc0ff;
+  border: 1px solid var(--soda-border);
+  background: var(--soda-surface);
+  color: var(--soda-muted);
   transition: background 0.15s;
 }
 
 .modeActive {
-  background: rgba(15, 48, 108, 0.9);
-  color: #fff;
-  border-color: #8dc0ff;
+  background: var(--soda-control);
+  color: var(--soda-text);
+  border-color: var(--soda-border);
 }
 
 .modeBtn:hover {
-  background: rgba(17, 45, 98, 0.78);
+  background: var(--soda-surface);
 }
 
 /* ─── Totals section ─────────────────────── */
 
 .totalsSection {
-  border: 1px solid rgba(110, 154, 232, 0.24);
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
   overflow: hidden;
   margin-top: 4px;
@@ -391,9 +412,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 7px 12px;
-  border-top: 1px solid rgba(110, 154, 232, 0.2);
+  border-top: 1px solid var(--soda-border);
   gap: 12px;
-  background: rgba(10, 34, 79, 0.82);
+  background: var(--soda-surface);
 }
 
 .totalDeptRow:first-child {
@@ -403,7 +424,7 @@
 .totalValue {
   font-size: 14px;
   font-weight: 600;
-  color: #8dc0ff;
+  color: var(--soda-muted);
   min-width: 90px;
   text-align: right;
 }
@@ -413,15 +434,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 9px 12px;
-  background: rgba(12, 42, 77, 0.82);
-  border-top: 2px solid rgba(105, 212, 153, 0.56);
+  background: var(--soda-surface);
+  border-top: 2px solid var(--soda-border);
   gap: 12px;
 }
 
 .grandTotalValue {
   font-size: 15px;
   font-weight: 700;
-  color: #84e0a8;
+  color: var(--soda-success);
   min-width: 90px;
   text-align: right;
 }
@@ -431,7 +452,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  border-top: 1px solid rgba(110, 154, 232, 0.2);
+  border-top: 1px solid var(--soda-border);
   gap: 12px;
 }
 
@@ -441,23 +462,23 @@
 
 .agentName {
   font-size: 14px;
-  color: #dbe8ff;
+  color: var(--soda-text);
   flex: 1;
 }
 
 .planInput {
   width: 90px;
   padding: 6px 10px;
-  border: 1px solid rgba(110, 154, 232, 0.26);
+  border: 1px solid var(--soda-border);
   border-radius: 6px;
   font-size: 14px;
   text-align: right;
-  background: rgba(8, 30, 71, 0.86);
+  background: var(--soda-surface);
 }
 
 .planInput:focus {
   outline: none;
-  border-color: rgba(112, 167, 255, 0.9);
+  border-color: var(--soda-border);
 }
 
 .editorActions {
@@ -468,31 +489,31 @@
 }
 
 .backBtn {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
+  position: static;
   z-index: 20;
   height: 48px;
   padding: 0 18px;
-  border: 1px solid rgba(156, 185, 236, 0.42);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
-  background: rgba(14, 38, 79, 0.46);
-  color: #f7fbff;
-  text-shadow: 0 1px 2px rgba(2, 8, 20, 0.65);
+  background: var(--soda-surface);
+  color: var(--soda-text);
+  text-shadow: none;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 8px 20px rgba(3, 18, 45, 0.35);
+  box-shadow: var(--soda-shadow);
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
     transform 0.15s ease;
+  align-self: flex-start;
+  margin: 0 0 12px;
 }
 
 .backBtn:hover {
-  background: rgba(20, 52, 107, 0.58);
+  background: var(--soda-control);
   transform: translateY(-1px);
 }
 
@@ -502,8 +523,8 @@
 
 .cancelBtn {
   padding: 10px 18px;
-  background: rgba(9, 31, 74, 0.74);
-  color: #fff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -511,7 +532,7 @@
 }
 
 .cancelBtn:hover {
-  background: rgba(13, 40, 90, 0.82);
+  background: var(--soda-surface);
 }
 
 /* ─── Personnel Table ─────────────────────── */
@@ -519,7 +540,7 @@
 .tableWrapper {
   overflow-x: auto;
   margin-bottom: 24px;
-  border: 1px solid rgba(110, 154, 232, 0.24);
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
   width: 100%;
   box-sizing: border-box;
@@ -575,7 +596,7 @@
 .personnelTable {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(8, 30, 71, 0.86);
+  background: var(--soda-surface);
   font-size: 13px;
   table-layout: auto;
 }
@@ -592,27 +613,27 @@
 }
 
 .personnelTable thead {
-  background: rgba(9, 32, 74, 0.82);
-  border-bottom: 2px solid rgba(110, 154, 232, 0.26);
+  background: var(--soda-surface);
+  border-bottom: 2px solid var(--soda-border);
 }
 
 .personnelTable th,
 .personnelTable td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid rgba(110, 154, 232, 0.22);
+  border-bottom: 1px solid var(--soda-border);
 }
 
 .thName {
   font-weight: 700;
-  color: #dbe8ff;
+  color: var(--soda-text);
   min-width: 120px;
   width: 15%;
 }
 
 .thColumn {
   font-weight: 700;
-  color: #dbe8ff;
+  color: var(--soda-text);
   min-width: 130px;
   vertical-align: top;
   flex: 1;
@@ -632,7 +653,7 @@
 
 .mobileThValue {
   font-weight: 700;
-  color: #dbe8ff;
+  color: var(--soda-text);
   text-align: right;
 }
 
@@ -645,13 +666,13 @@
 
 .colTitle {
   font-weight: 700;
-  color: #e7f1ff;
+  color: var(--soda-text);
   font-size: 13px;
 }
 
 .colSubtitle {
   font-size: 11px;
-  color: #a9c2eb;
+  color: var(--soda-muted);
   font-weight: 400;
 }
 
@@ -662,10 +683,10 @@
 
 .mobileTableContainer {
   margin-bottom: 20px;
-  border: 1px solid rgba(110, 154, 232, 0.24);
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(8, 30, 71, 0.86);
+  background: var(--soda-surface);
 }
 
 .mobileTableHeader {
@@ -674,19 +695,19 @@
   justify-content: space-between;
   gap: 10px;
   padding: 12px;
-  background: rgba(9, 32, 74, 0.82);
-  border-bottom: 1px solid rgba(110, 154, 232, 0.22);
+  background: var(--soda-surface);
+  border-bottom: 1px solid var(--soda-border);
 }
 
 .mobileColTitle {
   font-weight: 700;
-  color: #e7f1ff;
+  color: var(--soda-text);
   font-size: 14px;
 }
 
 .mobileColSubtitle {
   font-size: 11px;
-  color: #a9c2eb;
+  color: var(--soda-muted);
   font-weight: 400;
 }
 
@@ -699,8 +720,8 @@
 .tableIconBtn {
   width: 28px;
   height: 28px;
-  background: rgba(12, 37, 84, 0.78);
-  border: 1px solid rgba(110, 154, 232, 0.24);
+  background: var(--soda-surface);
+  border: 1px solid var(--soda-border);
   border-radius: 5px;
   cursor: pointer;
   font-size: 12px;
@@ -712,17 +733,17 @@
 }
 
 .tableIconBtn:hover {
-  background: rgba(20, 48, 103, 0.7);
+  background: var(--soda-surface);
 }
 
 .tdName {
   font-weight: 600;
-  color: #dbe8ff;
+  color: var(--soda-text);
 }
 
 .tdValue {
   text-align: right;
-  color: #a9c2eb;
+  color: var(--soda-muted);
 }
 
 .cellValue {
@@ -732,86 +753,86 @@
 /* Department grouping */
 
 .deptGroupHeader {
-  background: rgba(9, 32, 74, 0.82);
-  border-top: 2px solid rgba(110, 154, 232, 0.26);
+  background: var(--soda-surface);
+  border-top: 2px solid var(--soda-border);
 }
 
 .deptName {
   padding: 10px 12px !important;
   font-weight: 700;
-  color: #a3c8ff;
-  background: rgba(11, 37, 83, 0.84);
-  border-bottom: 1px solid rgba(110, 154, 232, 0.26);
+  color: var(--soda-muted);
+  background: var(--soda-surface);
+  border-bottom: 1px solid var(--soda-border);
 }
 
 .deptTotal {
   padding: 8px 12px !important;
-  background: rgba(11, 37, 83, 0.84);
-  border-bottom: 1px solid rgba(110, 154, 232, 0.26);
+  background: var(--soda-surface);
+  border-bottom: 1px solid var(--soda-border);
   text-align: center;
   vertical-align: middle;
 }
 
 .deptTotalValue {
   font-weight: 700;
-  color: #8dc0ff;
+  color: var(--soda-muted);
   font-size: 14px;
 }
 
 .deptTotalLabel {
   font-size: 11px;
-  color: #a9c2eb;
+  color: var(--soda-muted);
   font-weight: 400;
   margin-top: 2px;
 }
 
 .tableAgentRow {
-  background: rgba(8, 30, 71, 0.86);
+  background: var(--soda-surface);
 }
 
 .tableAgentRow:hover {
-  background: rgba(10, 34, 79, 0.8);
+  background: var(--soda-surface);
 }
 
 .deptSubtotal {
-  background: rgba(10, 34, 79, 0.82);
-  border-top: 1px solid rgba(110, 154, 232, 0.2);
-  border-bottom: 2px solid rgba(110, 154, 232, 0.26);
+  background: var(--soda-surface);
+  border-top: 1px solid var(--soda-border);
+  border-bottom: 2px solid var(--soda-border);
 }
 
 .subtotalLabel {
   padding: 8px 12px !important;
   font-weight: 600;
-  color: #a9c2eb;
-  background: rgba(10, 34, 79, 0.82);
+  color: var(--soda-muted);
+  background: var(--soda-surface);
 }
 
 .subtotalValue {
   padding: 8px 12px !important;
   text-align: right;
-  color: #8dc0ff;
-  background: rgba(10, 34, 79, 0.82);
+  color: var(--soda-muted);
+  background: var(--soda-surface);
   font-weight: 600;
-  border-bottom: 2px solid rgba(110, 154, 232, 0.26);
+  border-bottom: 2px solid var(--soda-border);
 }
 
 .grandTotalRow {
-  background: rgba(12, 42, 77, 0.82);
-  border-top: 2px solid rgba(105, 212, 153, 0.56);
+  background: var(--soda-surface);
+  border-top: 2px solid var(--soda-border);
 }
 
 .grandTotalLabel {
   padding: 10px 12px !important;
   font-weight: 700;
-  color: #8fe8b2;
-  background: rgba(12, 42, 77, 0.82);
+  color: var(--soda-success);
+  background: var(--soda-surface);
 }
 
 .grandTotalCell {
   padding: 10px 12px !important;
   text-align: right;
-  color: #84e0a8;
-  background: rgba(12, 42, 77, 0.82);
+  color: var(--soda-success);
+  background: var(--soda-surface);
   font-weight: 700;
 }
 
@@ -823,7 +844,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--soda-surface);
   z-index: 999;
 }
 
@@ -852,9 +873,9 @@
 }
 
 .modalContent {
-  background: rgba(8, 30, 71, 0.86);
+  background: var(--soda-surface);
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--soda-shadow);
   display: flex;
   flex-direction: column;
   max-height: 90vh;
@@ -862,7 +883,7 @@
 
 .modalHeader {
   padding: 16px;
-  border-bottom: 1px solid rgba(110, 154, 232, 0.22);
+  border-bottom: 1px solid var(--soda-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -873,7 +894,7 @@
 .modalTitle {
   font-size: 18px;
   font-weight: 700;
-  color: #e7f1ff;
+  color: var(--soda-text);
   margin: 0;
   flex: 1;
 }
@@ -881,8 +902,8 @@
 .modalClose {
   width: 36px;
   height: 36px;
-  background: rgba(9, 32, 74, 0.82);
-  border: 1px solid rgba(110, 154, 232, 0.24);
+  background: var(--soda-surface);
+  border: 1px solid var(--soda-border);
   border-radius: 6px;
   cursor: pointer;
   font-size: 18px;
@@ -890,12 +911,12 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  color: #a9c2eb;
+  color: var(--soda-muted);
   transition: background 0.15s;
 }
 
 .modalClose:hover {
-  background: rgba(20, 48, 103, 0.7);
+  background: var(--soda-surface);
 }
 
 .modalBody {
@@ -906,7 +927,7 @@
 
 .modalFooter {
   padding: 12px 16px;
-  border-top: 1px solid rgba(110, 154, 232, 0.2);
+  border-top: 1px solid var(--soda-border);
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -916,9 +937,9 @@
 
 .calcMethodBtn {
   padding: 9px 16px;
-  background: rgba(11, 37, 83, 0.84);
-  color: #8dc0ff;
-  border: 1px solid rgba(110, 154, 232, 0.34);
+  background: var(--soda-surface);
+  color: var(--soda-muted);
+  border: 1px solid var(--soda-border);
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
@@ -927,6 +948,6 @@
 }
 
 .calcMethodBtn:hover {
-  background: rgba(17, 45, 98, 0.78);
-  border-color: rgba(131, 178, 247, 0.62);
+  background: var(--soda-surface);
+  border-color: var(--soda-border);
 }

@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--soda-surface);
   backdrop-filter: blur(2px);
 }
 
@@ -13,15 +13,15 @@
   width: min(92vw, 360px);
   border-radius: 14px;
   padding: 18px 16px;
-  background: rgba(8, 30, 71, 0.86);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+  background: var(--soda-surface);
+  box-shadow: var(--soda-shadow);
   display: grid;
   gap: 12px;
 }
 
 .message {
   margin: 0;
-  color: #1d2d25;
+  color: var(--soda-ink);
   font-size: 15px;
   line-height: 1.4;
   text-align: center;
@@ -38,17 +38,24 @@
   height: 40px;
   border: none;
   border-radius: 10px;
-  background: #2f7a54;
-  color: #fff;
+  background: var(--soda-success-bg);
+  color: var(--soda-success);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  --soda-text: var(--soda-success);
+  --soda-muted: var(--soda-success);
 }
 
 .secondaryButton {
-  background: #eef2ee;
-  color: #274133;
-  border: 1px solid #cbd8cf;
+  background: var(--soda-paper);
+  color: var(--soda-ink);
+  border: 1px solid var(--soda-border);
+  --soda-text: var(--soda-ink);
+  --soda-muted: var(--soda-data-muted);
+  --soda-border: var(--soda-data-border);
+  --soda-surface: var(--soda-paper);
+  --soda-control: var(--soda-paper-raised);
 }
 
 .button:active {

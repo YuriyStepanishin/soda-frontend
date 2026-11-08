@@ -8,7 +8,7 @@
   margin: 0 auto;
   padding: 16px;
   box-sizing: border-box;
-  color: #dce9ff;
+  color: var(--soda-text);
 }
 
 .filterGrid {
@@ -28,7 +28,7 @@
 .error {
   padding: 40px;
   text-align: center;
-  color: #fecaca;
+  color: var(--soda-text);
 }
 
 .section {
@@ -45,10 +45,10 @@
 .brandButton {
   height: 36px;
   padding: 0 12px;
-  border: 1px solid rgba(108, 152, 232, 0.34);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
-  background: rgba(11, 41, 92, 0.72);
-  color: #d9e8ff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -59,15 +59,17 @@
 }
 
 .brandButtonActive {
-  background: linear-gradient(165deg, #2a87ff, #1667e7);
-  color: #f7faff;
-  border-color: rgba(140, 183, 255, 0.62);
+  background: linear-gradient(165deg, var(--soda-accent), var(--soda-accent));
+  color: var(--soda-on-accent);
+  border-color: var(--soda-border);
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .title {
   margin: 0 0 10px;
   font-size: 18px;
-  color: #e6f1ff;
+  color: var(--soda-text);
 }
 
 .chartsSection {
@@ -83,8 +85,8 @@
 }
 
 .chartCard {
-  background: rgba(9, 34, 79, 0.78);
-  border: 1px solid rgba(108, 152, 232, 0.24);
+  background: var(--soda-surface);
+  border: 1px solid var(--soda-border);
   border-radius: 12px;
   padding: 10px;
 }
@@ -92,7 +94,7 @@
 .chartTitle {
   margin: 0 0 8px;
   font-size: 14px;
-  color: #e6f0ff;
+  color: var(--soda-text);
 }
 
 .chartBody {
@@ -109,7 +111,7 @@
 
 .chartDate {
   font-size: 12px;
-  color: #cddffb;
+  color: var(--soda-text);
   white-space: nowrap;
 }
 
@@ -117,25 +119,29 @@
   width: 100%;
   height: 8px;
   border-radius: 999px;
-  background: rgba(50, 86, 152, 0.34);
+  background: var(--soda-control);
   overflow: hidden;
 }
 
 .chartBar {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #1f5eb8 0%, #3c84e6 100%);
+  background: linear-gradient(90deg, var(--soda-accent) 0%, var(--soda-accent) 100%);
+  color: var(--soda-on-accent);
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .chartBarNegative {
-  background: linear-gradient(90deg, #174a93 0%, #2d6fc8 100%);
+  background: var(--soda-surface);
+  color: var(--soda-text);
 }
 
 .chartValue {
   text-align: right;
   font-size: 12px;
   font-weight: 600;
-  color: #deecff;
+  color: var(--soda-text);
   white-space: nowrap;
 }
 
@@ -147,37 +153,37 @@
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  background: rgba(8, 31, 73, 0.86);
-  border: 1px solid rgba(108, 152, 232, 0.2);
+  background: var(--soda-surface);
+  border: 1px solid var(--soda-border);
   border-radius: 14px;
   overflow: hidden;
 }
 
 .table th,
 .table td {
-  border: 1px solid rgba(108, 152, 232, 0.2);
+  border: 1px solid var(--soda-border);
   padding: 8px;
   font-size: clamp(12px, 1.6vw, 14px);
   line-height: 1.25;
-  color: #dce9ff;
+  color: var(--soda-text);
 }
 
 .table th {
-  background: rgba(13, 44, 97, 0.88);
-  color: #edf5ff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
 }
 
 .weekTotalRow {
-  background: rgba(20, 64, 132, 0.45);
+  background: var(--soda-control);
 }
 
 .grandTotalRow {
-  background: rgba(26, 81, 158, 0.56);
+  background: var(--soda-control);
 }
 
 .weekTotalRow td,
 .grandTotalRow td {
-  color: #f2f7ff;
+  color: var(--soda-text);
   font-weight: 700;
 }
 
@@ -192,42 +198,45 @@
 }
 
 .backButton {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
+  position: static;
   z-index: 20;
   height: 48px;
   padding: 0 18px;
-  border: 1px solid rgba(156, 185, 236, 0.42);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
-  background: rgba(14, 38, 79, 0.46);
-  color: #f7fbff;
-  text-shadow: 0 1px 2px rgba(2, 8, 20, 0.65);
+  background: var(--soda-surface);
+  color: var(--soda-text);
+  text-shadow: none;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 8px 20px rgba(3, 18, 45, 0.35);
+  box-shadow: var(--soda-shadow);
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
     transform 0.15s ease;
+  align-self: flex-start;
+  margin: 0 0 12px;
 }
 
 @media (hover: hover) {
   .backButton:hover {
-    background: rgba(20, 52, 107, 0.58);
+    background: var(--soda-control);
     transform: translateY(-1px);
   }
 
   .brandButton:hover {
-    background: rgba(17, 54, 114, 0.86);
+    background: var(--soda-control);
     transform: translateY(-1px);
   }
 
   .brandButtonActive:hover {
-    background: linear-gradient(165deg, #2a87ff, #1667e7);
+    background: linear-gradient(165deg, var(--soda-accent), var(--soda-accent));
+    color: var(--soda-on-accent);
+    --soda-text: var(--soda-on-accent);
+    --soda-muted: var(--soda-on-accent);
   }
 }
 
@@ -255,54 +264,54 @@
   .container { max-width: 980px; gap: 12px; }
   .pageHeader {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 14px; border: 1px solid #294e80; border-radius: 14px; background: #0b2853;
+    padding: 14px; border: 1px solid var(--soda-border); border-radius: 14px; background: var(--soda-surface);
   }
   .pageIdentity { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  .pageIcon { display: grid; place-items: center; flex: 0 0 36px; height: 36px; border-radius: 10px; background: #176de7; color: #fff; font-weight: 800; }
+  .pageIcon { display: grid; place-items: center; flex: 0 0 36px; height: 36px; border-radius: 10px; background: var(--soda-accent); color: var(--soda-on-accent); font-weight: 800; --soda-text: var(--soda-on-accent); --soda-muted: var(--soda-on-accent); }
   .pageHeader h1 { margin: 0; font-size: clamp(17px, 4.5vw, 22px); }
   .pageHeader p { display: none; }
-  .companyBadge { font-size: 11px; font-weight: 700; color: #cfe1ff; }
-  .filterPanel { padding: 14px; border: 1px solid #294e80; border-radius: 14px; background: #09234d; }
+  .companyBadge { font-size: 11px; font-weight: 700; color: var(--soda-text); }
+  .filterPanel { padding: 14px; border: 1px solid var(--soda-border); border-radius: 14px; background: var(--soda-surface); }
   .filterGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
   .filterGrid label { min-width: 0; }
   .filterGrid input, .filterGrid select {
     box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; min-height: 44px;
-    padding: 8px; border: 1px solid #b9cdea; border-radius: 8px; background: #f5f8ff; color: #18365c; font-size: 16px;
+    padding: 8px; border: 1px solid var(--soda-border); border-radius: 8px; background: var(--soda-paper); color: var(--soda-ink); font-size: 16px; --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised);
   }
   .desktopBrandPicker { display: block; min-width: 0; }
   .brandFilters { display: none; }
   .brandQuickActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
   .brandQuickActions button, .comparisonToggle {
-    min-height: 44px; padding: 8px 12px; border: 1px solid #365b91; border-radius: 8px;
-    background: #123568; color: #eef5ff; font: inherit; font-size: 13px;
+    min-height: 44px; padding: 8px 12px; border: 1px solid var(--soda-border); border-radius: 8px;
+    background: var(--soda-surface); color: var(--soda-text); font: inherit; font-size: 13px;
   }
-  .brandQuickActions button[aria-pressed='true'] { background: #176de7; }
+  .brandQuickActions button[aria-pressed='true'] { background: var(--soda-accent); color: var(--soda-on-accent); --soda-text: var(--soda-on-accent); --soda-muted: var(--soda-on-accent); }
   .desktopOverview { display: block; min-width: 0; }
   .summaryGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
-  .summaryGrid article { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 14px; border: 1px solid #294e80; border-radius: 12px; background: #0b2853; }
+  .summaryGrid article { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 14px; border: 1px solid var(--soda-border); border-radius: 12px; background: var(--soda-surface); }
   .summaryGrid article:last-child { grid-column: 1 / -1; }
-  .summaryGrid span, .summaryGrid small { color: #b8cfff; font-size: 12px; }
+  .summaryGrid span, .summaryGrid small { color: var(--soda-muted); font-size: 12px; }
   .summaryGrid strong { font-size: clamp(17px, 4.8vw, 24px); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  .trendPanel { min-width: 0; padding: 14px; border: 1px solid #c8d9eb; border-radius: 14px; background: #f8fbff; color: #18365c; }
+  .trendPanel { min-width: 0; padding: 14px; border: 1px solid var(--soda-border); border-radius: 14px; background: var(--soda-paper); color: var(--soda-ink); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
   .trendHeader { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
   .trendHeader > div:first-child { flex-basis: 100%; }
   .trendHeader h2 { margin: 0 0 4px; font-size: 18px; }
-  .trendHeader p, .chartNote { margin: 0; color: #526780; font-size: 12px; line-height: 1.5; }
-  .chartControls { display: flex; gap: 2px; padding: 3px; border: 1px solid #c8d9eb; border-radius: 10px; background: #eaf1fa; }
-  .chartControls button { min-height: 44px; padding: 8px 12px; border: 0; border-radius: 7px; background: transparent; color: #18365c; font: inherit; font-size: 14px; font-weight: 600; }
-  .chartControls button[aria-pressed='true'] { background: #c7dcf8; color: #0b3f84; }
-  .trendValue { min-height: 36px; padding-top: 12px; color: #18365c; font-size: 14px; font-weight: 700; }
+  .trendHeader p, .chartNote { margin: 0; color: var(--soda-ink); font-size: 12px; line-height: 1.5; }
+  .chartControls { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--soda-border); border-radius: 10px; background: var(--soda-data-heading); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
+  .chartControls button { min-height: 44px; padding: 8px 12px; border: 0; border-radius: 7px; background: transparent; color: var(--soda-ink); font: inherit; font-size: 14px; font-weight: 600; }
+  .chartControls button[aria-pressed='true'] { background: var(--soda-data-heading); color: var(--soda-ink); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
+  .trendValue { min-height: 36px; padding-top: 12px; color: var(--soda-ink); font-size: 14px; font-weight: 700; }
   .trendPlot { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
   .trendPlot svg { display: block; width: 100%; height: 285px; max-height: 300px; }
   .chartNote { margin-top: 8px; }
   .section { margin-top: 0; min-width: 0; }
-  .tableWrap { border: 1px solid #c8d9eb; border-radius: 10px; }
-  .table { min-width: 560px; background: #fff; border: 0; border-radius: 0; }
-  .table th, .table td { border-color: #dbe5f1; padding: 10px; color: #18365c; font-size: 13px; }
-  .table th { background: #dce8f7; }
+  .tableWrap { border: 1px solid var(--soda-border); border-radius: 10px; }
+  .table { min-width: 560px; background: var(--soda-paper); border: 0; border-radius: 0; --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
+  .table th, .table td { border-color: var(--soda-border); padding: 10px; color: var(--soda-ink); font-size: 13px; }
+  .table th { background: var(--soda-data-heading); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
   .table td:not(:first-child) { text-align: right; }
-  .weekTotalRow, .grandTotalRow { background: #eaf1fa; }
-  .weekTotalRow td, .grandTotalRow td { color: #18365c; }
+  .weekTotalRow, .grandTotalRow { background: var(--soda-data-heading); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
+  .weekTotalRow td, .grandTotalRow td { color: var(--soda-ink); }
   .comparisonToggle { display: block; width: 100%; text-align: left; }
   .chartsSection { display: none; margin-top: 0; padding-bottom: 16px; }
   .comparisonsOpen { display: block; }
@@ -341,9 +350,9 @@
     gap: 20px;
     margin-bottom: 14px;
     padding: 16px 20px;
-    border: 1px solid #294e80;
+    border: 1px solid var(--soda-border);
     border-radius: 14px;
-    background: #0b2853;
+    background: var(--soda-surface);
   }
 
   .pageIdentity {
@@ -358,10 +367,12 @@
     width: 44px;
     height: 44px;
     border-radius: 12px;
-    background: #176de7;
-    color: #fff;
+    background: var(--soda-accent);
+    color: var(--soda-on-accent);
     font-size: 24px;
     font-weight: 800;
+    --soda-text: var(--soda-on-accent);
+    --soda-muted: var(--soda-on-accent);
   }
 
   .pageHeader h1 {
@@ -371,13 +382,13 @@
 
   .pageHeader p {
     margin: 0;
-    color: #b8cfff;
+    color: var(--soda-muted);
     font-size: 13px;
   }
 
   .companyBadge {
     padding: 8px 14px;
-    border: 1px solid #365b91;
+    border: 1px solid var(--soda-border);
     border-radius: 8px;
     font-weight: 700;
   }
@@ -388,9 +399,9 @@
     align-items: start;
     gap: 18px;
     padding: 18px 20px;
-    border: 1px solid #294e80;
+    border: 1px solid var(--soda-border);
     border-radius: 14px;
-    background: #09234d;
+    background: var(--soda-surface);
   }
 
   .filterGrid {
@@ -408,11 +419,16 @@
     min-width: 0;
     height: 44px;
     padding: 0 10px;
-    border: 1px solid #b9cdea;
+    border: 1px solid var(--soda-border);
     border-radius: 10px;
-    background: #f5f8ff;
-    color: #18365c;
+    background: var(--soda-paper);
+    color: var(--soda-ink);
     font-size: 13px;
+    --soda-text: var(--soda-ink);
+    --soda-muted: var(--soda-data-muted);
+    --soda-border: var(--soda-data-border);
+    --soda-surface: var(--soda-paper);
+    --soda-control: var(--soda-paper-raised);
   }
 
   .desktopBrandPicker {
@@ -435,17 +451,20 @@
   .comparisonToggle {
     min-height: 36px;
     padding: 7px 12px;
-    border: 1px solid #365b91;
+    border: 1px solid var(--soda-border);
     border-radius: 8px;
-    background: #123568;
-    color: #eef5ff;
+    background: var(--soda-surface);
+    color: var(--soda-text);
     cursor: pointer;
     font: inherit;
     font-size: 12px;
   }
 
   .brandQuickActions button[aria-pressed='true'] {
-    background: #176de7;
+    background: var(--soda-accent);
+    color: var(--soda-on-accent);
+    --soda-text: var(--soda-on-accent);
+    --soda-muted: var(--soda-on-accent);
   }
 
   .desktopOverview {
@@ -466,14 +485,14 @@
     gap: 8px;
     min-width: 0;
     padding: 16px 18px;
-    border: 1px solid #294e80;
+    border: 1px solid var(--soda-border);
     border-radius: 12px;
-    background: #0b2853;
+    background: var(--soda-surface);
   }
 
   .summaryGrid span,
   .summaryGrid small {
-    color: #b8cfff;
+    color: var(--soda-muted);
     font-size: 12px;
   }
 
@@ -485,10 +504,15 @@
 
   .trendPanel {
     padding: 18px 20px 12px;
-    border: 1px solid #c8d9eb;
+    border: 1px solid var(--soda-border);
     border-radius: 14px;
-    background: #f8fbff;
-    color: #18365c;
+    background: var(--soda-paper);
+    color: var(--soda-ink);
+    --soda-text: var(--soda-ink);
+    --soda-muted: var(--soda-data-muted);
+    --soda-border: var(--soda-data-border);
+    --soda-surface: var(--soda-paper);
+    --soda-control: var(--soda-paper-raised);
   }
 
   .trendHeader {
@@ -507,7 +531,7 @@
   .trendHeader p,
   .chartNote {
     margin: 0;
-    color: #526780;
+    color: var(--soda-ink);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -516,9 +540,14 @@
     display: flex;
     gap: 4px;
     padding: 4px;
-    border: 1px solid #c8d9eb;
+    border: 1px solid var(--soda-border);
     border-radius: 10px;
-    background: #eaf1fa;
+    background: var(--soda-data-heading);
+    --soda-text: var(--soda-ink);
+    --soda-muted: var(--soda-data-muted);
+    --soda-border: var(--soda-data-border);
+    --soda-surface: var(--soda-paper);
+    --soda-control: var(--soda-paper-raised);
   }
 
   .chartControls button {
@@ -527,7 +556,7 @@
     border: 0;
     border-radius: 7px;
     background: transparent;
-    color: #18365c;
+    color: var(--soda-ink);
     font: inherit;
     font-size: 13px;
     font-weight: 600;
@@ -535,21 +564,26 @@
   }
 
   .chartControls button[aria-pressed='true'] {
-    background: #c7dcf8;
-    color: #0b3f84;
+    background: var(--soda-data-heading);
+    color: var(--soda-ink);
+    --soda-text: var(--soda-ink);
+    --soda-muted: var(--soda-data-muted);
+    --soda-border: var(--soda-data-border);
+    --soda-surface: var(--soda-paper);
+    --soda-control: var(--soda-paper-raised);
   }
 
   .chartControls button:focus-visible,
   .brandQuickActions button:focus-visible,
   .comparisonToggle:focus-visible {
-    outline: 3px solid #438bdf;
+    outline: 3px solid var(--soda-border);
     outline-offset: 3px;
   }
 
   .trendValue {
     min-height: 28px;
     padding-top: 12px;
-    color: #18365c;
+    color: var(--soda-ink);
     font-size: 13px;
     font-weight: 700;
   }
@@ -565,40 +599,50 @@
   }
 
   .trendPlot circle:focus-visible {
-    outline: 2px solid #18365c;
+    outline: 2px solid var(--soda-border);
   }
 
   .section {
     padding: 18px 20px;
-    border: 1px solid #294e80;
+    border: 1px solid var(--soda-border);
     border-radius: 14px;
-    background: #09234d;
+    background: var(--soda-surface);
   }
 
   .tableWrap {
     max-height: 720px;
-    border: 1px solid #c8d9eb;
+    border: 1px solid var(--soda-border);
     border-radius: 10px;
   }
 
   .table {
     border: 0;
     border-radius: 0;
-    background: #fff;
+    background: var(--soda-paper);
     overflow: visible;
+    --soda-text: var(--soda-ink);
+    --soda-muted: var(--soda-data-muted);
+    --soda-border: var(--soda-data-border);
+    --soda-surface: var(--soda-paper);
+    --soda-control: var(--soda-paper-raised);
   }
 
   .table th,
   .table td {
-    border-color: #dbe5f1;
-    color: #18365c;
+    border-color: var(--soda-border);
+    color: var(--soda-ink);
   }
 
   .table th {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: #dce8f7;
+    background: var(--soda-data-heading);
+    --soda-text: var(--soda-ink);
+    --soda-muted: var(--soda-data-muted);
+    --soda-border: var(--soda-data-border);
+    --soda-surface: var(--soda-paper);
+    --soda-control: var(--soda-paper-raised);
   }
 
   .table td:not(:first-child) {
@@ -607,7 +651,12 @@
 
   .weekTotalRow,
   .grandTotalRow {
-    background: #eaf1fa;
+    background: var(--soda-data-heading);
+    --soda-text: var(--soda-ink);
+    --soda-muted: var(--soda-data-muted);
+    --soda-border: var(--soda-data-border);
+    --soda-surface: var(--soda-paper);
+    --soda-control: var(--soda-paper-raised);
   }
 
   .comparisonToggle {
@@ -637,3 +686,12 @@
     grid-template-columns: minmax(100px, 0.8fr) minmax(70px, 1.5fr) minmax(90px, 1fr);
   }
 }
+
+.trendPanel { --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); color-scheme: light; }
+.trendPanel, .table { background: var(--soda-paper); color: var(--soda-ink); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
+.chartControls { background: var(--soda-paper-raised); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
+.chartControls button { color: var(--soda-ink); }
+.chartControls button[aria-pressed='true'] { background: var(--soda-data-heading); color: var(--soda-ink); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
+.summaryGrid article { background: var(--soda-data-heading); color: var(--soda-ink); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
+.summaryGrid article span, .summaryGrid article small { color: var(--soda-data-muted); }
+.pageIcon img { width: 100%; height: 100%; border-radius: inherit; }

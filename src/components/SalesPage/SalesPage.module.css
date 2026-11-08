@@ -9,7 +9,7 @@
   padding: 16px;
   box-sizing: border-box;
   background: transparent;
-  color: #dce9ff;
+  color: var(--soda-text);
 }
 
 .desktopLayout {
@@ -30,10 +30,10 @@
   justify-content: space-between;
   gap: 16px;
   padding: 16px;
-  border: 1px solid rgba(126, 181, 255, 0.28);
+  border: 1px solid var(--soda-border);
   border-radius: 14px;
-  background: rgba(8, 30, 71, 0.82);
-  box-shadow: 0 16px 30px rgba(0, 12, 32, 0.28);
+  background: var(--soda-surface);
+  box-shadow: var(--soda-shadow);
 }
 
 .reportSummary {
@@ -44,10 +44,10 @@
 
 .reportSummary span {
   padding: 7px 10px;
-  border: 1px solid rgba(126, 181, 255, 0.24);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
-  background: rgba(17, 51, 106, 0.68);
-  color: #dce9ff;
+  background: var(--soda-control);
+  color: var(--soda-text);
   font-size: 13px;
   font-weight: 600;
 }
@@ -61,10 +61,10 @@
 .reportActions button {
   min-height: 40px;
   padding: 0 14px;
-  border: 1px solid rgba(156, 185, 236, 0.42);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
-  background: rgba(14, 38, 79, 0.7);
-  color: #eef5ff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -75,8 +75,8 @@
 
 .reportActions button:hover {
   transform: translateY(-1px);
-  border-color: rgba(174, 205, 255, 0.72);
-  background: rgba(22, 57, 119, 0.82);
+  border-color: var(--soda-border);
+  background: var(--soda-control);
 }
 
 .emptyReport {
@@ -85,10 +85,10 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  border: 1px dashed rgba(156, 185, 236, 0.38);
+  border: 1px dashed var(--soda-border);
   border-radius: 16px;
-  background: rgba(8, 30, 71, 0.38);
-  color: #bfd6ff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
   text-align: center;
   font-weight: 600;
 }
@@ -102,11 +102,11 @@
   height: 48px;
   padding: 0 18px;
 
-  border: 1px solid rgba(156, 185, 236, 0.42);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
 
-  background: rgba(14, 38, 79, 0.46);
-  color: #eef5ff;
+  background: var(--soda-surface);
+  color: var(--soda-text);
 
   font-size: 15px;
   font-weight: 600;
@@ -116,7 +116,7 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 
-  box-shadow: 0 8px 20px rgba(3, 18, 45, 0.35);
+  box-shadow: var(--soda-shadow);
 
   transition:
     background 0.15s ease,
@@ -141,23 +141,23 @@
 }
 
 .button:hover {
-  background: rgba(20, 52, 107, 0.58);
+  background: var(--soda-control);
   transform: translateY(-1px);
 }
 
 .debugPanel {
   margin: 12px 0 0;
   padding: 10px 12px;
-  border: 1px dashed rgba(156, 185, 236, 0.42);
+  border: 1px dashed var(--soda-border);
   border-radius: 10px;
-  background: rgba(9, 24, 52, 0.45);
+  background: var(--soda-surface);
 }
 
 .debugPanel h4 {
   margin: 0 0 8px;
   font-size: 13px;
   font-weight: 700;
-  color: #dce9ff;
+  color: var(--soda-text);
 }
 
 .debugPanel pre {
@@ -166,7 +166,7 @@
   word-break: break-word;
   font-size: 12px;
   line-height: 1.35;
-  color: #bfd6ff;
+  color: var(--soda-text);
 }
 
 @media (max-width: 1023px) {

@@ -8,15 +8,15 @@
 .trigger {
   width: 58px;
   height: 58px;
-  border: 1px solid rgba(116, 163, 244, 0.34);
+  border: 1px solid var(--soda-border);
   border-radius: 999px;
   background: linear-gradient(
     165deg,
-    rgba(9, 38, 88, 0.9),
-    rgba(7, 30, 68, 0.9)
+    var(--soda-surface),
+    var(--soda-surface)
   );
-  color: #ddecff;
-  box-shadow: 0 10px 24px rgba(5, 21, 46, 0.5);
+  color: var(--soda-text);
+  box-shadow: var(--soda-shadow);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   cursor: pointer;
@@ -43,7 +43,7 @@
   position: fixed;
   inset: 0;
   border: none;
-  background: rgba(1, 9, 20, 0.56);
+  background: var(--soda-surface);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   z-index: 1500;
@@ -57,8 +57,8 @@
   z-index: 1601;
   border-radius: 18px;
   overflow: hidden;
-  border: 1px solid rgba(105, 152, 234, 0.32);
-  box-shadow: 0 22px 48px rgba(2, 12, 28, 0.62);
+  border: 1px solid var(--soda-border);
+  box-shadow: var(--soda-shadow);
 }
 
 @media (hover: hover) {
@@ -66,10 +66,10 @@
     transform: translateY(-1px);
     background: linear-gradient(
       165deg,
-      rgba(14, 49, 108, 0.92),
-      rgba(10, 37, 82, 0.94)
+      var(--soda-control),
+      var(--soda-surface)
     );
-    box-shadow: 0 14px 30px rgba(3, 15, 36, 0.62);
+    box-shadow: var(--soda-shadow);
   }
 }
 
@@ -97,3 +97,7 @@
 
 
 
+
+.anchor { position: relative; inset: auto; z-index: 1603; }
+.trigger { width: 44px; height: 44px; box-shadow: none; }
+.panel { top: 72px; max-height: calc(100dvh - 90px); overflow-y: auto; }

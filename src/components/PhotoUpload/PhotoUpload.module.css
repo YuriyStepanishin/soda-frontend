@@ -30,7 +30,7 @@
   height: 120px;
   object-fit: cover;
   border-radius: 8px;
-  border: 1px solid rgba(110, 154, 232, 0.26);
+  border: 1px solid var(--soda-border);
   transition: transform 0.2s ease;
 }
 
@@ -40,19 +40,25 @@
   }
 
   .button:hover {
-    background: linear-gradient(165deg, #2a83f5, #145fd9);
+    background: linear-gradient(165deg, var(--soda-accent), var(--soda-accent));
+    color: var(--soda-on-accent);
+    --soda-text: var(--soda-on-accent);
+    --soda-muted: var(--soda-on-accent);
   }
 
   .removeButton:hover {
-    background: #d00000;
+    background: var(--soda-error-bg);
+    color: var(--soda-error);
+    --soda-text: var(--soda-error);
+    --soda-muted: var(--soda-error);
   }
 }
 .removeButton {
   position: absolute;
   top: 4px;
   right: 4px;
-  background: red;
-  color: white;
+  background: var(--soda-error-bg);
+  color: var(--soda-error);
   border: none;
   border-radius: 50%;
   width: 22px;
@@ -64,6 +70,8 @@
   transition:
     background 0.15s ease,
     transform 0.15s ease;
+  --soda-text: var(--soda-error);
+  --soda-muted: var(--soda-error);
 }
 .hiddenInput {
   display: none;
@@ -79,11 +87,13 @@
 .button {
   padding: 10px 16px;
   border: none;
-  background: linear-gradient(165deg, #2e8cff, #1767e7);
-  color: white;
+  background: linear-gradient(165deg, var(--soda-accent), var(--soda-accent));
+  color: var(--soda-on-accent);
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s ease;
+  --soda-text: var(--soda-on-accent);
+  --soda-muted: var(--soda-on-accent);
 }
 
 .button:active,
@@ -93,8 +103,12 @@
 
 .button:disabled,
 .removeButton:disabled {
-  opacity: 0.6;
+  opacity: 1;
   cursor: not-allowed;
+  color: var(--soda-disabled-text);
+  background: var(--soda-disabled-bg);
+  --soda-text: var(--soda-disabled-text);
+  --soda-muted: var(--soda-disabled-text);
 }
 
 @media (max-width: 480px) {

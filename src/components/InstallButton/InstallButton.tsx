@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import styles from './InstallButton.module.css';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -24,18 +25,8 @@ export default function InstallButton() {
   return (
     <button
       onClick={() => prompt.prompt()}
-      style={{
-        position: 'fixed',
-        top: 10,
-        right: 10,
-        padding: '10px 15px',
-        fontSize: '16px',
-        borderRadius: '10px',
-        border: 'none',
-        background: '#000',
-        color: '#fff',
-        zIndex: 9999,
-      }}
+      type="button"
+      className={styles.install}
     >
       Встановити додаток
     </button>

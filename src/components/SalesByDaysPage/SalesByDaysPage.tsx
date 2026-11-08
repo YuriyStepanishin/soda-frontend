@@ -1,6 +1,10 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { readSalesSettings, saveSalesSettings, salesOfflineScope } from '../../api/salesOffline';
+import {
+  readSalesSettings,
+  saveSalesSettings,
+  salesOfflineScope,
+} from '../../api/salesOffline';
 import {
   fetchSalesByDays,
   fetchSalesByDaysFilters,
@@ -13,14 +17,24 @@ import DailySalesTrend from './DailySalesTrend';
 import styles from './SalesByDaysPage.module.css';
 import { openDatePicker } from '../../utils/openDatePicker';
 
-const weekdayFormatter = new Intl.DateTimeFormat('uk-UA', { weekday: 'long', timeZone: 'UTC' });
-const numberFormatter = new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 2 });
+const weekdayFormatter = new Intl.DateTimeFormat('uk-UA', {
+  weekday: 'long',
+  timeZone: 'UTC',
+});
+const numberFormatter = new Intl.NumberFormat('uk-UA', {
+  maximumFractionDigits: 2,
+});
 
 function getInitialDates() {
   const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Kyiv', year: 'numeric', month: '2-digit', day: '2-digit',
+    timeZone: 'Europe/Kyiv',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   }).formatToParts(new Date());
-  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  const values = Object.fromEntries(
+    parts.map(({ type, value }) => [type, value])
+  );
   const dateTo = `${values.year}-${values.month}-${values.day}`;
   const start = new Date(`${dateTo}T00:00:00Z`);
   start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7) - 56);
@@ -71,9 +85,7 @@ function formatDateDisplay(date: {
   day: number;
 }): string {
   const utcDate = new Date(Date.UTC(date.year, date.month - 1, date.day));
-  const weekday = weekdayFormatter
-    .format(utcDate)
-    .toUpperCase();
+  const weekday = weekdayFormatter.format(utcDate).toUpperCase();
   const dayStr = String(date.day).padStart(2, '0');
   const monthStr = String(date.month).padStart(2, '0');
   const yearStr = String(date.year).slice(-2);
@@ -121,7 +133,7 @@ function SalesFilter({
   return (
     <div className={styles.filterGrid}>
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, color: '#cfe1ff' }}>Відділ</span>
+        <span style={{ fontSize: 12, color: 'var(--soda-muted)' }}>Відділ</span>
         <select
           value={department}
           onChange={e => onChangeDepartment(e.target.value)}
@@ -135,7 +147,7 @@ function SalesFilter({
         </select>
       </label>
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, color: '#cfe1ff' }}>ТП</span>
+        <span style={{ fontSize: 12, color: 'var(--soda-muted)' }}>ТП</span>
         <select value={agent} onChange={e => onChangeAgent(e.target.value)}>
           <option value="">Усі ТП</option>
           {agents.map(item => (
@@ -146,7 +158,9 @@ function SalesFilter({
         </select>
       </label>
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, color: '#cfe1ff' }}>Дата від</span>
+        <span style={{ fontSize: 12, color: 'var(--soda-muted)' }}>
+          Дата від
+        </span>
         <input
           type="date"
           value={dateFrom}
@@ -155,7 +169,9 @@ function SalesFilter({
         />
       </label>
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, color: '#cfe1ff' }}>Дата до</span>
+        <span style={{ fontSize: 12, color: 'var(--soda-muted)' }}>
+          Дата до
+        </span>
         <input
           type="date"
           value={dateTo}
@@ -166,13 +182,43 @@ function SalesFilter({
     </div>
   );
 }
-export default function SalesByDaysPage({ onBack, database }: { onBack: () => void; database: string }) {
-  const [saved] = useState(() => readSalesSettings<{ agent: string; department: string; brands: string[]; dateFrom: string; dateTo: string }>('daily'));
-  const [agent, setAgent] = useState(typeof saved?.agent === 'string' ? saved.agent : '');
-  const [department, setDepartment] = useState(typeof saved?.department === 'string' ? saved.department : '');
-  const [brands, setBrands] = useState<Set<string>>(new Set(Array.isArray(saved?.brands) ? saved.brands.filter(value => typeof value === 'string') : []));
+export default function SalesByDaysPage({
+  onBack,
+  database,
+}: {
+  onBack: () => void;
+  database: string;
+}) {
+  const [saved] = useState(() =>
+    readSalesSettings<{
+      agent: string;
+      department: string;
+      brands: string[];
+      dateFrom: string;
+      dateTo: string;
+    }>('daily')
+  );
+  const [agent, setAgent] = useState(
+    typeof saved?.agent === 'string' ? saved.agent : ''
+  );
+  const [department, setDepartment] = useState(
+    typeof saved?.department === 'string' ? saved.department : ''
+  );
+  const [brands, setBrands] = useState<Set<string>>(
+    new Set(
+      Array.isArray(saved?.brands)
+        ? saved.brands.filter(value => typeof value === 'string')
+        : []
+    )
+  );
   const [showComparisons, setShowComparisons] = useState(false);
-  const [initialDates] = useState(() => saved && /^\d{4}-\d{2}-\d{2}$/.test(saved.dateFrom) && /^\d{4}-\d{2}-\d{2}$/.test(saved.dateTo) ? saved : getInitialDates());
+  const [initialDates] = useState(() =>
+    saved &&
+    /^\d{4}-\d{2}-\d{2}$/.test(saved.dateFrom) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(saved.dateTo)
+      ? saved
+      : getInitialDates()
+  );
   const [dateFrom, setDateFrom] = useState(initialDates.dateFrom);
   const [dateTo, setDateTo] = useState(initialDates.dateTo);
   const validDates = Boolean(dateFrom && dateTo && dateFrom <= dateTo);
@@ -198,13 +244,16 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
       selectedBrands,
     ],
     queryFn: ({ signal }) =>
-      fetchSalesByDays({
-        department: department ? [department] : [],
-        agent: agent ? [agent] : [],
-        brands: selectedBrands,
-        dateFrom,
-        dateTo,
-      }, signal),
+      fetchSalesByDays(
+        {
+          department: department ? [department] : [],
+          agent: agent ? [agent] : [],
+          brands: selectedBrands,
+          dateFrom,
+          dateTo,
+        },
+        signal
+      ),
     enabled: Boolean(database) && validDates,
     staleTime: 1000 * 60,
     refetchOnWindowFocus: true,
@@ -214,14 +263,25 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
     networkMode: 'always',
     refetchOnReconnect: 'always',
     retry: false,
-    queryKey: ['sales-by-days-filters', database, salesOfflineScope(), department, agent, dateFrom, dateTo],
+    queryKey: [
+      'sales-by-days-filters',
+      database,
+      salesOfflineScope(),
+      department,
+      agent,
+      dateFrom,
+      dateTo,
+    ],
     queryFn: ({ signal }) =>
-      fetchSalesByDaysFilters({
-        department,
-        agent,
-        dateFrom,
-        dateTo,
-      }, signal),
+      fetchSalesByDaysFilters(
+        {
+          department,
+          agent,
+          dateFrom,
+          dateTo,
+        },
+        signal
+      ),
     enabled: Boolean(database) && validDates,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
@@ -229,10 +289,32 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
   });
   const uniqueDepartments = filtersData?.departments ?? [];
   useEffect(() => {
-    if (dataUpdatedAt && !isFetching && !error) saveSalesSettings('daily', { agent, department, brands: selectedBrands, dateFrom, dateTo });
-  }, [dataUpdatedAt, isFetching, error, agent, department, selectedBrands, dateFrom, dateTo]);
+    if (dataUpdatedAt && !isFetching && !error)
+      saveSalesSettings('daily', {
+        agent,
+        department,
+        brands: selectedBrands,
+        dateFrom,
+        dateTo,
+      });
+  }, [
+    dataUpdatedAt,
+    isFetching,
+    error,
+    agent,
+    department,
+    selectedBrands,
+    dateFrom,
+    dateTo,
+  ]);
   const uniqueAgents = filtersData?.agents ?? [];
-  const uniqueBrands = useMemo(() => (filtersData?.brands ?? []).filter(brand => normalizeBrandValue(brand) !== 'інше'), [filtersData?.brands]);
+  const uniqueBrands = useMemo(
+    () =>
+      (filtersData?.brands ?? []).filter(
+        brand => normalizeBrandValue(brand) !== 'інше'
+      ),
+    [filtersData?.brands]
+  );
   const isOlgatorg = database === 'olgatorg';
   const orimiBrands = useMemo(
     () =>
@@ -448,34 +530,101 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
     <div className={styles.container}>
       <BackButton onBack={onBack} label="Назад" />
       <header className={styles.pageHeader}>
-        <div className={styles.pageIdentity}><span className={styles.pageIcon}>S</span><div><h1>Продажі по днях</h1><p>Період, торгові марки та динаміка показників</p></div></div>
-        <span className={styles.companyBadge}>{isOlgatorg ? 'OLGATORG' : 'LASKA'}</span>
-      </header>
-      <section className={styles.filterPanel} aria-label="Фільтри продажів по днях">
-      <SalesFilter
-        departments={uniqueDepartments}
-        agents={uniqueAgents}
-        department={department}
-        agent={agent}
-        dateFrom={dateFrom}
-        dateTo={dateTo}
-        onChangeDepartment={value => { setDepartment(value); setAgent(''); setBrands(new Set()); }}
-        onChangeAgent={value => { setAgent(value); setBrands(new Set()); }}
-        onChangeDateFrom={value => { setDateFrom(value); setBrands(new Set()); }}
-        onChangeDateTo={value => { setDateTo(value); setBrands(new Set()); }}
-      />
-      <div className={styles.desktopBrandPicker}>
-        <MultiSelectDropdown label="Торгові марки" items={uniqueBrands} selected={selectedBrands} onChange={values => setBrands(new Set(values))} searchable />
-        <div className={styles.brandQuickActions}>
-          <button type="button" onClick={() => setBrands(new Set())}>Усі ТМ</button>
-          {isOlgatorg && <button type="button" aria-pressed={isOrimiBrandsSelected} onClick={() => setBrands(new Set(orimiBrands))}>Усі ТМ Orimi</button>}
-          <button type="button" onClick={() => { setDepartment(''); setAgent(''); setBrands(new Set()); setDateFrom(initialDates.dateFrom); setDateTo(initialDates.dateTo); }}>Скинути фільтри</button>
+        <div className={styles.pageIdentity}>
+          <span className={styles.pageIcon}>
+            <img src="/icons/soda-192.png" alt="" width="48" height="48" />
+          </span>
+          <div>
+            <h1>Продажі по днях</h1>
+            <p>Період, торгові марки та динаміка показників</p>
+          </div>
         </div>
-      </div>
+        <span className={styles.companyBadge}>
+          {isOlgatorg ? 'OLGATORG' : 'LASKA'}
+        </span>
+      </header>
+      <section
+        className={styles.filterPanel}
+        aria-label="Фільтри продажів по днях"
+      >
+        <SalesFilter
+          departments={uniqueDepartments}
+          agents={uniqueAgents}
+          department={department}
+          agent={agent}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onChangeDepartment={value => {
+            setDepartment(value);
+            setAgent('');
+            setBrands(new Set());
+          }}
+          onChangeAgent={value => {
+            setAgent(value);
+            setBrands(new Set());
+          }}
+          onChangeDateFrom={value => {
+            setDateFrom(value);
+            setBrands(new Set());
+          }}
+          onChangeDateTo={value => {
+            setDateTo(value);
+            setBrands(new Set());
+          }}
+        />
+        <div className={styles.desktopBrandPicker}>
+          <MultiSelectDropdown
+            label="Торгові марки"
+            items={uniqueBrands}
+            selected={selectedBrands}
+            onChange={values => setBrands(new Set(values))}
+            searchable
+          />
+          <div className={styles.brandQuickActions}>
+            <button type="button" onClick={() => setBrands(new Set())}>
+              Усі ТМ
+            </button>
+            {isOlgatorg && (
+              <button
+                type="button"
+                aria-pressed={isOrimiBrandsSelected}
+                onClick={() => setBrands(new Set(orimiBrands))}
+              >
+                Усі ТМ Orimi
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setDepartment('');
+                setAgent('');
+                setBrands(new Set());
+                setDateFrom(initialDates.dateFrom);
+                setDateTo(initialDates.dateTo);
+              }}
+            >
+              Скинути фільтри
+            </button>
+          </div>
+        </div>
       </section>
-      {filtersError && <p role="alert">Не вдалося завантажити довідники фільтрів. Оновіть сторінку, щоб повторити запит.</p>}
-      {error && <p role="alert" className={styles.error}>Помилка: {error.message}</p>}
-      {!validDates && <p role="alert">Вкажіть коректний період: дата початку має бути не пізніше дати завершення.</p>}
+      {filtersError && (
+        <p role="alert">
+          Не вдалося завантажити довідники фільтрів. Оновіть сторінку, щоб
+          повторити запит.
+        </p>
+      )}
+      {error && (
+        <p role="alert" className={styles.error}>
+          Помилка: {error.message}
+        </p>
+      )}
+      {!validDates && (
+        <p role="alert">
+          Вкажіть коректний період: дата початку має бути не пізніше дати
+          завершення.
+        </p>
+      )}
       <div className={styles.brandFilters}>
         <button
           className={`${styles.brandButton} ${
@@ -485,14 +634,16 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
         >
           Усі ТМ
         </button>
-        {isOlgatorg && <button
-          className={`${styles.brandButton} ${
-            isOrimiBrandsSelected ? styles.brandButtonActive : ''
-          }`}
-          onClick={() => setBrands(new Set(orimiBrands))}
-        >
-          Усі ТМ Orimi
-        </button>}
+        {isOlgatorg && (
+          <button
+            className={`${styles.brandButton} ${
+              isOrimiBrandsSelected ? styles.brandButtonActive : ''
+            }`}
+            onClick={() => setBrands(new Set(orimiBrands))}
+          >
+            Усі ТМ Orimi
+          </button>
+        )}
         {uniqueBrands.map(tm => (
           <button
             key={tm}
@@ -514,129 +665,208 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
         ))}
       </div>
       {isLoading && <Loader />}
-      {!isLoading && !error && validDates && rows.length === 0 && <p>За обраний період продажів немає.</p>}
-      {!isLoading && !error && validDates && rows.length > 0 && <div className={styles.desktopOverview} aria-busy={isFetching}>
-        <div className={styles.summaryGrid}>
-          <article><span>Сума продажів</span><strong>{format(grandTotal.amount)} <small>грн</small></strong></article>
-          <article><span>Вага</span><strong>{format(grandTotal.weight)} <small>кг</small></strong></article>
-          <article><span>Σ ТТ за днями</span><strong>{format(grandTotal.storesCount)}</strong><small>Не унікальні ТТ за період</small></article>
+      {!isLoading && !error && validDates && rows.length === 0 && (
+        <p>За обраний період продажів немає.</p>
+      )}
+      {!isLoading && !error && validDates && rows.length > 0 && (
+        <div className={styles.desktopOverview} aria-busy={isFetching}>
+          <div className={styles.summaryGrid}>
+            <article>
+              <span>Сума продажів</span>
+              <strong>
+                {format(grandTotal.amount)} <small>грн</small>
+              </strong>
+            </article>
+            <article>
+              <span>Вага</span>
+              <strong>
+                {format(grandTotal.weight)} <small>кг</small>
+              </strong>
+            </article>
+            <article>
+              <span>Σ ТТ за днями</span>
+              <>{format(grandTotal.storesCount)}</>
+            </article>
+          </div>
+          <DailySalesTrend rows={data} />
         </div>
-        <DailySalesTrend rows={data} />
-      </div>}
-      {!isLoading && !error && validDates && rows.length > 0 && <>
-      <section className={styles.section}>
-        <h3 className={styles.title}>Продажі по днях</h3>
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Дата</th>
-                <th title="Кількість ТТ за день; підсумки — сума денних значень">ТТ за день</th>
-                <th>Вага</th>
-                <th>Сума</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className={styles.grandTotalRow}>
-                <td>
-                  <b>Загалом</b>
-                </td>
-                <td>
-                  <b>{grandTotal.storesCount}</b>
-                </td>
-                <td>
-                  <b>{format(grandTotal.weight)}</b>
-                </td>
-                <td>
-                  <b>{format(grandTotal.amount)}</b>
-                </td>
-              </tr>
-              {rows.map((row, index) => {
-                const nextRow = rows[index + 1];
-                const isWeekEnd = !nextRow || nextRow.weekKey !== row.weekKey;
-                const weekData = weeklyTotals.get(row.weekKey);
-                return (
-                  <Fragment key={row.dateLabel}>
-                    <tr>
-                      <td>{row.dateDisplay}</td>
-                      <td>{row.storesCount}</td>
-                      <td>{format(row.weight)}</td>
-                      <td>{format(row.amount)}</td>
-                    </tr>
-                    {isWeekEnd && weekData && (
-                      <tr className={styles.weekTotalRow}>
-                        <td>
-                          <b>Разом за {weekData.label}</b>
-                        </td>
-                        <td>
-                          <b>{weekData.totals.storesCount}</b>
-                        </td>
-                        <td>
-                          <b>{format(weekData.totals.weight)}</b>
-                        </td>
-                        <td>
-                          <b>{format(weekData.totals.amount)}</b>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <p>Підсумки ТТ — сума денних значень.</p>
-      </section>
-      <button type="button" className={styles.comparisonToggle} aria-expanded={showComparisons} aria-controls="daily-comparison-charts" onClick={() => setShowComparisons(value => !value)}>{showComparisons ? 'Приховати' : 'Показати'} порівняння днів тижня та тижневих підсумків</button>
-      <section id="daily-comparison-charts" className={`${styles.chartsSection} ${showComparisons ? styles.comparisonsOpen : ''}`}>
-        <div className={styles.chartsGrid}>
-          {chartMetrics.map(metric => (
-            <article key={`day-${metric.key}`} className={styles.chartCard}>
-              <h4 className={styles.chartTitle}>{metric.title}</h4>
-              <div className={styles.chartBody}>
-                {dayOfWeekChartRows.map(dayOfWeek => (
-                  <div key={`day-group-${metric.key}-${dayOfWeek.day}`}>
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontSize: '13px',
-                        color: '#9fd1ff',
-                        marginTop: '8px',
-                        marginBottom: '4px',
-                        paddingLeft: '4px',
-                        borderLeft: '3px solid rgba(116, 174, 255, 0.9)',
-                      }}
-                    >
-                      {dayOfWeek.label}
-                    </div>
-                    {dayOfWeek.rows.map(dateRow => {
-                      const width =
-                        metric.key === 'amount'
-                          ? chartLimits.maxAmountAbs === 0
-                            ? 0
-                            : (Math.abs(dateRow.amount) /
-                                chartLimits.maxAmountAbs) *
-                              100
-                          : chartLimits.maxStores === 0
-                            ? 0
-                            : (dateRow.storesCount / chartLimits.maxStores) *
-                              100;
+      )}
+      {!isLoading && !error && validDates && rows.length > 0 && (
+        <>
+          <section className={styles.section}>
+            <h3 className={styles.title}>Продажі по днях</h3>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Дата</th>
+                    <th title="Кількість ТТ за день; підсумки — сума денних значень">
+                      ТТ за день
+                    </th>
+                    <th>Вага</th>
+                    <th>Сума</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className={styles.grandTotalRow}>
+                    <td>
+                      <b>Загалом</b>
+                    </td>
+                    <td>
+                      <b>{grandTotal.storesCount}</b>
+                    </td>
+                    <td>
+                      <b>{format(grandTotal.weight)}</b>
+                    </td>
+                    <td>
+                      <b>{format(grandTotal.amount)}</b>
+                    </td>
+                  </tr>
+                  {rows.map((row, index) => {
+                    const nextRow = rows[index + 1];
+                    const isWeekEnd =
+                      !nextRow || nextRow.weekKey !== row.weekKey;
+                    const weekData = weeklyTotals.get(row.weekKey);
+                    return (
+                      <Fragment key={row.dateLabel}>
+                        <tr>
+                          <td>{row.dateDisplay}</td>
+                          <td>{row.storesCount}</td>
+                          <td>{format(row.weight)}</td>
+                          <td>{format(row.amount)}</td>
+                        </tr>
+                        {isWeekEnd && weekData && (
+                          <tr className={styles.weekTotalRow}>
+                            <td>
+                              <b>Разом за {weekData.label}</b>
+                            </td>
+                            <td>
+                              <b>{weekData.totals.storesCount}</b>
+                            </td>
+                            <td>
+                              <b>{format(weekData.totals.weight)}</b>
+                            </td>
+                            <td>
+                              <b>{format(weekData.totals.amount)}</b>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p>Підсумки ТТ — сума денних значень.</p>
+          </section>
+          <button
+            type="button"
+            className={styles.comparisonToggle}
+            aria-expanded={showComparisons}
+            aria-controls="daily-comparison-charts"
+            onClick={() => setShowComparisons(value => !value)}
+          >
+            {showComparisons ? 'Приховати' : 'Показати'} порівняння днів тижня
+            та тижневих підсумків
+          </button>
+          <section
+            id="daily-comparison-charts"
+            className={`${styles.chartsSection} ${showComparisons ? styles.comparisonsOpen : ''}`}
+          >
+            <div className={styles.chartsGrid}>
+              {chartMetrics.map(metric => (
+                <article key={`day-${metric.key}`} className={styles.chartCard}>
+                  <h4 className={styles.chartTitle}>{metric.title}</h4>
+                  <div className={styles.chartBody}>
+                    {dayOfWeekChartRows.map(dayOfWeek => (
+                      <div key={`day-group-${metric.key}-${dayOfWeek.day}`}>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            fontSize: '13px',
+                            color: 'var(--soda-muted)',
+                            marginTop: '8px',
+                            marginBottom: '4px',
+                            paddingLeft: '4px',
+                            borderLeft: '3px solid rgba(116, 174, 255, 0.9)',
+                          }}
+                        >
+                          {dayOfWeek.label}
+                        </div>
+                        {dayOfWeek.rows.map(dateRow => {
+                          const width =
+                            metric.key === 'amount'
+                              ? chartLimits.maxAmountAbs === 0
+                                ? 0
+                                : (Math.abs(dateRow.amount) /
+                                    chartLimits.maxAmountAbs) *
+                                  100
+                              : chartLimits.maxStores === 0
+                                ? 0
+                                : (dateRow.storesCount /
+                                    chartLimits.maxStores) *
+                                  100;
+                          const value =
+                            metric.key === 'amount'
+                              ? format(dateRow.amount)
+                              : dateRow.storesCount.toLocaleString('uk-UA');
+                          return (
+                            <div
+                              key={`${metric.key}-${dateRow.dateLabel}`}
+                              className={styles.chartRow}
+                            >
+                              <div className={styles.chartDate}>
+                                {dateRow.dateDisplay.slice(0, 8)}
+                              </div>
+                              <div className={styles.chartTrack}>
+                                <div
+                                  className={`${styles.chartBar} ${
+                                    metric.key === 'amount' &&
+                                    dateRow.amount < 0
+                                      ? styles.chartBarNegative
+                                      : ''
+                                  }`}
+                                  style={{ width: `${width}%` }}
+                                />
+                              </div>
+                              <div className={styles.chartValue}>{value}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              ))}
+              {chartMetrics.map(metric => (
+                <article
+                  key={`week-${metric.key}`}
+                  className={styles.chartCard}
+                >
+                  <h4 className={styles.chartTitle}>
+                    {metric.key === 'amount'
+                      ? 'Сума по тижнях'
+                      : 'ТТ по тижнях'}
+                  </h4>
+                  <div className={styles.chartBody}>
+                    {weekChartRows.map(row => {
+                      const width = getWeekChartPercent(row, metric.key);
                       const value =
                         metric.key === 'amount'
-                          ? format(dateRow.amount)
-                          : dateRow.storesCount.toLocaleString('uk-UA');
+                          ? format(row.amount)
+                          : row.storesCount.toLocaleString('uk-UA');
                       return (
                         <div
-                          key={`${metric.key}-${dateRow.dateLabel}`}
+                          key={`${metric.key}-${row.weekKey}`}
                           className={styles.chartRow}
                         >
                           <div className={styles.chartDate}>
-                            {dateRow.dateDisplay.slice(0, 8)}
+                            {row.weekLabel}
                           </div>
                           <div className={styles.chartTrack}>
                             <div
                               className={`${styles.chartBar} ${
-                                metric.key === 'amount' && dateRow.amount < 0
+                                metric.key === 'amount' && row.amount < 0
                                   ? styles.chartBarNegative
                                   : ''
                               }`}
@@ -648,48 +878,12 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
                       );
                     })}
                   </div>
-                ))}
-              </div>
-            </article>
-          ))}
-          {chartMetrics.map(metric => (
-            <article key={`week-${metric.key}`} className={styles.chartCard}>
-              <h4 className={styles.chartTitle}>
-                {metric.key === 'amount' ? 'Сума по тижнях' : 'ТТ по тижнях'}
-              </h4>
-              <div className={styles.chartBody}>
-                {weekChartRows.map(row => {
-                  const width = getWeekChartPercent(row, metric.key);
-                  const value =
-                    metric.key === 'amount'
-                      ? format(row.amount)
-                      : row.storesCount.toLocaleString('uk-UA');
-                  return (
-                    <div
-                      key={`${metric.key}-${row.weekKey}`}
-                      className={styles.chartRow}
-                    >
-                      <div className={styles.chartDate}>{row.weekLabel}</div>
-                      <div className={styles.chartTrack}>
-                        <div
-                          className={`${styles.chartBar} ${
-                            metric.key === 'amount' && row.amount < 0
-                              ? styles.chartBarNegative
-                              : ''
-                          }`}
-                          style={{ width: `${width}%` }}
-                        />
-                      </div>
-                      <div className={styles.chartValue}>{value}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-      </>}
+                </article>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

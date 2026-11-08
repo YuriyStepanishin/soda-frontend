@@ -60,16 +60,16 @@ export default function DailySalesTrend({ rows }: { rows: SalesByDaysRow[] }) {
           <title>{`${current.label} за вибраний період. Точні значення також наведені в таблиці нижче.`}</title>
           {Array.from({ length: 5 }, (_, index) => {
             const value = min + (max - min) * index / 4;
-            return <g key={index}><line x1="65" x2={plotWidth - 20} y1={y(value)} y2={y(value)} stroke="#dbe5f1" /><text x="53" y={y(value) + 4} textAnchor="end" fill="#425466" fontSize="12">{shortNumber.format(value)}</text></g>;
+            return <g key={index}><line x1="65" x2={plotWidth - 20} y1={y(value)} y2={y(value)} stroke="var(--soda-data-border)" /><text x="53" y={y(value) + 4} textAnchor="end" fill="var(--soda-data-muted)" fontSize="12">{shortNumber.format(value)}</text></g>;
           })}
-          <line x1="65" x2={plotWidth - 20} y1={y(0)} y2={y(0)} stroke="#92a7c0" />
-          <path d={path} fill="none" stroke="#1769ce" strokeWidth="2.5" />
-          {points.map(point => <circle key={point.date} cx={x(point.date)} cy={y(point.value)} r={focused === point.date ? 5 : 3} fill={point.value < 0 ? '#a32939' : '#1769ce'} tabIndex={0}
+          <line x1="65" x2={plotWidth - 20} y1={y(0)} y2={y(0)} stroke="var(--soda-data-muted)" />
+          <path d={path} fill="none" stroke="var(--soda-chart)" strokeWidth="2.5" />
+          {points.map(point => <circle key={point.date} cx={x(point.date)} cy={y(point.value)} r={focused === point.date ? 5 : 3} fill={point.value < 0 ? '#a32939' : 'var(--soda-chart)'} tabIndex={0}
             aria-label={`${point.label}: ${fullNumber.format(point.value)} ${current.unit}`}
             onMouseEnter={() => setFocused(point.date)} onMouseLeave={() => setFocused(null)} onFocus={() => setFocused(point.date)} onBlur={() => setFocused(null)}>
             <title>{`${point.label}: ${fullNumber.format(point.value)} ${current.unit}`}</title>
           </circle>)}
-          {labels.map(point => <text key={point.date} x={x(point.date)} y="266" textAnchor="middle" fill="#425466" fontSize="12">{point.date.slice(8, 10)}.{point.date.slice(5, 7)}</text>)}
+          {labels.map(point => <text key={point.date} x={x(point.date)} y="266" textAnchor="middle" fill="var(--soda-data-muted)" fontSize="12">{point.date.slice(8, 10)}.{point.date.slice(5, 7)}</text>)}
         </svg>
       </div>
       <p className={styles.chartNote}>Відображено лише отримані дати; проміжки між точками не є продажами. Тижневі значення — сума днів у вибраному періоді, у тому числі неповних тижнів.</p>

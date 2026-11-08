@@ -178,82 +178,17 @@ export default function HomePage({
     },
   ];
 
-  return (
-    <div
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100vh',
-        overflow: 'hidden',
-      }}
-    >
-      {/* фон */}
-      <div className={styles.backgroundOverlay} aria-hidden="true" />
-
-      <DateTime />
-
-      <button
-        type="button"
-        className={styles.refreshButton}
-        onClick={() => {
-          void handleRefreshApp();
-        }}
-        aria-label="Оновити додаток"
-        title="Оновити"
-      >
-        <span className={styles.refreshIcon} aria-hidden="true">
-          ↻
-        </span>
-        <span className={styles.refreshText}>Оновити v{__APP_VERSION__}</span>
-      </button>
-
-      {/* навігація */}
-      <div className={styles.buttonContainer}>
-        <div className={styles.brandBlock}>
-          <span className={styles.brandLogo}>S</span>
-          <div className={styles.brandMeta}>
-            <strong className={styles.brandName}>S.O.D.A</strong>
-          </div>
-        </div>
-
-        <p className={styles.sidebarTitle}>Розділи</p>
-        <div className={styles.topGroup}>
-          {topMenuItems
-            .filter(item => item.visible)
-            .map(item => (
-              <button
-                key={item.key}
-                onClick={item.onClick}
-                className={styles.button}
-              >
-                {item.badge ? (
-                  <span className={styles.badge}>{item.badge}</span>
-                ) : null}
-                <span className={styles.iconWrap}>
-                  <img src={item.icon} className={styles.icon} />
-                </span>
-                <span className={styles.menuLabel}>{item.label}</span>
-              </button>
-            ))}
-        </div>
-
-        <div className={styles.bottomGroup}>
-          {bottomMenuItems
-            .filter(item => item.visible)
-            .map(item => (
-              <button
-                key={item.key}
-                onClick={item.onClick}
-                className={styles.button}
-              >
-                <span className={styles.iconWrap}>
-                  <img src={item.icon} className={styles.icon} />
-                </span>
-                <span className={styles.menuLabel}>{item.label}</span>
-              </button>
-            ))}
-        </div>
-      </div>
-    </div>
-  );
+  const descriptions: Record<string, string> = {
+    sales: 'Показники, фільтри та звіти', 'sales-by-days': 'Динаміка продажів і графіки',
+    'route-history': 'Торгові точки та історія замовлень', motivation: 'Перевірки та результати команди',
+    gallery: 'Фото та результати перевірок', messages: 'Повідомлення для команди',
+  };
+  return <main className={styles.container}>
+    <header className={styles.hero}><div><p className={styles.eyebrow}>{activeDatabase ? activeDatabase.toUpperCase() : 'SODA'}</p><h1>Робочий простір</h1><p className={styles.subtitle}>Продажі, торгові точки та робота команди</p></div><DateTime /></header>
+    <section className={styles.grid} aria-label="Розділи SODA">{topMenuItems.filter(item => item.visible).map(item => <button type="button" key={item.key} onClick={item.onClick} className={styles.card}>
+      <span className={styles.iconWrap}><img src={item.icon} alt="" width="28" height="28" /></span><span className={styles.cardCopy}><strong>{item.label}</strong><small>{descriptions[item.key] ?? 'Відкрити розділ'}</small></span>{item.badge ? <span className={styles.badge}>{item.badge}</span> : <span className={styles.arrow} aria-hidden="true">↗</span>}
+    </button>)}</section>
+    {bottomMenuItems.some(item => item.visible) && <section className={styles.photoSection}><h2>Фотозвіти та перевірки</h2><div className={styles.grid}>{bottomMenuItems.filter(item => item.visible).map(item => <button type="button" key={item.key} onClick={item.onClick} className={styles.card}><span className={styles.iconWrap}><img src={item.icon} alt="" width="28" height="28" /></span><span className={styles.cardCopy}><strong>{item.label}</strong></span><span className={styles.arrow} aria-hidden="true">↗</span></button>)}</div></section>}
+    <footer className={styles.footer}><span>SODA · v{__APP_VERSION__}</span><button type="button" onClick={() => void handleRefreshApp()}>Оновити застосунок</button></footer>
+  </main>;
 }

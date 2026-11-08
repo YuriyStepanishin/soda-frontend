@@ -4,6 +4,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import App from './App';
 import './index.css';
+import { initializeTheme } from './theme/theme';
+
+initializeTheme();
 
 // Shared query client for all screens: controls caching, retries, and stale data strategy.
 const queryClient = new QueryClient({

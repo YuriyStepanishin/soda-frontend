@@ -57,6 +57,7 @@ const PlanTargetsPage = lazy(
 );
 
 import InstallButton from './components/InstallButton/InstallButton';
+import AppShell, { type NavigationItem } from './components/AppShell/AppShell';
 import Loader from './components/Loader/Loader';
 import UserMenu from './components/UserMenu/UserMenu';
 
@@ -220,6 +221,7 @@ export default function App() {
     action();
   }
 
+  function renderPage() {
   /**
    * PHOTO GALLERY
    *
@@ -495,28 +497,9 @@ export default function App() {
           />
         </Suspense>
 
-        <UserMenu
-          email={email}
-          roleLabel={userRole ? getRoleLabel(userRole) : undefined}
-          departmentLabel={userDepartment ?? undefined}
-          activeDatabase={activeDatabase}
-          canSwitchDatabase={getAuthSession()?.user.role === 'admin'}
-          onSelectDatabase={async tenantId => {
-            if (!['olgatorg', 'laska'].includes(tenantId)) return;
-            await queryClient.cancelQueries();
-            queryClient.clear();
-            resetToHome();
-            setActiveDatabase(tenantId);
-            localStorage.setItem('activeTenant', tenantId);
-          }}
-          isOpen={isUserMenuOpen}
-          onOpen={() => setIsUserMenuOpen(true)}
-          onClose={() => { if (!email || activeDatabase) setIsUserMenuOpen(false); }}
-          onLogin={handleLogin}
-          onLogout={handleLogout}
-        />
 
-        <InstallButton />
+
+
       </>
     );
   }
@@ -538,7 +521,7 @@ export default function App() {
           />
         </Suspense>
 
-        <InstallButton />
+
       </>
     );
   }
@@ -562,7 +545,38 @@ export default function App() {
         )}
       </Suspense>
 
-      <InstallButton />
+
     </>
   );
+  }
+
+  const navigation: NavigationItem[] = [{ id: 'home', label: 'Головна', symbol: 'home', onClick: resetToHome }];
+  if (canAccess('sales')) {
+    navigation.push({ id: 'sales', label: 'Продажі', symbol: 'sales', onClick: () => runProtectedAction(() => { resetToHome(); setPage('sales'); }, 'sales') });
+    navigation.push({ id: 'sales-by-days', label: 'Продажі по днях', symbol: 'days', onClick: () => runProtectedAction(() => { resetToHome(); setSalesByDaysOrigin('home'); setPage('sales-by-days'); }, 'sales') });
+  }
+  if (canAccess('route-history')) navigation.push({ id: 'route-history', label: 'Торгові точки', symbol: 'stores', onClick: () => runProtectedAction(() => { resetToHome(); setPage('route-history'); }, 'route-history') });
+  return <AppShell items={navigation} active={page} tenant={activeDatabase} onProfile={() => setIsUserMenuOpen(true)} showThemeSwitcher={page === 'home' && !showGallery && !showStoreSelector} account={<UserMenu
+          email={email}
+          roleLabel={userRole ? getRoleLabel(userRole) : undefined}
+          departmentLabel={userDepartment ?? undefined}
+          activeDatabase={activeDatabase}
+          canSwitchDatabase={getAuthSession()?.user.role === 'admin'}
+          onSelectDatabase={async tenantId => {
+            if (!['olgatorg', 'laska'].includes(tenantId)) return;
+            await queryClient.cancelQueries();
+            queryClient.clear();
+            resetToHome();
+            setActiveDatabase(tenantId);
+            localStorage.setItem('activeTenant', tenantId);
+          }}
+          isOpen={isUserMenuOpen}
+          onOpen={() => setIsUserMenuOpen(true)}
+          onClose={() => { if (!email || activeDatabase) setIsUserMenuOpen(false); }}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
+        />}>
+    {renderPage()}
+    <InstallButton />
+  </AppShell>;
 }
