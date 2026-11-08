@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { ApiError } from '../../api/client';
 import {
   fetchRouteHistory,
-  routeHistoryRequestPath,
   type RouteHistoryResponse,
 } from '../../api/fetchRouteHistory';
 
@@ -12,7 +11,6 @@ import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
 import BackButton from '../BackButton/BackButton';
 import SearchInput from '../SearchInput';
-import SalesOfflineStatus from '../SalesOfflineStatus';
 import { readSalesSettings, saveSalesSettings, salesOfflineScope } from '../../api/salesOffline';
 
 import {
@@ -361,7 +359,6 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
   return (
     <div className={styles.container}>
       <BackButton onBack={onBack} />
-      <SalesOfflineStatus requestPaths={[routeHistoryRequestPath(historyQuery)]} />
       <button type="button" disabled={isFetching} onClick={() => {
         void refetch();
         if (detailsEnabled) void refetchDetails();
@@ -615,7 +612,6 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
           </div>
         </div>
         <div className={styles.modalBody}>
-          {expandedStore !== null && <SalesOfflineStatus requestPaths={[routeHistoryRequestPath(isOlgatorg ? historyQuery : detailQuery)]} />}
           {expandedStore !== null && <button type="button" disabled={detailLoading || isLoading} onClick={() => {
             if (isOlgatorg) void refetch();
             else void refetchDetails();

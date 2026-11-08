@@ -133,9 +133,11 @@ test('IndexedDB integration: reload, role/tenant isolation, cancellation and log
     navigator.onLine = false;
     assert.equal((await read('https://soda.test/api/sales/report?a=1&b=2')).data.amount, 100);
     assert.equal(calls, 1);
+    assert.equal((await offline.savedSalesRequests()).length, 1);
   });
   await t.test('tenant, email, raw role and department scope changes cannot expose admin VMD', async () => {
     localStorage.setItem('activeTenant', 'olgatorg');
+    assert.equal((await offline.savedSalesRequests()).length, 0);
     await assert.rejects(read(), /Немає збережених/);
     localStorage.setItem('activeTenant', 'laska');
     for (const change of [{ email: 'other@test' }, { role: 'brand_manager', tenant: 'laska' }, { departments: ['B'] }]) {

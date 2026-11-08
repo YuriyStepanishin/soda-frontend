@@ -20,7 +20,6 @@ import {
 } from '../../config/userRoles';
 import styles from './SalesPage.module.css';
 import BackButton from '../BackButton/BackButton';
-import SalesOfflineStatus from '../SalesOfflineStatus';
 import { getAuthSession } from '../../api/auth';
 import { saveSalesSettings } from '../../api/salesOffline';
 import SalesFilters from '../SalesFilters/SalesFilters';
@@ -378,7 +377,6 @@ export default function SalesPage({
   return (
     <div className={styles.container}>
       <BackButton onBack={handleBack} label={isReportReady ? 'До параметрів' : 'До головної'} />
-      <SalesOfflineStatus />
       {!isReportReady && filtersError ? <p role="alert">{filtersError.message}</p> : null}
       <div className={`${styles.desktopLayout} ${!isReportReady ? styles.configurationLayout : ''}`}>
         {!isReportReady ? (

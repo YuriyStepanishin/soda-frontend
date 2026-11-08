@@ -64,6 +64,22 @@ export function saveSalesSettings(name: string, value: unknown): void {
   } catch { /* Report fetching still works when browser storage is unavailable. */ }
 }
 
+export async function savedSalesRequests(): Promise<Array<{ url: string; savedAt: number }>> {
+  const scope = salesOfflineScope();
+  if (!scope) return [];
+  try {
+    const requests: Array<{ url: string; savedAt: number }> = [];
+    await db.entries.where('scope').equals(scope).each(entry => {
+      try {
+        const url = entry.key.slice(scope.length + 1);
+        const parsed = new URL(url);
+        if (parsed.origin === new URL(API_BASE_URL).origin && paths.has(parsed.pathname)) requests.push({ url, savedAt: entry.savedAt });
+      } catch { /* Ignore a damaged cache key without losing valid requests. */ }
+    });
+    return requests.sort((a, b) => b.savedAt - a.savedAt);
+  } catch { return []; }
+}
+
 export async function clearSalesOffline(): Promise<void> {
   generation++;
   statuses.clear();

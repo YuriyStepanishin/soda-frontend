@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import SalesOfflineStatus from '../SalesOfflineStatus';
 import { readSalesSettings, saveSalesSettings, salesOfflineScope } from '../../api/salesOffline';
 import {
   fetchSalesByDays,
@@ -444,7 +443,6 @@ export default function SalesByDaysPage({ onBack, database }: { onBack: () => vo
   ];
   return (
     <div className={styles.container}>
-      <SalesOfflineStatus daily />
       <button type="button" disabled={isFetching || !validDates} onClick={() => { void refetch(); }}>Оновити дані</button>
       <BackButton onBack={onBack} label="Назад" />
       <header className={styles.pageHeader}>

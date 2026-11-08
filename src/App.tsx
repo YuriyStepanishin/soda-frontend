@@ -61,6 +61,7 @@ import Loader from './components/Loader/Loader';
 import UserMenu from './components/UserMenu/UserMenu';
 
 import { clearAuthSession, getAuthSession } from './api/auth';
+import { startBackgroundSalesSync } from './api/backgroundSalesSync';
 
 import { useMessagesCenter } from './hooks/useMessagesCenter';
 
@@ -118,6 +119,10 @@ export default function App() {
     if (activeDatabase) localStorage.setItem('activeTenant', activeDatabase);
     else localStorage.removeItem('activeTenant');
   }, [activeDatabase]);
+
+  useEffect(() => {
+    if (email && activeDatabase) return startBackgroundSalesSync();
+  }, [email, activeDatabase]);
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(() => !email || !activeDatabase);
 
