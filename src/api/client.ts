@@ -71,8 +71,9 @@ async function parseResponse<T>(response: Response): Promise<T> {
         ? ((payload as Record<string, unknown>).message as string)
         : null;
 
+    if (response.status === 401) window.dispatchEvent(new Event('soda:session-expired'));
     throw new ApiError(
-      messageFromPayload || `HTTP ${response.status}`,
+      response.status === 401 ? 'Сесія завершилася. Увійдіть у застосунок повторно.' : messageFromPayload || `HTTP ${response.status}`,
       response.status
     );
   }

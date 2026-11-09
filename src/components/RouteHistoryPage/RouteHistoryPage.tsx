@@ -11,7 +11,7 @@ import { queryKeys } from '../../api/queryKeys';
 import Loader from '../Loader/Loader';
 import BackButton from '../BackButton/BackButton';
 import SearchInput from '../SearchInput';
-import { readSalesSettings, saveSalesSettings, salesOfflineScope } from '../../api/salesOffline';
+import { readSalesSettings, saveSalesSettings, salesOfflineScope, OFFLINE_STATUS_EVENT, type HistorySyncStatus } from '../../api/salesOffline';
 
 import {
   getCurrentAuthorizedEmail,
@@ -102,6 +102,12 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
    * ------------------------------------------------------------
    */
 
+  const [syncStatus, setSyncStatus] = useState(() => readSalesSettings<HistorySyncStatus>('history-sync'));
+  useEffect(() => {
+    const update = () => setSyncStatus(readSalesSettings<HistorySyncStatus>('history-sync'));
+    window.addEventListener(OFFLINE_STATUS_EVENT, update);
+    return () => window.removeEventListener(OFFLINE_STATUS_EVENT, update);
+  }, []);
   const savedHistory = restoredHistorySettings();
   const [department, setDepartment] = useState(savedHistory?.department ?? '');
   const [agent, setAgent] = useState(savedHistory?.agent ?? '');
@@ -392,6 +398,14 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
         <p className={styles.pageMeta}>{asOfDateLabel}</p>
       </header>
 
+      {!isOlgatorg && syncStatus && (
+        <p className={styles.pageMeta} role="status">
+          {syncStatus.completed === syncStatus.total && syncStatus.total > 0
+            ? 'Історію збережено для роботи без інтернету'
+            : syncStatus.running && navigator.onLine ? 'Фонове завантаження історії' : 'Завантаження історії очікує продовження'}
+          {`: ${syncStatus.completed} / ${syncStatus.total} карток ТТ (4 тижні та 4 місяці).`}
+        </p>
+      )}
       {isLoading && <Loader />}
       {!isLoading && isFetching && expandedStore === null && <Loader inline label="Оновлення історії продажів…" />}
 

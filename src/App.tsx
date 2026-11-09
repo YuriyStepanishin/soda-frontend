@@ -127,6 +127,18 @@ export default function App() {
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(() => !email || !activeDatabase);
 
+  useEffect(() => {
+    const expired = () => {
+      if (!getAuthSession()) return;
+      clearAuthSession();
+      setEmail(null);
+      setIsUserMenuOpen(true);
+      window.alert('Сесія завершилася. Увійдіть у застосунок повторно.');
+    };
+    window.addEventListener('soda:session-expired', expired);
+    return () => window.removeEventListener('soda:session-expired', expired);
+  }, []);
+
   const [showStoreSelector, setShowStoreSelector] = useState(false);
 
   const [reportType, setReportType] = useState<'display' | 'bonus' | null>(

@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import { completeHistoryDetailUrl } from '../utils/historyOfflineRequests';
 import { API_BASE_URL, AUTH_TOKEN_KEY, AUTH_USER_KEY } from './config';
 import { cachedRead, OFFLINE_MAX_AGE, type OfflineEntry, type ReadStatus } from '../utils/offlineReadCache';
 
@@ -16,6 +17,20 @@ const statuses = new Map<string, ReadStatus>();
 const paths = new Set(['/api/sales/report', '/api/sales/filters', '/api/sales/by-days', '/api/sales/by-days/filters', '/api/sales/route-history']);
 export const OFFLINE_STATUS_EVENT = 'soda:offline-sales-status';
 const emit = () => window.dispatchEvent(new Event(OFFLINE_STATUS_EVENT));
+export type HistorySyncStatus = { completed: number; total: number; running: boolean; savedAt: number };
+export function setHistorySyncStatus(value: HistorySyncStatus): void {
+  saveSalesSettings('history-sync', value);
+  emit();
+}
+export async function savedSalesResponse<T>(url: string): Promise<T | undefined> {
+  const scope = salesOfflineScope();
+  if (!scope) return;
+  const canonical = new URL(url);
+  canonical.searchParams.sort();
+  const entry = await db.entries.get(`${scope}\n${canonical}`).catch(() => undefined);
+  if (entry && Date.now() - entry.savedAt < 15 * 60 * 1000) return entry.data as T;
+}
+
 
 function canonicalPath(path: string): string {
   const url = new URL(path, API_BASE_URL);
@@ -109,7 +124,13 @@ export async function offlineSalesGet<T>(
     key, scope, signal, isCurrent,
     isOffline: () => navigator.onLine === false,
     storage: {
-      get: key => db.entries.get(key),
+      get: async key => {
+        const exact = await db.entries.get(key);
+        const completeUrl = completeHistoryDetailUrl(url);
+        const complete = completeUrl ? await db.entries.get(`${scope}\n${completeUrl}`) : undefined;
+        // Same scope, date, store and filters; only grouping fields differ.
+        return complete && (!exact || complete.savedAt > exact.savedAt) ? { ...complete, key } : exact;
+      },
       removeScope: async scope => {
         generation++;
         statuses.clear();
@@ -122,11 +143,15 @@ export async function offlineSalesGet<T>(
           if (!isCurrent()) return;
           await db.entries.where('savedAt').below(Date.now() - OFFLINE_MAX_AGE).delete();
           await db.entries.put(entry);
-          const all = await db.entries.orderBy('savedAt').toArray();
+          const history = pathname === '/api/sales/route-history';
+          const all = (await db.entries.orderBy('savedAt').toArray()).filter(item =>
+            new URL(item.key.slice(item.scope.length + 1)).pathname === '/api/sales/route-history' ? history : !history);
+          const maxBytes = (history ? 200 : 25) * 1024 * 1024;
+          const maxEntries = history ? 10000 : 50;
           let size = all.reduce((sum, item) => sum + item.bytes, 0);
           let count = all.length;
           for (const item of all) {
-            if (size <= 25 * 1024 * 1024 && count <= 50) break;
+            if (size <= maxBytes && count <= maxEntries) break;
             await db.entries.delete(item.key);
             size -= item.bytes;
             count--;

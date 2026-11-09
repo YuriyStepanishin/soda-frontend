@@ -1,22 +1,25 @@
 import { apiGet } from './client';
 import { getAuthSession } from './auth';
 import { API_BASE_URL } from './config';
-import { readSalesSettings, savedSalesRequests, salesOfflineScope } from './salesOffline';
+import { readSalesSettings, saveSalesSettings, savedSalesResponse, savedSalesRequests, salesOfflineScope, setHistorySyncStatus } from './salesOffline';
+import { historyDetailRequests } from '../utils/historyOfflineRequests';
 import { refreshSalesQueue } from '../utils/backgroundSalesQueue';
 
-// Refresh a bounded set of previously used reports without opening their screens.
-// Only the existing backend is queried; hidden/offline sessions do no background work.
+// Cache all accessible stores and their details without opening individual cards.
+// Browsers may suspend timers while the app is hidden; reconnect/focus resumes work.
 export function startBackgroundSalesSync(): () => void {
   const scope = salesOfflineScope();
   if (!scope) return () => {};
   let active: AbortController | null = null;
   let stopped = false;
-  const isCurrent = () => !stopped && salesOfflineScope() === scope && navigator.onLine && document.visibilityState !== 'hidden';
+  const isCurrent = () => !stopped && salesOfflineScope() === scope && navigator.onLine;
   const run = async () => {
     if (active || !isCurrent()) return;
     const controller = new AbortController();
     active = controller;
     try {
+      // Validate JWT against the live backend; no secret or token is cached in IndexedDB.
+      await apiGet('/api/auth/session', { authenticated: true, signal: controller.signal });
       const saved = await savedSalesRequests();
       if (!isCurrent()) return;
       const user = getAuthSession()?.user;
@@ -25,7 +28,8 @@ export function startBackgroundSalesSync(): () => void {
       const date = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
       const history = readSalesSettings<{ department?: string; agent?: string }>('history');
       const base = new URL(API_BASE_URL);
-      const defaults = [new URL('/api/sales/filters', base)];
+      const defaults: URL[] = [];
+      const lists: URL[] = [];
       for (const period of ['4weeks', '4months']) {
         const url = new URL('/api/sales/route-history', base);
         url.searchParams.set('period', period);
@@ -38,30 +42,62 @@ export function startBackgroundSalesSync(): () => void {
         if (agent) url.searchParams.set('ta', agent);
         if (history?.department) url.searchParams.set('department', history.department);
         defaults.push(url);
+        if (tenant === 'laska') lists.push(url);
       }
       const known = new Map(saved.map(request => [canonicalUrl(request.url), request]));
-      const requests = [...saved];
+      const requests = [...saved.filter(request => new URL(request.url).pathname !== '/api/sales/route-history')];
       for (const url of defaults) {
-        if (!known.has(canonicalUrl(url.toString()))) requests.push({ url: url.toString(), savedAt: 0 });
+        if (!lists.includes(url)) requests.unshift(known.get(canonicalUrl(url.toString())) ?? { url: url.toString(), savedAt: 0 });
       }
+      const read = async (url: string, signal: AbortSignal) => {
+        const request = new URL(url);
+        return apiGet(`${request.pathname}${request.search}`, { authenticated: true, signal });
+      };
       await refreshSalesQueue({
         requests, signal: controller.signal, isCurrent,
         yieldToForeground: () => new Promise(resolve => window.setTimeout(resolve, 1000)),
-        read: async (url, signal) => {
-          const request = new URL(url);
-          await apiGet(`${request.pathname}${request.search}`, { authenticated: true, signal });
-        },
+        read,
       });
+      // Discover every store, including cards the user has never opened.
+      const details = new Map<string, { url: string; savedAt: number }>();
+      const copies = new Map((await savedSalesRequests()).map(entry => [canonicalUrl(entry.url), entry.savedAt]));
+      for (const list of lists) {
+        if (!isCurrent() || controller.signal.aborted) return;
+        const response = (await savedSalesResponse(list.toString()) ?? await read(list.toString(), controller.signal)) as { data?: { stores: Array<{ code?: string }> }; stores?: Array<{ code?: string }> };
+        for (const url of historyDetailRequests(list.toString(), response.data?.stores ?? response.stores ?? [])) {
+          details.set(url, { url, savedAt: copies.get(url) ?? 0 });
+        }
+      }
+      if (!history) saveSalesSettings('history', { department: '', agent: '', period: 'weeks', groupingFields: ['group'], asOfDate: date });
+      let completed = [...details.values()].filter(entry => Date.now() - entry.savedAt < 15 * 60 * 1000).length;
+      const update = (running: boolean) => {
+        if (isCurrent()) setHistorySyncStatus({ completed, total: details.size, running, savedAt: Date.now() });
+      };
+      update(true);
+      await refreshSalesQueue({
+        // Missing cards first. Completed cards survive interruption and are skipped on resume.
+        requests: [...details.values()].sort((a, b) => a.savedAt - b.savedAt),
+        signal: controller.signal, isCurrent,
+        read: async (url, signal) => {
+          await read(url, signal);
+          // A full disk must not be reported as a completed offline download.
+          if (!await savedSalesResponse(url)) throw new Error('Не вдалося зберегти історію на пристрої');
+          completed++;
+          update(true);
+        },
+        yieldToForeground: () => new Promise(resolve => window.setTimeout(resolve, 250)),
+      });
+      update(false);
     } catch { /* Background refresh must not interrupt the user's work. */ }
     finally { active = null; }
   };
   const start = () => { void run(); };
   const visibility = () => {
-    if (!navigator.onLine || document.visibilityState === 'hidden') active?.abort();
+    if (!navigator.onLine) active?.abort();
     else start();
   };
   const first = window.setTimeout(start, 3000);
-  const timer = window.setInterval(start, 15 * 60 * 1000);
+  const timer = window.setInterval(start, 60 * 1000);
   window.addEventListener('online', start);
   window.addEventListener('offline', visibility);
   document.addEventListener('visibilitychange', visibility);
