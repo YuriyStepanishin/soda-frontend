@@ -215,6 +215,25 @@ test('IndexedDB integration: reload, role/tenant isolation, cancellation and log
     await offline.clearSalesOffline();
     await assert.rejects(historyRead(detailPath), /Немає збережених/);
   });
+  await t.test('all stores survive the old 50-report cap and any detail grouping works offline', async () => {
+    await offline.clearSalesOffline();
+    navigator.onLine = true;
+    global.fetch = async () => new Response(JSON.stringify({ success: true, stores: [{ code: 'TT1', items: [{ group: 'Риба', tm: 'Karavela', product: 'Кілька', quantity: 3 }] }] }));
+    const base = '/api/sales/route-history?view=details&period=4weeks&asOfDate=2026-11-09&groupingFields=group,subgroup,tm,packing&storeCode=';
+    const historyRead = request => offline.offlineSalesGet(request, `https://soda.test${request}`, new Headers(), undefined, parse);
+    for (let i = 0; i < 60; i++) await historyRead(base + i);
+    navigator.onLine = false;
+    global.fetch = () => assert.fail('offline must not fetch');
+    for (const code of ['0', '59']) {
+      for (const fields of ['group', 'tm', 'packing,subgroup', 'group,subgroup,tm,packing']) {
+        const result = await historyRead((base + code).replace('group,subgroup,tm,packing', fields));
+        assert.equal(result.stores[0].items[0].quantity, 3);
+      }
+    }
+    await assert.rejects(historyRead((base + '0').replace('2026-11-09', '2026-11-08')), /Немає збережених/);
+    await assert.rejects(historyRead(base + 'missing'), /Немає збережених/);
+    await offline.clearSalesOffline();
+  });
   await t.test('a real 403 removes IndexedDB copies and never falls back to privileged data', async () => {
     navigator.onLine = true;
     global.fetch = async () => new Response(JSON.stringify({ data: { vmd: 12 } }));
