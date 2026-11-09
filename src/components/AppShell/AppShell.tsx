@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import ThemeSwitcher from './ThemeSwitcher';
 import styles from './AppShell.module.css';
-export type NavigationItem = { id: string; label: string; symbol: 'home' | 'sales' | 'days' | 'stores'; onClick: () => void };
+export type NavigationItem = { id: string; label: string; symbol: 'home' | 'sales' | 'days' | 'stores' | 'debt'; onClick: () => void };
 function NavIcon({ name }: { name: NavigationItem['symbol'] }) {
   const paths = {
+    debt: 'M5 3h14v18l-3-2-4 2-4-2-3 2V3Zm3 5h8m-8 4h8m-8 4h5',
     home: 'M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',
     sales: 'M4 20V11h4v9m4 0V4h4v16m4 0V8h2v12',
     days: 'M4 6h16v15H4Zm3-3v6m10-6v6M4 11h16m-12 4h2m4 0h2',

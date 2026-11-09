@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 const MotivationPage = lazy(() => import('./components/MotivationPage/MotivationPage'));
+const ReceivablesPage = lazy(() => import('./components/ReceivablesPage/ReceivablesPage'));
 
 const HomePage = lazy(() => import('./components/HomePage/HomePage'));
 
@@ -102,6 +103,7 @@ export default function App() {
     | 'messages'
     | 'plan-targets'
     | 'motivation'
+    | 'receivables'
   >('home');
 
   const [email, setEmail] = useState<string | null>(
@@ -159,6 +161,7 @@ export default function App() {
   const userDepartment = getUserDepartment(email);
 
   const canOpenMotivation = activeDatabase === 'laska' && ['admin', 'manager'].includes(getAuthSession()?.user.role ?? '');
+  const canOpenReceivables = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent'].includes(getAuthSession()?.user.role ?? '');
 
   const canAccess = (section: AppSection) =>
     canAccessSection(userRole, section);
@@ -234,6 +237,9 @@ export default function App() {
   }
 
   function renderPage() {
+  if (page === 'receivables' && canOpenReceivables) {
+    return <Suspense fallback={<Loader />}><ReceivablesPage key={`${activeDatabase}:${email}`} onBack={() => setPage('home')} /></Suspense>;
+  }
   /**
    * PHOTO GALLERY
    *
@@ -457,6 +463,8 @@ export default function App() {
             }
             onOpenMotivation={() => runProtectedAction(() => setPage('motivation'))}
             canOpenMotivation={canOpenMotivation}
+            onOpenReceivables={() => runProtectedAction(() => setPage('receivables'))}
+            canOpenReceivables={canOpenReceivables}
             activeDatabase={activeDatabase}
             onOpenRouteHistory={() =>
               runProtectedAction(
@@ -563,6 +571,7 @@ export default function App() {
   }
 
   const navigation: NavigationItem[] = [{ id: 'home', label: 'Головна', symbol: 'home', onClick: resetToHome }];
+  if (canOpenReceivables) navigation.push({ id: 'receivables', label: 'Дебіторка', symbol: 'debt', onClick: () => runProtectedAction(() => { resetToHome(); setPage('receivables'); }) });
   if (canAccess('sales')) {
     navigation.push({ id: 'sales', label: 'Продажі', symbol: 'sales', onClick: () => runProtectedAction(() => { resetToHome(); setPage('sales'); }, 'sales') });
     navigation.push({ id: 'sales-by-days', label: 'Продажі по днях', symbol: 'days', onClick: () => runProtectedAction(() => { resetToHome(); setSalesByDaysOrigin('home'); setPage('sales-by-days'); }, 'sales') });

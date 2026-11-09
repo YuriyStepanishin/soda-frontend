@@ -21,6 +21,8 @@ interface Props {
   activeDatabase: string;
   onOpenMotivation: () => void;
   canOpenMotivation: boolean;
+  onOpenReceivables: () => void;
+  canOpenReceivables: boolean;
 
   onOpenActiveCustomerBase: () => void;
   onOpenImplementation: () => void;
@@ -54,6 +56,8 @@ export default function HomePage({
   activeDatabase,
   onOpenMotivation,
   canOpenMotivation,
+  onOpenReceivables,
+  canOpenReceivables,
 
   onOpenActiveCustomerBase,
   onOpenImplementation,
@@ -87,6 +91,7 @@ export default function HomePage({
   };
 
   const topMenuItems: MenuItem[] = [
+    { key: 'receivables', label: 'Дебіторка', icon: withVersion('/icons/calendar-icon-64.svg'), onClick: onOpenReceivables, visible: canOpenReceivables },
     { key: 'motivation', label: 'Контроль мотивації', icon: withVersion('/icons/implementation.svg'), onClick: onOpenMotivation, visible: activeDatabase === 'laska' && canOpenMotivation },
     {
       key: 'sales',
