@@ -8,11 +8,14 @@ export type ReceivablesResponse = {
   totals: { balance: number; debt: number; prepayment: number; overdue: number; penalty: number; penaltyAmount: number; stores: number };
   rows: Receivable[]; pagination: { page: number; limit: number; total: number; pages: number };
 };
-export type DebtFilters = { agent: string; route: string; search: string; status: string; page: number };
+export type DebtRepresentative = { agent: string | null; route: string };
+export type DebtFilters = { representatives: DebtRepresentative[]; search: string; statuses: DebtStatus[]; page: number };
 function requireLaska() { if (getActiveTenant() !== 'laska') throw new Error('Оберіть компанію Ласка'); }
 export function fetchReceivables(query: DebtFilters, signal?: AbortSignal) {
   requireLaska();
-  return apiGet<ReceivablesResponse>('/api/laska/receivables', { query, authenticated: true, signal });
+  return apiGet<ReceivablesResponse>('/api/laska/receivables', { query: {
+    ...query, representatives: JSON.stringify(query.representatives), statuses: JSON.stringify(query.statuses),
+  }, authenticated: true, signal });
 }
 export function importReceivables() {
   requireLaska();
