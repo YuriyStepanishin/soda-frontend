@@ -5,7 +5,7 @@ export type Receivable = { id: number; route: string; store: string; agent: stri
 export type ReceivablesResponse = {
   metadata: { file_name: string; modified_time: string; report_date: string; imported_at: string; row_count?: number; unmatched_routes?: number; control_difference?: number | null } | null;
   options: { agent: string | null; route: string }[];
-  totals: { balance: number; debt: number; prepayment: number; overdue: number; penalty: number; stores: number };
+  totals: { balance: number; debt: number; prepayment: number; overdue: number; penalty: number; penaltyAmount: number; stores: number };
   rows: Receivable[]; pagination: { page: number; limit: number; total: number; pages: number };
 };
 export type DebtFilters = { agent: string; route: string; search: string; status: string; page: number };

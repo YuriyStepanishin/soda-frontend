@@ -7,7 +7,6 @@
 .back { font-size: 14px; }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .updated,.hint { font-size: 13px; }
-.stale { color: var(--soda-warning); }
 .summary { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 12px; margin: 22px 0 12px; }
 .summary article { display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--soda-border); border-radius: 14px; padding: 18px; background: var(--soda-surface); }
 .summary span { color: var(--soda-muted); font-size: 13px; }
