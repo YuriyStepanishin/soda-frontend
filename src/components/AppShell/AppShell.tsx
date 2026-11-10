@@ -12,8 +12,8 @@ function NavIcon({ name }: { name: NavigationItem['symbol'] }) {
   };
   return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>;
 }
-export default function AppShell({ children, items, active, account, onProfile, tenant, showThemeSwitcher = false }: { children: ReactNode; items: NavigationItem[]; active: string; account: ReactNode; onProfile: () => void; tenant: string; showThemeSwitcher?: boolean }) {
-  return <div className={styles.shell}>
+export default function AppShell({ children, items, active, account, onProfile, tenant, showThemeSwitcher = false, navigationDock }: { children: ReactNode; items: NavigationItem[]; active: string; account: ReactNode; onProfile: () => void; tenant: string; showThemeSwitcher?: boolean; navigationDock?: { onBack: () => void; onHome: () => void } }) {
+  return <div className={`${styles.shell} ${navigationDock ? styles.withDock : ''}`}>
     <aside className={styles.sidebar} aria-label="Основна навігація">
       <a className={styles.brand} href="#" onClick={event => { event.preventDefault(); items[0]?.onClick(); }}><img src="/icons/soda-192.png" alt="" width="40" height="40" /><strong>SODA</strong></a>
       <small className={styles.tenant}>{tenant.toUpperCase()}</small>
@@ -25,5 +25,9 @@ export default function AppShell({ children, items, active, account, onProfile, 
       <span className={styles.context}>{items.find(item => item.id === active)?.label ?? 'SODA'}{tenant ? ` · ${tenant.toUpperCase()}` : ''}</span>
       <div className={styles.toolbar}>{showThemeSwitcher && <ThemeSwitcher />}{account}</div>
     </header><div className={styles.content}>{children}</div></div>
+    {navigationDock && <nav className={styles.navigationDock} aria-label="Швидка навігація">
+      <button type="button" onClick={navigationDock.onBack}><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m14 6-6 6 6 6M8 12h13" /></svg><span>Назад</span></button>
+      <button type="button" onClick={navigationDock.onHome}><NavIcon name="home" /><span>Головна</span></button>
+    </nav>}
   </div>;
 }

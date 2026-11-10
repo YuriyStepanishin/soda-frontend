@@ -18,11 +18,19 @@
 .themeSwitch button > span:first-child { font-size: 19px; line-height: 1; }
 .content { min-width: 0; }
 .mobileBrand { display: none; }
+.withDock .content { padding-bottom:calc(104px + env(safe-area-inset-bottom, 0px)); }
+.navigationDock { position:fixed; left:calc(50% + 112px); bottom:max(12px, calc(env(safe-area-inset-bottom, 0px) + 10px)); transform:translateX(-50%); display:flex; gap:6px; padding:6px; max-width:calc(100vw - 24px); border:1px solid var(--soda-border); border-radius:20px; background:color-mix(in srgb,var(--soda-nav) 82%,transparent); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 8px 28px #0003; z-index:70; }
+.navigationDock button { display:flex; align-items:center; justify-content:center; gap:9px; min-width:116px; min-height:48px; padding:10px 16px; color:var(--soda-text); background:transparent; border:0; border-radius:14px; font-size:15px; font-weight:600; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.navigationDock button:active { background:var(--soda-accent-soft); }
+:global(body:has([role='dialog'][aria-modal='true'])) .navigationDock { visibility:hidden; pointer-events:none; }
+@media(hover:hover) { .navigationDock button:hover { background:var(--soda-control); } }
 @media (max-width: 1180px) {
   .sidebar, .context { display: none; }
   .workspace { margin-left: 0; }
   .topbar { min-height: 68px; padding: max(10px, env(safe-area-inset-top)) 12px 10px; }
-  .mobileBrand { display: flex; font-size: 21px; gap: 8px; }
+  .mobileBrand { display: flex; min-width:44px; min-height:44px; font-size: 21px; gap: 8px; touch-action:manipulation; }
+  .navigationDock { left:50%; }
 }
+@media(hover:none) and (pointer:coarse) { .shell:has(input[type='search']:focus, input[type='text']:focus, input:not([type]):focus, textarea:focus) .navigationDock { visibility:hidden; pointer-events:none; } }
 @media (max-width: 480px) { .themeLabel { display: none; } .themeSwitch button { min-height: 44px; padding: 6px; } .toolbar { gap: 8px; } }
-@media print { .sidebar, .topbar { display: none; } .workspace { margin: 0; } .content { padding: 0; } }
+@media print { .sidebar, .topbar, .navigationDock { display: none; } .workspace { margin: 0; } .withDock .content, .content { padding: 0; } }

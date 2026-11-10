@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAuthSession } from '../../api/auth';
 import { fetchReceivables, importReceivables, type DebtFilters, type DebtStatus, type DebtRepresentative, type Receivable } from '../../api/receivables';
@@ -10,10 +10,10 @@ const shortDate = (date: string) => date.split('-').reverse().join('.');
 const representativeKey = (option: DebtRepresentative) => JSON.stringify([option.agent, option.route]);
 const allStatuses = Object.keys(labels) as DebtStatus[];
 function groupInvoices(rows: Receivable[]) {
-  const groups = new Map<string, {key: string; store: string; agent: string | null; route: string; network: boolean; rows: Receivable[]}>();
+  const groups = new Map<string, {key: string; store: string; agent: string | null; route: string; network: boolean; balance: number | null; rows: Receivable[]}>();
   for (const row of rows) {
     const key = JSON.stringify([row.agent, row.route, row.store]);
-    if (!groups.has(key)) groups.set(key, {key, store:row.store, agent:row.agent, route:row.route, network:row.network, rows:[]});
+    if (!groups.has(key)) groups.set(key, {key, store:row.store, agent:row.agent, route:row.route, network:row.network, balance:row.storeBalance ?? null, rows:[]});
     groups.get(key)!.rows.push(row);
   }
   return [...groups.values()];
@@ -24,6 +24,16 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
   const [filters, setFilters] = useState<DebtFilters>({representatives:[],search:'',statuses:allStatuses,page:1});
   const [search, setSearch] = useState('');
   const [notice, setNotice] = useState('');
+  const pickerRef = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const closeOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !pickerRef.current?.contains(event.target)) pickerRef.current?.removeAttribute('open');
+    };
+    const closeEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') pickerRef.current?.removeAttribute('open'); };
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('keydown', closeEscape);
+    return () => { document.removeEventListener('pointerdown', closeOutside); document.removeEventListener('keydown', closeEscape); };
+  }, []);
   const queryClient = useQueryClient();
   const key = ['receivables', 'laska', user?.email ?? getAuthSession()?.email];
   const query = useQuery({queryKey:[...key, filters],queryFn:({signal}) => fetchReceivables(filters, signal),
@@ -56,7 +66,7 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
     <p className={styles.hint}>Штраф ТП — 1% від сальдо 21+ днів. Сальдо 21+ входить у прострочку 14+. Мережі виключені з прострочки та штрафу. Підсумки враховують усі статуси в обраних ТА, ПТТ і пошуку.</p>
     <form className={styles.filters} onSubmit={event => {event.preventDefault();setFilters(previous => ({...previous,search:search.trim(),page:1}));}}>
       <div className={styles.representativeFilter}><span id="representatives-label">Торговий представник/ПТТ</span>
-        <details className={styles.picker}><summary>{filters.representatives.length ? `Вибрано: ${filters.representatives.length}` : 'Усі доступні'}<span aria-hidden="true">⌄</span></summary>
+        <details ref={pickerRef} className={styles.picker}><summary>{filters.representatives.length ? `Вибрано: ${filters.representatives.length}` : 'Усі доступні'}<span aria-hidden="true">⌄</span></summary>
           <div className={styles.pickerPanel} role="group" aria-labelledby="representatives-label">
             <button type="button" className={styles.clearFilter} onClick={() => setFilters(previous => ({...previous,representatives:[],page:1}))}>Усі доступні / скинути</button>
             {representatives.map(option => <label className={styles.checkOption} key={representativeKey(option)}>
@@ -66,7 +76,7 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
           </div>
         </details>
       </div>
-      <label className={styles.search}>ТТ або накладна<input value={search} onChange={event => setSearch(event.target.value)} placeholder="Назва ТТ або номер" maxLength={200} /></label><button type="submit">Знайти</button>
+      <label className={styles.search}>ТТ або накладна<input type="search" enterKeyHint="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Назва ТТ або номер" maxLength={200} /></label><button type="submit">Знайти</button>
       <fieldset className={styles.statusFilters}><legend>Статуси накладних</legend>
         <label className={styles.statusOption}><input type="checkbox" checked={filters.statuses.length === allStatuses.length} onChange={event => setFilters(previous => ({...previous,statuses:event.target.checked ? allStatuses : [],page:1}))} />Усі</label>
         {allStatuses.map(status => <label key={status} className={`${styles.statusOption} ${styles[status]}`}><input type="checkbox" checked={filters.statuses.includes(status)} onChange={() => toggleStatus(status)} />{labels[status]}</label>)}
@@ -75,7 +85,9 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
     {query.isPending ? <Loader /> : data && !data.metadata ? <p className={styles.empty}>Дебіторку ще не імпортовано. Завантажте файл «8.xlsx» у папку дебіторки на Google Drive.</p> : data && <>
       <p className={styles.hint}>Накладних за фільтром: {data.pagination.total} · ТТ за пошуком: {data.totals.stores}</p>
       <div className={styles.storeGroups}>{groups.map(group => <section key={group.key} className={styles.storeGroup} aria-label={group.store}>
-        <header className={styles.storeHeading}><div><h2>{group.store}</h2><p>{group.agent || 'Агента не зіставлено'} · {group.route}</p></div>{group.network && <span className={styles.network}>Мережа</span>}</header>
+        <header className={styles.storeHeading}><div><h2>{group.store}</h2><p>{group.agent || 'Агента не зіставлено'} · {group.route}</p>{group.network && <span className={styles.network}>Мережа</span>}</div>
+          <div className={styles.storeTotal}><span>{group.balance !== null && group.balance < 0 ? 'Переплата ТТ' : 'Заборгованість ТТ'}</span><strong>{group.balance === null ? '—' : currency(Math.abs(group.balance))}</strong><small>За всіма накладними ТТ</small></div>
+        </header>
         <div className={styles.tableWrap}><table><caption className={styles.srOnly}>Накладні: {group.store}</caption><thead><tr><th scope="col">Накладна</th><th scope="col">Дата</th><th scope="col">Днів</th><th scope="col">Статус</th><th scope="col" className={styles.amount}>Сума документа</th><th scope="col" className={styles.amount}>Сальдо</th></tr></thead><tbody>{group.rows.map(row => <tr key={row.id} className={styles[row.status]}>
           <td data-label="Накладна" className={styles.invoiceNumber}><strong>{row.number}</strong>{row.type === 'return' && <small>Повернення</small>}</td><td data-label="Дата">{shortDate(row.date)}</td><td data-label="Днів">{row.days}</td><td data-label="Статус" className={styles.statusCell}><span>{labels[row.status]}</span></td><td data-label="Сума документа" className={styles.amount}>{row.amount === null ? '—' : currency(row.amount)}</td><td data-label="Сальдо" className={styles.amount}><strong>{currency(row.balance)}</strong></td>
         </tr>)}</tbody></table></div>

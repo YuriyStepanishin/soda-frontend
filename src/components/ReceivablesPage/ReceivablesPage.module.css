@@ -3,7 +3,7 @@
 .header { display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
 .header h1 { margin: 12px 0 4px; font-size: 30px; }
 .header p,.updated,.hint { color: var(--soda-muted); }
-.page button { cursor: pointer; padding: 10px 16px; border: 1px solid var(--soda-border); background: var(--soda-control); color: var(--soda-text); border-radius: 10px; }
+.page button { cursor: pointer; min-height:48px; padding: 10px 16px; border: 1px solid var(--soda-border); background: var(--soda-control); color: var(--soda-text); border-radius: 10px; }
 .page button:disabled { cursor: wait; }
 .back { font-size: 14px; }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -14,10 +14,10 @@
 .summary strong { font-size: 21px; font-variant-numeric: tabular-nums; }
 .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 24px 0; }
 .filters > label,.representativeFilter { display: flex; flex: 1 1 260px; flex-direction: column; gap: 6px; font-size: 14px; }
-.filters input:not([type='checkbox']) { width: 100%; padding: 11px; border-radius: 9px; }
+.filters input:not([type='checkbox']) { width: 100%; min-height:48px; padding: 11px; font-size:16px; border-radius: 9px; }
 .filters .search { flex: 2 1 220px; }
 .picker { position:relative; }
-.picker summary { display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:11px 14px; border:1px solid var(--soda-border); border-radius:9px; background:var(--soda-control); list-style:none; }
+.picker summary { display:flex; min-height:48px; justify-content:space-between; align-items:center; cursor:pointer; padding:11px 14px; border:1px solid var(--soda-border); border-radius:9px; background:var(--soda-control); list-style:none; touch-action:manipulation; }
 .picker summary::-webkit-details-marker { display:none; }
 .pickerPanel { position:absolute; top:calc(100% + 6px); left:0; width:max(100%,320px); max-width:calc(100vw - 48px); max-height:350px; overflow:auto; padding:8px; background:var(--soda-surface); border:1px solid var(--soda-border); border-radius:12px; box-shadow:var(--soda-shadow); z-index:10; }
 .checkOption { display:flex; align-items:center; gap:12px; padding:10px; min-height:48px; cursor:pointer; border-radius:8px; }
@@ -34,6 +34,11 @@
 .storeHeading { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; padding:18px 20px; background:var(--soda-control); border-bottom:1px solid var(--soda-border); }
 .storeHeading h2 { margin:0; font-size:18px; line-height:1.4; overflow-wrap:anywhere; }
 .storeHeading p { margin:6px 0 0; font-size:13px; color:var(--soda-muted); }
+.storeHeading > div:first-child { min-width:0; }
+.storeTotal { display:flex; flex:none; flex-direction:column; gap:4px; text-align:right; }
+.storeTotal > span { font-size:12px; color:var(--soda-muted); }
+.storeTotal strong { font-size:22px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.storeTotal small { color:var(--soda-muted); font-size:11px; }
 .network { flex:none; font-size:12px; padding:5px 9px; border:1px solid var(--soda-border); border-radius:20px; color:var(--soda-muted); }
 .tableWrap { overflow: auto; background: var(--soda-surface); }
 .tableWrap table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -57,7 +62,9 @@
 @media(max-width:700px) {
   .page { padding:16px 12px; } .summary { grid-template-columns:1fr 1fr; } .summary article { padding:13px; } .summary strong { font-size:17px; }
   .actions { width:100%; } .actions button { flex:1; } .filters > label,.representativeFilter { flex-basis:100%; }
-  .storeHeading { padding:16px; } .storeHeading h2 { font-size:17px; } .storeHeading p { font-size:12px; }
+  .storeHeading { padding:16px; flex-wrap:wrap; } .storeHeading h2 { font-size:17px; } .storeHeading p { font-size:12px; }
+  .storeTotal { width:100%; text-align:left; padding-top:10px; border-top:1px solid var(--soda-border); }
+  .storeTotal strong { font-size:23px; } .network { display:inline-block; margin-top:8px; }
   .tableWrap { overflow:visible; } .tableWrap table,.tableWrap tbody { display:block; }
   .tableWrap thead { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
   .tableWrap tr { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); padding:12px 14px; gap:12px 16px; border-top:1px solid var(--soda-border); }

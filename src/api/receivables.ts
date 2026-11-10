@@ -1,7 +1,7 @@
 import { apiGet, apiPostJson, getActiveTenant } from './client';
 export type DebtStatus = 'current' | 'overdue' | 'penalty' | 'prepayment';
 export type Receivable = { id: number; route: string; store: string; agent: string | null; department: string | null;
-  date: string; number: string; type: string; days: number; amount: number | null; balance: number; network: boolean; status: DebtStatus };
+  date: string; number: string; type: string; days: number; amount: number | null; balance: number; storeBalance: number; network: boolean; status: DebtStatus };
 export type ReceivablesResponse = {
   metadata: { file_name: string; modified_time: string; report_date: string; imported_at: string; row_count?: number; unmatched_routes?: number; control_difference?: number | null } | null;
   options: { agent: string | null; route: string }[];

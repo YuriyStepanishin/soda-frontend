@@ -64,6 +64,7 @@ import UserMenu from './components/UserMenu/UserMenu';
 
 import { clearAuthSession, getAuthSession } from './api/auth';
 import { startBackgroundSalesSync } from './api/backgroundSalesSync';
+import { backDestination } from './utils/navigation';
 
 import { useMessagesCenter } from './hooks/useMessagesCenter';
 
@@ -155,6 +156,10 @@ export default function App() {
     store: string;
   } | null>(null);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [page, showGallery, showStoreSelector, selectedStore]);
+
   const messagesCenter = useMessagesCenter(email);
 
   const userRole = getUserRole(email);
@@ -172,6 +177,15 @@ export default function App() {
     setReportType(null);
     setShowGallery(false);
     setSelectedStore(null);
+  }
+
+  function navigateBack() {
+    const destination = backDestination({page, salesByDaysOrigin, showGallery, showStoreSelector, hasSelectedStore:!!selectedStore});
+    if (destination === 'close-gallery') { setShowGallery(false); return; }
+    if (destination === 'select-store') { setSelectedStore(null); return; }
+    if (destination === 'close-selector') { setShowStoreSelector(false); setReportType(null); return; }
+    if (destination === 'sales') { setPage('sales'); return; }
+    resetToHome();
   }
 
   function handleLogin(nextEmail: string) {
@@ -577,7 +591,7 @@ export default function App() {
     navigation.push({ id: 'sales-by-days', label: 'Продажі по днях', symbol: 'days', onClick: () => runProtectedAction(() => { resetToHome(); setSalesByDaysOrigin('home'); setPage('sales-by-days'); }, 'sales') });
   }
   if (canAccess('route-history')) navigation.push({ id: 'route-history', label: 'Торгові точки', symbol: 'stores', onClick: () => runProtectedAction(() => { resetToHome(); setPage('route-history'); }, 'route-history') });
-  return <AppShell items={navigation} active={page} tenant={activeDatabase} onProfile={() => setIsUserMenuOpen(true)} showThemeSwitcher={page === 'home' && !showGallery && !showStoreSelector} account={<UserMenu
+  return <AppShell items={navigation} active={page} tenant={activeDatabase} onProfile={() => setIsUserMenuOpen(true)} navigationDock={!isUserMenuOpen && (page !== 'home' || showGallery || showStoreSelector) ? { onBack: navigateBack, onHome: resetToHome } : undefined} showThemeSwitcher={page === 'home' && !showGallery && !showStoreSelector} account={<UserMenu
           email={email}
           roleLabel={userRole ? getRoleLabel(userRole) : undefined}
           departmentLabel={userDepartment ?? undefined}
@@ -598,6 +612,6 @@ export default function App() {
           onLogout={handleLogout}
         />}>
     {renderPage()}
-    <InstallButton />
+    <InstallButton raised={page !== 'home' || showGallery || showStoreSelector} />
   </AppShell>;
 }
