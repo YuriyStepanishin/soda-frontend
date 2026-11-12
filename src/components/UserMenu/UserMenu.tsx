@@ -1,3 +1,5 @@
+import Modal from '../Navigation/Modal';
+import InstallButton from '../InstallButton/InstallButton';
 import styles from './UserMenu.module.css';
 import LoginPage from '../LoginPage/LoginPage';
 import LoginAppPage from '../LoginAppPage/LoginAppPage';
@@ -67,14 +69,7 @@ export default function UserMenu({
       </div>
 
       {isOpen && (
-        <>
-          <button
-            className={styles.backdrop}
-            onClick={onClose}
-            aria-label="Закрити меню користувача"
-          />
-
-          <div className={styles.panel}>
+        <Modal title={email ? 'Профіль' : 'Вхід у SODA'} onClose={onClose}>
             {email ? (
               <LoginAppPage
                 embedded
@@ -91,8 +86,8 @@ export default function UserMenu({
             ) : (
               <LoginPage embedded onSuccess={onLogin} />
             )}
-          </div>
-        </>
+          <InstallButton />
+        </Modal>
       )}
     </>
   );

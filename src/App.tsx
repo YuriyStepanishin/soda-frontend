@@ -57,7 +57,7 @@ const PlanTargetsPage = lazy(
   () => import('./components/PlanTargetsPage/PlanTargetsPage')
 );
 
-import InstallButton from './components/InstallButton/InstallButton';
+import { NavigationProvider } from './components/Navigation/NavigationContext';
 import AppShell, { type NavigationItem } from './components/AppShell/AppShell';
 import Loader from './components/Loader/Loader';
 import UserMenu from './components/UserMenu/UserMenu';
@@ -591,7 +591,17 @@ export default function App() {
     navigation.push({ id: 'sales-by-days', label: 'Продажі по днях', symbol: 'days', onClick: () => runProtectedAction(() => { resetToHome(); setSalesByDaysOrigin('home'); setPage('sales-by-days'); }, 'sales') });
   }
   if (canAccess('route-history')) navigation.push({ id: 'route-history', label: 'Торгові точки', symbol: 'stores', onClick: () => runProtectedAction(() => { resetToHome(); setPage('route-history'); }, 'route-history') });
-  return <AppShell items={navigation} active={page} tenant={activeDatabase} onProfile={() => setIsUserMenuOpen(true)} navigationDock={!isUserMenuOpen && (page !== 'home' || showGallery || showStoreSelector) ? { onBack: navigateBack, onHome: resetToHome } : undefined} showThemeSwitcher={page === 'home' && !showGallery && !showStoreSelector} account={<UserMenu
+  if (canOpenMotivation) navigation.push({ id: 'motivation', label: 'Контроль мотивації', symbol: 'sales', onClick: () => runProtectedAction(() => { resetToHome(); setPage('motivation'); }) });
+  if (activeDatabase === 'olgatorg') {
+    const extraSections: { id: AppSection; page: typeof page; label: string; enabled: boolean }[] = [
+      { id: 'active-customer-base', page: 'active-customer-base', label: 'Активна клієнтська база', enabled: true },
+      { id: 'implementation', page: 'implementation', label: 'Виконання плану', enabled: true },
+      { id: 'plan-targets', page: 'plan-targets', label: 'Планові показники', enabled: backendFeatures.planTargets },
+      { id: 'messages', page: 'messages', label: 'Повідомлення', enabled: backendFeatures.messages },
+    ];
+    for (const section of extraSections) if (section.enabled && canAccess(section.id)) navigation.push({ id: section.page, label: section.label, symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage(section.page); }, section.id) });
+  }
+  return <NavigationProvider enabled={!!email} hasBack={page !== 'home' || showGallery || showStoreSelector} onBack={navigateBack}><AppShell items={navigation} active={page} tenant={activeDatabase} onProfile={() => setIsUserMenuOpen(true)} navigationKey={`${page}:${showGallery}:${showStoreSelector}:${selectedStore?.store ?? ''}`} viewTitle={showGallery ? 'Фотогалерея' : showStoreSelector ? selectedStore ? 'Фотозвіт' : 'Вибір торгової точки' : undefined} account={<UserMenu
           email={email}
           roleLabel={userRole ? getRoleLabel(userRole) : undefined}
           departmentLabel={userDepartment ?? undefined}
@@ -612,6 +622,5 @@ export default function App() {
           onLogout={handleLogout}
         />}>
     {renderPage()}
-    <InstallButton raised={page !== 'home' || showGallery || showStoreSelector} />
-  </AppShell>;
+  </AppShell></NavigationProvider>;
 }

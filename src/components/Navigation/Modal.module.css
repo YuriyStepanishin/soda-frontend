@@ -1,0 +1,7 @@
+.dialog { box-sizing: border-box; width: min(420px, calc(100vw - 24px)); max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); margin: auto; padding: 0; overflow: auto; border: 1px solid var(--soda-border); border-radius: 18px; background: var(--soda-surface); color: var(--soda-text); box-shadow: var(--soda-shadow); overscroll-behavior: contain; }
+.dialog::backdrop { background: #07132188; backdrop-filter: blur(4px); }
+.body { padding: 16px; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.header h2 { margin: 0; font-size: 19px; }
+.header button { flex: 0 0 44px; width: 44px; min-height: 44px; border: 1px solid var(--soda-border); border-radius: 12px; background: var(--soda-control); color: var(--soda-text); cursor: pointer; }
+.dialog button:focus-visible { outline: 3px solid var(--soda-accent); outline-offset: 2px; }

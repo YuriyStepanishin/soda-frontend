@@ -1,3 +1,4 @@
+import Modal from '../Navigation/Modal';
 import styles from './Popup.module.css';
 
 type Props = {
@@ -16,7 +17,7 @@ export default function Popup({
   cancelLabel = 'Скасувати',
 }: Props) {
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true">
+    <Modal title={onConfirm ? 'Підтвердження' : 'Повідомлення'} onClose={onClose}>
       <div className={styles.popup}>
         <div className={styles.message}>{message}</div>
         {onConfirm ? (
@@ -38,6 +39,6 @@ export default function Popup({
           </button>
         )}
       </div>
-    </div>
+    </Modal>
   );
 }

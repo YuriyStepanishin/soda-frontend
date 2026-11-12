@@ -1,3 +1,4 @@
+import BackButton from '../BackButton/BackButton';
 import { useState, type FormEvent } from 'react';
 import { useSaveStoreCheckMutation } from '../../hooks/api/useReportMutations';
 import Loader from '../Loader/Loader';
@@ -521,9 +522,7 @@ function StoreCheckForm({
         </div>
       </form>
 
-      <button onClick={onChangeStore} className={styles.backButton}>
-        ← До вибору торгової точки
-      </button>
+      <BackButton onBack={onChangeStore} label="До вибору торгової точки" />
     </div>
   );
 }

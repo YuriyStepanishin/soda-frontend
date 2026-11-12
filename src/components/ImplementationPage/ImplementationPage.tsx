@@ -476,6 +476,7 @@ export default function ImplementationPage({ onBack }: { onBack: () => void }) {
               <button
                 type="button"
                 className={styles.modalClose}
+                data-navigation-close
                 onClick={() => setDetailModal(null)}
                 aria-label="Закрити"
               >

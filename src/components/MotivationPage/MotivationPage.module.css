@@ -2,7 +2,7 @@
   max-width: 1480px;
   margin: 0 auto;
   padding: 24px 32px 72px;
-  min-height: 100dvh;
+  min-height: 100%;
   color: var(--soda-text);
 }
 .page h1 { margin: 10px 0; font-size: clamp(24px, 3vw, 32px); }

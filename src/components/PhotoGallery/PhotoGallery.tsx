@@ -1,3 +1,4 @@
+import BackButton from '../BackButton/BackButton';
 import { useState, useRef, useMemo } from 'react';
 import styles from './PhotoGallery.module.css';
 import { useQuery } from '@tanstack/react-query';
@@ -468,12 +469,7 @@ export default function PhotoGallery({ onBack }: Props) {
           ))}
         </div>
 
-        <button
-          className={`${styles.backButton} ${activePhoto ? styles.backButtonHidden : ''}`}
-          onClick={onBack}
-        >
-          ← Назад
-        </button>
+        <BackButton onBack={activePhoto ? () => setActivePhoto(null) : onBack} label={activePhoto ? 'До галереї' : 'Назад'} />
       </div>
 
       {activePhoto && (

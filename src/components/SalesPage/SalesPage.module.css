@@ -1,6 +1,5 @@
 .container {
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -16,8 +15,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  min-height: calc(100vh - 32px);
-  min-height: calc(100dvh - 32px);
+  min-height: 0;
 }
 
 .reportContent {
@@ -96,7 +94,7 @@
 .button {
   position: fixed;
   right: 16px;
-  bottom: 16px;
+  bottom: calc(var(--soda-navigation-height, 0px) + 16px);
   z-index: 20;
 
   height: 48px;

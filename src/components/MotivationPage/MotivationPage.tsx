@@ -1,3 +1,4 @@
+import BackButton from '../BackButton/BackButton';
 import { useRef, useState } from 'react';
 import {
   fetchMotivationHistory,
@@ -44,7 +45,7 @@ export default function MotivationPage({
   if (database !== 'laska' || !role || !['admin', 'manager'].includes(role))
     return (
       <section className={styles.page}>
-        <button onClick={onBack}>← Назад</button>
+        <BackButton onBack={onBack} />
         <p>Розділ доступний адміністратору та менеджеру Ласки.</p>
       </section>
     );
@@ -133,14 +134,14 @@ function MotivationWorkspace({ onBack }: { onBack: () => void }) {
   if (state.isPending)
     return (
       <section className={styles.page}>
-        <button onClick={onBack}>← Назад</button>
+        <BackButton onBack={onBack} />
         <Loader inline label="Завантаження мотивації…" />
       </section>
     );
   if (!data || state.isError)
     return (
       <section className={styles.page}>
-        <button onClick={onBack}>← Назад</button>
+        <BackButton onBack={onBack} />
         <p role="alert">{state.error?.message || 'Панель недоступна'}</p>
         <button onClick={() => void state.refetch()}>Спробувати знову</button>
       </section>
@@ -154,9 +155,7 @@ function MotivationWorkspace({ onBack }: { onBack: () => void }) {
     <main className={styles.page}>
       <div className={styles.sectionHeader}>
         <div>
-          <button type="button" onClick={onBack}>
-            ← Головна
-          </button>
+          <BackButton onBack={onBack} />
           <p className={styles.eyebrow}>ЛАСКА · ПІЛОТНИЙ ПРОЄКТ</p>
           <h1>Контроль мотивації</h1>
           <p>

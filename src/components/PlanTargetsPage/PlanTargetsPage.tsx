@@ -644,6 +644,8 @@ function ColumnEditorModal({
             <button
               type="button"
               className={styles.modalClose}
+              data-navigation-close
+              aria-label="Закрити"
               onClick={onCancel}
             >
               ✕
@@ -1052,6 +1054,8 @@ function CalcMethodsModal({
             <button
               type="button"
               className={styles.modalClose}
+              data-navigation-close
+              aria-label="Закрити"
               onClick={onClose}
             >
               ✕
