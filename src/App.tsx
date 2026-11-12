@@ -601,7 +601,7 @@ export default function App() {
     ];
     for (const section of extraSections) if (section.enabled && canAccess(section.id)) navigation.push({ id: section.page, label: section.label, symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage(section.page); }, section.id) });
   }
-  return <NavigationProvider enabled={!!email} hasBack={page !== 'home' || showGallery || showStoreSelector} onBack={navigateBack}><AppShell items={navigation} active={page} tenant={activeDatabase} onProfile={() => setIsUserMenuOpen(true)} navigationKey={`${page}:${showGallery}:${showStoreSelector}:${selectedStore?.store ?? ''}`} viewTitle={showGallery ? 'Фотогалерея' : showStoreSelector ? selectedStore ? 'Фотозвіт' : 'Вибір торгової точки' : undefined} account={<UserMenu
+  return <NavigationProvider enabled={!!email} hasBack={page !== 'home' || showGallery || showStoreSelector} onBack={navigateBack}><AppShell items={navigation} active={page} tenant={activeDatabase} navigationKey={`${page}:${showGallery}:${showStoreSelector}:${selectedStore?.store ?? ''}`} viewTitle={showGallery ? 'Фотогалерея' : showStoreSelector ? selectedStore ? 'Фотозвіт' : 'Вибір торгової точки' : undefined} account={<UserMenu
           email={email}
           roleLabel={userRole ? getRoleLabel(userRole) : undefined}
           departmentLabel={userDepartment ?? undefined}
