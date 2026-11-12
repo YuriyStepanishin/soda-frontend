@@ -1,3 +1,4 @@
+import BackButton from '../BackButton/BackButton';
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAuthSession } from '../../api/auth';
@@ -53,7 +54,7 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
   const representatives = data?.options ?? [];
   const groups = groupInvoices(data?.rows ?? []);
   return <main className={styles.page}>
-    <header className={styles.header}><div><button type="button" className={styles.back} onClick={onBack}>← Головна</button><h1>Дебіторка</h1><p>Ласка · поточні залишки за торговими точками</p></div>
+    <header className={styles.header}><div><BackButton onBack={onBack} /><h1>Дебіторка</h1><p>Ласка · поточні залишки за торговими точками</p></div>
       <div className={styles.actions}><button type="button" disabled={query.isFetching} onClick={() => void query.refetch()}>{query.isFetching ? 'Оновлення…' : 'Оновити дані'}</button>
       {canImport && <button type="button" disabled={importer.isPending} onClick={() => {setNotice('');importer.mutate();}}>{importer.isPending ? 'Імпортуємо…' : 'Імпортувати з Drive'}</button>}</div></header>
     {(query.error || importer.error) && <p role="alert" className={styles.error}>{(query.error || importer.error)?.message}</p>}

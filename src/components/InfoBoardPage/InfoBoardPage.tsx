@@ -1,3 +1,4 @@
+import BackButton from '../BackButton/BackButton';
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import styles from './InfoBoardPage.module.css';
@@ -435,9 +436,7 @@ export default function InfoBoardPage({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <button type="button" className={styles.backButton} onClick={onBack}>
-          ← Назад
-        </button>
+        <BackButton onBack={onBack} />
         <h1 className={styles.title}>Дошка інформації</h1>
       </div>
 

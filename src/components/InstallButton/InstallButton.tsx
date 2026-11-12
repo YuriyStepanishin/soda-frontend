@@ -6,7 +6,7 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-export default function InstallButton({ raised = false }: { raised?: boolean }) {
+export default function InstallButton() {
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
@@ -24,9 +24,9 @@ export default function InstallButton({ raised = false }: { raised?: boolean }) 
 
   return (
     <button
-      onClick={() => prompt.prompt()}
+      onClick={async () => { await prompt.prompt(); setPrompt(null); }}
       type="button"
-      className={`${styles.install} ${raised ? styles.raised : ''}`}
+      className={styles.install}
     >
       Встановити додаток
     </button>

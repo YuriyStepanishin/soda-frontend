@@ -1,18 +1,7 @@
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--soda-surface);
-  backdrop-filter: blur(2px);
-}
-
 .popup {
-  width: min(92vw, 360px);
+  width: 100%;
   border-radius: 14px;
-  padding: 18px 16px;
+  padding: 0;
   background: var(--soda-surface);
   box-shadow: var(--soda-shadow);
   display: grid;
@@ -21,7 +10,7 @@
 
 .message {
   margin: 0;
-  color: var(--soda-ink);
+  color: var(--soda-text);
   font-size: 15px;
   line-height: 1.4;
   text-align: center;
@@ -35,7 +24,7 @@
 }
 
 .button {
-  height: 40px;
+  min-height: 44px;
   border: none;
   border-radius: 10px;
   background: var(--soda-success-bg);
