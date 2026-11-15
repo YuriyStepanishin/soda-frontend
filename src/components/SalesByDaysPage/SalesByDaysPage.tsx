@@ -1,10 +1,13 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
+  getSalesReadStatuses,
+  OFFLINE_STATUS_EVENT,
   readSalesSettings,
   saveSalesSettings,
   salesOfflineScope,
 } from '../../api/salesOffline';
+import type { ReadStatus } from '../../utils/offlineReadCache';
 import {
   fetchSalesByDays,
   fetchSalesByDaysFilters,
@@ -23,6 +26,10 @@ const weekdayFormatter = new Intl.DateTimeFormat('uk-UA', {
 });
 const numberFormatter = new Intl.NumberFormat('uk-UA', {
   maximumFractionDigits: 2,
+});
+const updateTimeFormatter = new Intl.DateTimeFormat('uk-UA', {
+  dateStyle: 'short',
+  timeStyle: 'short',
 });
 
 function getInitialDates() {
@@ -223,6 +230,16 @@ export default function SalesByDaysPage({
   const [dateTo, setDateTo] = useState(initialDates.dateTo);
   const validDates = Boolean(dateFrom && dateTo && dateFrom <= dateTo);
   const selectedBrands = useMemo(() => [...brands].sort(), [brands]);
+  const dailyRequestPath = useMemo(() => {
+    const query = new URLSearchParams();
+    if (agent) query.set('agent', agent);
+    if (department) query.set('department', department);
+    if (selectedBrands.length) query.set('brands', selectedBrands.join(','));
+    if (dateFrom) query.set('dateFrom', dateFrom);
+    if (dateTo) query.set('dateTo', dateTo);
+    return `/api/sales/by-days?${query.toString()}`;
+  }, [agent, department, selectedBrands, dateFrom, dateTo]);
+  const [readStatus, setReadStatus] = useState<ReadStatus | null>(null);
   const {
     data = [],
     isLoading,
@@ -287,6 +304,14 @@ export default function SalesByDaysPage({
     refetchOnWindowFocus: true,
     refetchInterval: 15 * 60 * 1000,
   });
+  useEffect(() => {
+    const updateStatus = () => {
+      setReadStatus(getSalesReadStatuses([dailyRequestPath])[0] ?? null);
+    };
+    updateStatus();
+    window.addEventListener(OFFLINE_STATUS_EVENT, updateStatus);
+    return () => window.removeEventListener(OFFLINE_STATUS_EVENT, updateStatus);
+  }, [dailyRequestPath]);
   const uniqueDepartments = filtersData?.departments ?? [];
   useEffect(() => {
     if (dataUpdatedAt && !isFetching && !error)
@@ -543,6 +568,16 @@ export default function SalesByDaysPage({
           {isOlgatorg ? 'OLGATORG' : 'LASKA'}
         </span>
       </header>
+      {readStatus && (
+        <p className={styles.dataFreshness} role="status" aria-live="polite">
+          {readStatus.storageFailed
+            ? 'Отримано з мережі, але не збережено на пристрої'
+            : readStatus.source === 'device'
+              ? 'Збережені дані на пристрої'
+              : 'Оновлено'}
+          : {updateTimeFormatter.format(readStatus.savedAt)}
+        </p>
+      )}
       <section
         className={styles.filterPanel}
         aria-label="Фільтри продажів по днях"

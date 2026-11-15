@@ -34,6 +34,12 @@
   margin-top: 18px;
 }
 
+.dataFreshness {
+  margin: 0;
+  color: var(--soda-muted);
+  font-size: 12px;
+}
+
 .brandFilters {
   display: flex;
   flex-wrap: wrap;

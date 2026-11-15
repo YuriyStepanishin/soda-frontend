@@ -177,8 +177,8 @@ export async function offlineSalesGet<T>(
       }
     },
     onStatus: status => {
-      // Keep only the current result per endpoint, not a history of stale warnings.
-      statuses.set(`${scope}\n${pathname === '/api/sales/route-history' ? canonicalPath(url) : pathname}`, status);
+      statuses.set(`${scope}\n${canonicalPath(url)}`, status);
+      statuses.set(`${scope}\n${pathname}`, status);
       if (statuses.size > 100) statuses.delete(statuses.keys().next().value!);
       emit();
     },

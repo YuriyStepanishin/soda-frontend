@@ -135,6 +135,28 @@ test('IndexedDB integration: reload, role/tenant isolation, cancellation and log
     assert.equal(calls, 1);
     assert.equal((await offline.savedSalesRequests()).length, 1);
   });
+  await t.test('read status is tied to the exact sales history filters', async () => {
+    navigator.onLine = true;
+    global.fetch = async () => new Response(JSON.stringify({ success: true, data: [] }));
+    const dailyRead = query => offline.offlineSalesGet(
+      '/api/sales/by-days',
+      `https://soda.test/api/sales/by-days?${query}`,
+      new Headers(),
+      undefined,
+      parse
+    );
+    const firstQuery = 'dateFrom=2026-11-01&dateTo=2026-11-08';
+    const secondQuery = 'dateFrom=2026-11-02&dateTo=2026-11-09';
+    await dailyRead(firstQuery);
+    const firstPath = `/api/sales/by-days?${firstQuery}`;
+    const secondPath = `/api/sales/by-days?${secondQuery}`;
+    assert.equal(offline.getSalesReadStatuses([firstPath]).length, 1);
+    assert.equal(offline.getSalesReadStatuses([secondPath]).length, 0);
+    await dailyRead(secondQuery);
+    assert.equal(offline.getSalesReadStatuses([firstPath]).length, 1);
+    assert.equal(offline.getSalesReadStatuses([secondPath]).length, 1);
+    navigator.onLine = false;
+  });
   await t.test('tenant, email, raw role and department scope changes cannot expose admin VMD', async () => {
     localStorage.setItem('activeTenant', 'olgatorg');
     assert.equal((await offline.savedSalesRequests()).length, 0);

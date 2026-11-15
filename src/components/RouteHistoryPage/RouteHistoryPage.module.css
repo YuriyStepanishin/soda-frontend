@@ -16,7 +16,7 @@
   max-width: 1280px;
   min-height: 100%;
   margin: 0 auto;
-  padding: 24px;
+  padding: clamp(16px, 2vw, 24px);
   color: var(--rh-text);
 }
 
@@ -33,13 +33,13 @@
 }
 
 .header {
-  margin-bottom: 16px;
+  margin-bottom: clamp(16px, 2vw, 24px);
 }
 
 .pageTitle {
   margin: 0;
   color: var(--soda-text);
-  font-size: 26px;
+  font-size: clamp(22px, 2.2vw, 28px);
   line-height: 1.35;
 }
 
@@ -56,8 +56,8 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
-  gap: 16px;
-  padding: 16px;
+  gap: clamp(12px, 1.5vw, 16px);
+  padding: clamp(14px, 1.5vw, 18px);
   border: 1px solid var(--rh-border);
   border-radius: 14px;
   background: var(--rh-bg);
@@ -447,6 +447,22 @@
   background: var(--rh-bg);
 }
 
+.modalControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  align-items: end;
+  gap: 12px 24px;
+  flex-shrink: 0;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--rh-border);
+  background: var(--rh-header);
+}
+
+.modalControls .periodToggle {
+  width: 100%;
+  max-width: 320px;
+}
+
 .historyWrap {
   min-width: 0;
 }
@@ -726,8 +742,18 @@
     font-size: 22px;
   }
 
+  .modalControls {
+    grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .modalControls .periodToggle {
+    max-width: none;
+  }
+
   .historyTable {
-    min-width: 700px;
+    min-width: 640px;
   }
 
   .historyTable th,
@@ -768,6 +794,10 @@
     font-size: 22px;
   }
 
+  .pageMeta {
+    font-size: 14px;
+  }
+
   .filtersCard {
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
@@ -780,6 +810,15 @@
 
   .groupingCheckLabel {
     min-height: 36px;
+  }
+
+  .modalControls {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px 12px;
+  }
+
+  .modalControls .periodToggle {
+    max-width: none;
   }
 
   .summaryCard {
@@ -846,12 +885,45 @@
   }
 
   .periodGrid {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .periodCell {
-    min-width: max-content;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 58px;
+    padding: 8px;
+    text-align: left;
+  }
+
+  .periodLabel {
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+
+  .periodValue {
+    align-self: flex-end;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 380px) {
+  .container {
+    padding: 10px;
+  }
+
+  .modalHeader {
+    padding-inline: 10px;
+  }
+
+  .modalBody {
+    padding-inline: 8px;
+  }
+
+  .mobileBrandBlock {
+    padding: 10px;
   }
 }
 
@@ -860,37 +932,5 @@
   .periodToggleActive,
   .storeHead {
     transition: none;
-  }
-}
-.modalControls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
-  align-items: end;
-  gap: 12px 24px;
-  flex-shrink: 0;
-  padding: 12px 24px;
-  border-bottom: 1px solid var(--rh-border);
-  background: var(--rh-header);
-}
-
-.modalControls .periodToggle {
-  width: 100%;
-  max-width: 320px;
-}
-
-@media (min-width: 768px) and (max-width: 1199px) {
-  .modalControls {
-    padding: 12px 16px;
-  }
-}
-
-@media (max-width: 767px) {
-  .modalControls {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 10px 12px;
-  }
-
-  .modalControls .periodToggle {
-    max-width: none;
   }
 }

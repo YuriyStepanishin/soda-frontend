@@ -777,9 +777,9 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
                                   key={period.key}
                                   className={styles.periodCell}
                                 >
-                                  {/* <span className={styles.periodLabel}>
+                                  <span className={styles.periodLabel}>
                                     {period.label}
-                                  </span> */}
+                                  </span>
                                   <strong className={styles.periodValue}>
                                     {formatHistoryCell(
                                       product.values[index] ?? 0
