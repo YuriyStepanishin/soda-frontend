@@ -884,32 +884,32 @@
     display: block;
   }
 
-  /* Мобільний список періодів: рядки на всю ширину замість квадратів. */
+  /* Під назвою товару чотири періоди горизонтально, без квадратних карток. */
   .periodGrid {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 4px;
   }
 
   .periodCell {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    min-height: 40px;
-    padding: 8px 12px;
-    text-align: left;
+    justify-content: center;
+    min-height: 54px;
+    padding: 6px 2px;
+    border-radius: 5px;
+    text-align: center;
   }
 
   .periodLabel {
-    margin: 0;
-    font-size: 12px;
+    margin: 0 0 4px;
+    font-size: 10px;
+    line-height: 1.2;
   }
 
   .periodValue {
-    align-self: auto;
-    flex-shrink: 0;
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.2;
   }
 }
 
