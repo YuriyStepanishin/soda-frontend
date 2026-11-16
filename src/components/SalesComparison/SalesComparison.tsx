@@ -12,6 +12,7 @@ type Props = {
   format: (value: number) => string;
   firstLabel: string;
   secondLabel: string;
+  agentLabel: string;
 };
 
 const labels: Record<Metric, string> = {
@@ -20,7 +21,7 @@ const labels: Record<Metric, string> = {
 };
 const metricKeys: Metric[] = ['stores', 'quantity', 'weight', 'sku', 'amount', 'vmd'];
 
-export default function SalesComparison({ first, second, fields, metrics, format, firstLabel, secondLabel }: Props) {
+export default function SalesComparison({ first, second, fields, metrics, format, firstLabel, secondLabel, agentLabel }: Props) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState('');
@@ -74,8 +75,8 @@ export default function SalesComparison({ first, second, fields, metrics, format
       sheet.addRow(['Перший період', firstDates]);
       sheet.addRow(['Другий період', secondDates]);
       sheet.addRow(['Назва', ...active.flatMap(metric => [labels[metric] + ' — ' + firstDates, labels[metric] + ' — ' + secondDates, labels[metric] + ' — різниця', labels[metric] + ' — %'])]);
-      const write = (name: string, a: SalesReportRow | undefined, b: SalesReportRow | undefined) => {
-        sheet.addRow([name, ...active.flatMap(metric => {
+      const write = (name: string, a: SalesReportRow | undefined, b: SalesReportRow | undefined, depth = 0, total = false) => {
+        const excelRow = sheet.addRow([name, ...active.flatMap(metric => {
           // A missing row means zero sales, not an unknown VMD.
           // Keep an explicit null only when the backend actually reports unknown VMD.
           const one = metric === 'vmd' && a && a.vmd == null ? null : Number(a?.[metric] ?? 0);
@@ -83,11 +84,43 @@ export default function SalesComparison({ first, second, fields, metrics, format
           return [one, two, one == null || two == null ? null : one - two,
             one == null || two == null || two === 0 ? null : (one - two) / Math.abs(two) * 100];
         })]);
+        excelRow.height = total ? 27 : 22;
+        excelRow.alignment = { vertical: 'middle' };
+        excelRow.getCell(1).alignment = { vertical: 'middle', indent: Math.min(depth, 8) };
+        const baseColor = total ? 'FF17324D' : depth === 0 ? 'FFEAF1F8' : excelRow.number % 2 ? 'FFFFFFFF' : 'FFF7F9FC';
+        excelRow.eachCell({ includeEmpty: true }, cell => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: baseColor } };
+          cell.font = { bold: total || depth === 0, color: { argb: total ? 'FFFFFFFF' : 'FF233247' } };
+          cell.border = { bottom: { style: 'hair', color: { argb: 'FFDDE5ED' } } };
+          if (cell.col > 1 && typeof cell.value === 'number') cell.numFmt = (cell.col - 1) % 4 === 3 ? '0.0"%"' : '#,##0.00;[Red](#,##0.00);–';
+        });
+        active.forEach((_, index) => {
+          for (const offset of [2, 3]) {
+            const cell = excelRow.getCell(2 + index * 4 + offset);
+            const value = cell.value;
+            if (!total && typeof value === 'number' && value !== 0) {
+              const positive = value > 0;
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: positive ? 'FFDDF4E5' : 'FFFFE1E1' } };
+              cell.font = { bold: true, color: { argb: positive ? 'FF17683B' : 'FFA52A2A' } };
+            }
+          }
+        });
       };
-      for (const { row, depth } of visible) write('  '.repeat(depth) + row.label, firstByKey.get(keyOf(row)), secondByKey.get(keyOf(row)));
-      write('Разом', first.totals, second.totals);
-      sheet.getRow(3).font = { bold: true };
-      sheet.getRow(sheet.rowCount).font = { bold: true };
+      for (const { row, depth } of visible) write(row.label, firstByKey.get(keyOf(row)), secondByKey.get(keyOf(row)), depth);
+      write('Разом', first.totals, second.totals, 0, true);
+      for (const index of [1, 2]) {
+        sheet.getRow(index).font = { bold: true, color: { argb: 'FF17324D' } };
+      }
+      const header = sheet.getRow(3);
+      header.height = 42;
+      header.alignment = { vertical: 'middle', wrapText: true };
+      header.eachCell(cell => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF24547A' } };
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      });
+      sheet.views = [{ state: 'frozen', xSplit: 1, ySplit: 3 }];
+      sheet.autoFilter = { from: { row: 3, column: 1 }, to: { row: sheet.rowCount - 1, column: sheet.columnCount } };
+
       sheet.getColumn(1).width = 42;
       for (let index = 2; index <= sheet.columnCount; index++) sheet.getColumn(index).width = 17;
       const data = await workbook.xlsx.writeBuffer();
@@ -95,7 +128,8 @@ export default function SalesComparison({ first, second, fields, metrics, format
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'SODA-Порівняння-продажів.xlsx';
+      const safePart = (value: string) => value.replace(/[\\/:*?"<>|\\x00-\\x1F]/g, '-').replace(/\\s+/g, ' ').trim().slice(0, 85);
+      link.download = `Порівняння-${safePart(agentLabel || 'Усі торгові агенти')}-${safePart(firstLabel)}_vs_${safePart(secondLabel)}.xlsx`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) {
