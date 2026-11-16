@@ -87,7 +87,7 @@ export default function SalesComparison({ first, second, fields, metrics, format
         excelRow.height = total ? 27 : 22;
         excelRow.alignment = { vertical: 'middle' };
         excelRow.getCell(1).alignment = { vertical: 'middle', indent: Math.min(depth, 8) };
-        const baseColor = total ? 'FF17324D' : depth === 0 ? 'FFEAF1F8' : excelRow.number % 2 ? 'FFFFFFFF' : 'FFF7F9FC';
+        const baseColor = total ? 'FF17324D' : depth === 0 ? 'FFEAF1F8' : 'FFFFFFFF';
         excelRow.eachCell({ includeEmpty: true }, cell => {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: baseColor } };
           cell.font = { bold: total || depth === 0, color: { argb: total ? 'FFFFFFFF' : 'FF233247' } };
