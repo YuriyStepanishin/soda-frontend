@@ -25,6 +25,9 @@ export default function SalesComparison({ first, second, fields, metrics, format
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState('');
   const active = metricKeys.filter(key => metrics[key]);
+  const shortDate = (value: string) => value.replace(/(\\d{4})-(\\d{2})-(\\d{2})/g, '$3.$2.$1');
+  const firstDates = shortDate(firstLabel);
+  const secondDates = shortDate(secondLabel);
   const keyOf = (row: SalesReportRow) => fields.length && row.dimensions
     ? JSON.stringify(fields.slice(0, (row.level ?? 0) + 1).map(field => [field, row.dimensions?.[field] ?? null]))
     : row.id;
@@ -68,9 +71,9 @@ export default function SalesComparison({ first, second, fields, metrics, format
       const { default: ExcelJS } = await import('exceljs');
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Порівняння');
-      sheet.addRow(['Період 1', firstLabel]);
-      sheet.addRow(['Період 2', secondLabel]);
-      sheet.addRow(['Назва', ...active.flatMap(metric => [labels[metric] + ' — 1', labels[metric] + ' — 2', labels[metric] + ' — різниця', labels[metric] + ' — %'])]);
+      sheet.addRow(['Перший період', firstDates]);
+      sheet.addRow(['Другий період', secondDates]);
+      sheet.addRow(['Назва', ...active.flatMap(metric => [labels[metric] + ' — ' + firstDates, labels[metric] + ' — ' + secondDates, labels[metric] + ' — різниця', labels[metric] + ' — %'])]);
       const write = (name: string, a: SalesReportRow | undefined, b: SalesReportRow | undefined) => {
         sheet.addRow([name, ...active.flatMap(metric => {
           const unknownVmd = metric === 'vmd' && (a?.vmd == null || b?.vmd == null);
@@ -105,14 +108,14 @@ export default function SalesComparison({ first, second, fields, metrics, format
       <h3>Порівняння періодів</h3>
       <button type="button" onClick={() => void exportExcel()} disabled={exporting}>{exporting ? 'Готуємо Excel…' : 'Зберегти Excel'}</button>
       {exportError && <p role="alert">{exportError}</p>}
-      <p className={styles.hint}>Період 1: {firstLabel} · Період 2: {secondLabel}. Різниця = період 1 − період 2.</p>
+      <p className={styles.hint}>{firstDates} · {secondDates}. Різниця = перший період − другий період.</p>
       <div className={styles.scroll}>
         <table className={styles.table}>
           <thead>
             <tr><th rowSpan={2}>Назва</th>{active.map(metric => <th key={metric} colSpan={3}>{labels[metric]}</th>)}</tr>
             <tr>{active.map(metric => [
-              <th key={metric + '-a'}>Період 1</th>,
-              <th key={metric + '-b'}>Період 2</th>,
+              <th key={metric + '-a'}>{firstDates}</th>,
+              <th key={metric + '-b'}>{secondDates}</th>,
               <th key={metric + '-delta'}>Різниця / %</th>,
             ])}</tr>
           </thead>
