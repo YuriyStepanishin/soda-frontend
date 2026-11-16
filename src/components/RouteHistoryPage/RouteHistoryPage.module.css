@@ -884,27 +884,31 @@
     display: block;
   }
 
+  /* Мобільний список періодів: рядки на всю ширину замість квадратів. */
   .periodGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
   }
 
   .periodCell {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 58px;
-    padding: 8px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 40px;
+    padding: 8px 12px;
     text-align: left;
   }
 
   .periodLabel {
-    margin-bottom: 4px;
-    font-size: 11px;
+    margin: 0;
+    font-size: 12px;
   }
 
   .periodValue {
-    align-self: flex-end;
+    align-self: auto;
+    flex-shrink: 0;
     font-size: 14px;
   }
 }
