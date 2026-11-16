@@ -60,7 +60,7 @@ export function startBackgroundSalesSync(): () => void {
         const request = new URL(url);
         return apiGet(`${request.pathname}${request.search}`, { authenticated: true, signal });
       };
-      await refreshSalesQueue({
+      const primaryComplete = await refreshSalesQueue({
         requests, signal: controller.signal, isCurrent,
         yieldToForeground: () => new Promise(resolve => window.setTimeout(resolve, 1000)),
         read,
@@ -81,7 +81,7 @@ export function startBackgroundSalesSync(): () => void {
         if (isCurrent()) setHistorySyncStatus({ completed, total: details.size, running, savedAt: Date.now() });
       };
       update(true);
-      await refreshSalesQueue({
+      const detailsComplete = await refreshSalesQueue({
         // Missing cards first. Completed cards survive interruption and are skipped on resume.
         requests: [...details.values()].sort((a, b) => a.savedAt - b.savedAt),
         signal: controller.signal, isCurrent,
@@ -95,7 +95,7 @@ export function startBackgroundSalesSync(): () => void {
         yieldToForeground: () => new Promise(resolve => window.setTimeout(resolve, 250)),
       });
       update(false);
-      if (isCurrent() && Number.isFinite(revision)) saveSalesSettings(revisionKey, revision);
+      if (isCurrent() && primaryComplete && detailsComplete && Number.isFinite(revision)) saveSalesSettings(revisionKey, revision);
     } catch { /* Background refresh must not interrupt the user's work. */ }
     finally { active = null; }
   };
