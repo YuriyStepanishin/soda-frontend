@@ -92,7 +92,7 @@ export default function SalesComparison({ first, second, fields, metrics, format
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: baseColor } };
           cell.font = { bold: total || depth === 0, color: { argb: total ? 'FFFFFFFF' : 'FF233247' } };
           cell.border = { bottom: { style: 'hair', color: { argb: 'FFDDE5ED' } } };
-          if (cell.col > 1 && typeof cell.value === 'number') cell.numFmt = (cell.col - 1) % 4 === 3 ? '0.0"%"' : '#,##0.00;[Red](#,##0.00);–';
+          if (cell.col > 1 && typeof cell.value === 'number') cell.numFmt = (cell.col - 1) % 4 === 0 ? '0.0"%"' : '#,##0.00;[Red](#,##0.00);–';
         });
         active.forEach((_, index) => {
           for (const offset of [2, 3]) {
@@ -128,7 +128,7 @@ export default function SalesComparison({ first, second, fields, metrics, format
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      const safePart = (value: string) => value.replace(/[\\/:*?"<>|\\x00-\\x1F]/g, '-').replace(/\\s+/g, ' ').trim().slice(0, 85);
+      const safePart = (value: string) => value.replace(/[^\p{L}\p{N} ._—-]/gu, '-').replace(/\s+/g, ' ').trim().slice(0, 85);
       link.download = `Порівняння-${safePart(agentLabel || 'Усі торгові агенти')}-${safePart(firstLabel)}_vs_${safePart(secondLabel)}.xlsx`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
