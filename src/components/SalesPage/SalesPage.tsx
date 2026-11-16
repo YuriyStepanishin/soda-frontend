@@ -25,6 +25,7 @@ import { getAuthSession } from '../../api/auth';
 import { saveSalesSettings } from '../../api/salesOffline';
 import SalesFilters from '../SalesFilters/SalesFilters';
 import SalesDetailed from '../SalesDetailed/SalesDetailed';
+import SalesComparison from '../SalesComparison/SalesComparison';
 import { useSalesFilters } from '../../hooks/useSalesFilters';
 
 type SalesPageProps = {
@@ -75,6 +76,8 @@ export default function SalesPage({
     vmd: false,
   });
   const [isReportReady, setIsReportReady] = useState(false);
+  const [comparePeriods, setComparePeriods] = useState(false);
+  const [compareDates, setCompareDates] = useState({ dateFrom: '', dateTo: '' });
   const [shareWithApps, setShareWithApps] = useState(isMobileOrTablet);
   const [exporting, setExporting] = useState(false);
   const [exportMessage, setExportMessage] = useState('');
@@ -101,6 +104,12 @@ export default function SalesPage({
     !hasDateFrom || !hasDateTo || filters.dateFrom <= filters.dateTo;
   const hasInvalidDateRange =
     hasDateFrom && hasDateTo && filters.dateFrom > filters.dateTo;
+  const compareDateError = comparePeriods && (!compareDates.dateFrom || !compareDates.dateTo)
+    ? 'Вкажіть обидві дати другого періоду.'
+    : comparePeriods && compareDates.dateFrom > compareDates.dateTo
+      ? 'Дата «від» другого періоду більша за дату «до».'
+      : '';
+  const validComparison = !comparePeriods || !compareDateError;
 
   const handleUpdateFilters = (values: Partial<typeof filters>) => {
     const nextValues = { ...values };
@@ -221,6 +230,23 @@ export default function SalesPage({
     enabled: isReportReady && isValidPeriod,
   });
 
+  const compareQuery = useMemo(() => ({
+    ...reportQuery,
+    dateFrom: compareDates.dateFrom,
+    dateTo: compareDates.dateTo,
+  }), [reportQuery, compareDates.dateFrom, compareDates.dateTo]);
+  const { data: compareData, isFetching: compareFetching, error: compareError } = useQuery({
+    queryKey: [queryKeys.sales, activeTenant, authScope, 'compare', compareQuery],
+    networkMode: 'always',
+    refetchOnReconnect: 'always',
+    retry: false,
+    queryFn: ({ signal }) => fetchSalesReport(compareQuery, signal),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: true,
+    refetchInterval: 15 * 60 * 1000,
+    enabled: isReportReady && comparePeriods && validComparison && isValidPeriod,
+  });
+
   useEffect(() => {
     if (isReportReady && reportData && !reportFetching && !reportError) saveSalesSettings('sales', { filters, options });
   }, [isReportReady, reportData, reportFetching, reportError, filters, options]);
@@ -307,7 +333,7 @@ export default function SalesPage({
   };
 
   const handleGenerateReport = () => {
-    if (!isValidPeriod || !reportFields.length) return;
+    if (!isValidPeriod || !validComparison || !reportFields.length) return;
 
     applyFilters();
     setIsReportReady(true);
@@ -331,12 +357,13 @@ export default function SalesPage({
     if (filters.brands.length) parts.push(`ТМ: ${filters.brands.length}`);
     if (filters.products.length)
       parts.push(`Товарів: ${filters.products.length}`);
+    if (comparePeriods) parts.push(`Порівняння: ${compareDates.dateFrom} — ${compareDates.dateTo}`);
     parts.push(
       `Ієрархія: ${reportFields.map(field => HIERARCHY_LABELS[field]).join(' → ')}`
     );
 
     return parts;
-  }, [filters, isLaska, reportFields]);
+  }, [filters, isLaska, reportFields, comparePeriods, compareDates]);
 
   const reportTitle = 'Звіт по вибраній ієрархії';
   const exportInput = useMemo<ResultsExportParams | null>(() => reportData && isReportReady && !reportFetching && !reportError ? ({
@@ -412,6 +439,12 @@ export default function SalesPage({
             onChangeMetrics={setMetrics}
             onApplyFilters={handleGenerateReport}
             onOpenSalesByDays={onOpenSalesByDays}
+            comparePeriods={comparePeriods}
+            onComparePeriodsChange={setComparePeriods}
+            compareDateFrom={compareDates.dateFrom}
+            compareDateTo={compareDates.dateTo}
+            onCompareDatesChange={values => setCompareDates(previous => ({ ...previous, ...values }))}
+            compareDateError={compareDateError}
             dateError={
               hasInvalidDateRange
                 ? 'Дата "від" не може бути більшою за дату "до".'
@@ -440,9 +473,14 @@ export default function SalesPage({
         )}
 
         <div className={styles.reportContent}>
-          {isReportReady && reportFetching ? <Loader inline label="Формування звіту…" /> : null}
+          {isReportReady && (reportFetching || (comparePeriods && compareFetching)) ? <Loader inline label="Формування звіту…" /> : null}
+          {isReportReady && comparePeriods && compareError ? <p role="alert">Не вдалося завантажити другий період: {compareError.message}</p> : null}
           {isReportReady && reportError ? <p role="alert">{reportError.message}</p> : null}
-          {isReportReady && reportData && !reportError ? (
+          {isReportReady && reportData && !reportError && comparePeriods && compareData && !compareError ? (
+            <SalesComparison first={reportData} second={compareData} fields={reportFields} metrics={metrics} format={format}
+              firstLabel={`${backendFilters.dateFrom || 'початок'} — ${backendFilters.dateTo || 'сьогодні'}`}
+              secondLabel={`${compareDates.dateFrom} — ${compareDates.dateTo}`} />
+          ) : isReportReady && reportData && !reportError && !comparePeriods ? (
             <SalesDetailed
               hierarchyFields={reportFields}
               rows={detailedRows}
