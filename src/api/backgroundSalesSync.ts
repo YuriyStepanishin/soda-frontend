@@ -20,6 +20,13 @@ export function startBackgroundSalesSync(): () => void {
     try {
       // Validate JWT against the live backend; no secret or token is cached in IndexedDB.
       await apiGet('/api/auth/session', { authenticated: true, signal: controller.signal });
+      // Compare the durable Neon import revision, scoped to the current user and tenant.
+      // Keep the last confirmed revision until all refreshes complete.
+      const revisionResponse = await apiGet<{ revision: number }>('/api/sales/revision', { authenticated: true, signal: controller.signal });
+      const revision = Number(revisionResponse.revision);
+      const revisionKey = 'sales-revision';
+      const lastRevision = readSalesSettings<number>(revisionKey);
+      const changed = Number.isFinite(revision) && lastRevision !== null && revision !== lastRevision;
       const saved = await savedSalesRequests();
       if (!isCurrent()) return;
       const user = getAuthSession()?.user;
@@ -45,9 +52,9 @@ export function startBackgroundSalesSync(): () => void {
         if (tenant === 'laska') lists.push(url);
       }
       const known = new Map(saved.map(request => [canonicalUrl(request.url), request]));
-      const requests = [...saved.filter(request => new URL(request.url).pathname !== '/api/sales/route-history')];
+      const requests = [...saved.filter(request => new URL(request.url).pathname !== '/api/sales/route-history').map(request => changed ? { ...request, savedAt: 0 } : request)];
       for (const url of defaults) {
-        if (!lists.includes(url)) requests.unshift(known.get(canonicalUrl(url.toString())) ?? { url: url.toString(), savedAt: 0 });
+        if (!lists.includes(url)) requests.unshift(changed ? { url: url.toString(), savedAt: 0 } : (known.get(canonicalUrl(url.toString())) ?? { url: url.toString(), savedAt: 0 }));
       }
       const read = async (url: string, signal: AbortSignal) => {
         const request = new URL(url);
@@ -65,7 +72,7 @@ export function startBackgroundSalesSync(): () => void {
         if (!isCurrent() || controller.signal.aborted) return;
         const response = (await savedSalesResponse(list.toString()) ?? await read(list.toString(), controller.signal)) as { data?: { stores: Array<{ code?: string }> }; stores?: Array<{ code?: string }> };
         for (const url of historyDetailRequests(list.toString(), response.data?.stores ?? response.stores ?? [])) {
-          details.set(url, { url, savedAt: copies.get(url) ?? 0 });
+          details.set(url, { url, savedAt: changed ? 0 : (copies.get(url) ?? 0) });
         }
       }
       if (!history) saveSalesSettings('history', { department: '', agent: '', period: 'weeks', groupingFields: ['group'], asOfDate: date });
@@ -88,6 +95,7 @@ export function startBackgroundSalesSync(): () => void {
         yieldToForeground: () => new Promise(resolve => window.setTimeout(resolve, 250)),
       });
       update(false);
+      if (isCurrent() && Number.isFinite(revision)) saveSalesSettings(revisionKey, revision);
     } catch { /* Background refresh must not interrupt the user's work. */ }
     finally { active = null; }
   };
