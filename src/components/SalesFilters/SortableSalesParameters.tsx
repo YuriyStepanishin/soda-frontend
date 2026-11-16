@@ -1,5 +1,5 @@
 import { DndContext, PointerSensor, TouchSensor, KeyboardSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core';
-import { SortableContext, useSortable, sortableKeyboardCoordinates, rectSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { SortableContext, useSortable, sortableKeyboardCoordinates, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import styles from './SalesFilters.module.css';
 
@@ -59,7 +59,7 @@ export default function SortableSalesParameters({ items, onToggle, onOrderChange
         const to = items.findIndex(item => item.field === over.id);
         if (from >= 0 && to >= 0) onOrderChange(arrayMove(items.map(item => item.field), from, to));
       }}>
-      <SortableContext items={items.map(item => item.field)} strategy={rectSortingStrategy}>
+      <SortableContext items={items.map(item => item.field)} strategy={verticalListSortingStrategy}>
         <div className={styles.optionGrid}>
           {items.map(item => (
             <ParameterCard key={item.field} item={item} onToggle={onToggle}
