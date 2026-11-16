@@ -370,12 +370,12 @@ export default function SalesPage({
   }, [filters, isLaska, reportFields, comparePeriods, compareDates]);
 
   const reportTitle = 'Звіт по вибраній ієрархії';
-  const exportInput = useMemo<ResultsExportParams | null>(() => reportData && isReportReady && !reportFetching && !reportError ? ({
+  const exportInput = useMemo<ResultsExportParams | null>(() => !comparePeriods && reportData && isReportReady && !reportFetching && !reportError ? ({
     rows: visibleExportRows?.source === reportData.rows ? visibleExportRows.rows : reportData.rows,
     totals: reportData.totals, metrics, title: reportTitle,
     reportMeta: selectedSummary.slice(1), tenant: activeTenant,
     dateFrom: backendFilters.dateFrom, dateTo: backendFilters.dateTo, shareWithApps,
-  }) : null, [reportData, isReportReady, reportFetching, reportError, visibleExportRows, metrics, selectedSummary, activeTenant, backendFilters.dateFrom, backendFilters.dateTo, shareWithApps]);
+  }) : null, [comparePeriods, reportData, isReportReady, reportFetching, reportError, visibleExportRows, metrics, selectedSummary, activeTenant, backendFilters.dateFrom, backendFilters.dateTo, shareWithApps]);
 
   useEffect(() => {
     if (!exportInput) return;
@@ -467,9 +467,9 @@ export default function SalesPage({
               <button type="button" onClick={handleEditReport}>
                 Змінити
               </button>
-              <button type="button" disabled={exporting || !prepared || prepared.input !== exportInput} onClick={() => void handleSaveExcel()}>
+              {!comparePeriods && <button type="button" disabled={exporting || !prepared || prepared.input !== exportInput} onClick={() => void handleSaveExcel()}>
                 {exporting ? 'Відправлення…' : !prepared || prepared.input !== exportInput ? 'Підготовка Excel…' : shareWithApps ? 'Зберегти та відправити' : 'Зберегти Excel'}
-              </button>
+              </button>}
             </div>
             {exportMessage ? <p role="status">{exportMessage}</p> : null}
             {exportError ? <p role="alert">{exportError}</p> : null}
