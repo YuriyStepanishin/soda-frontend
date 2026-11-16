@@ -515,6 +515,34 @@ export async function fetchSalesReport(
   };
 }
 
+export interface SalesComparisonResponse {
+  success: boolean;
+  reportBy: string;
+  first: SalesReportResponse;
+  second: SalesReportResponse;
+  rows: Array<{ key: string; label: string; level?: number; dimensions?: Record<string, string>; values: Record<string, { first: number | null; second: number | null; difference: number | null; percent: number | null }> }>;
+  totals: Record<string, { first: number | null; second: number | null; difference: number | null; percent: number | null }>;
+}
+
+export async function fetchSalesComparison(
+  filtersInput: SalesFilters & { reportBy: string; compareDateFrom: string; compareDateTo: string },
+  signal?: AbortSignal
+): Promise<SalesComparisonResponse> {
+  const query: Record<string, string | number> = {
+    reportBy: filtersInput.reportBy,
+    dateFrom: filtersInput.dateFrom || '',
+    dateTo: filtersInput.dateTo || '',
+    compareDateFrom: filtersInput.compareDateFrom,
+    compareDateTo: filtersInput.compareDateTo,
+  };
+  for (const key of ['brands', 'groups', 'subgroups', 'packings', 'stores', 'products', 'agent', 'department'] as const) {
+    appendJoinedValues(query, key, filtersInput[key]);
+  }
+  if (filtersInput.search) query.search = filtersInput.search;
+  if (filtersInput.storeSearch) query.storeSearch = filtersInput.storeSearch;
+  return apiGet<SalesComparisonResponse>('/api/sales/compare', { authenticated: true, signal, query });
+}
+
 export async function fetchSalesDates(
   filtersInput: unknown = {}
 ): Promise<SalesDateRow[]> {
