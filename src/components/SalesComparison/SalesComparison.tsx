@@ -52,11 +52,11 @@ export default function SalesComparison({ first, second, fields, metrics, format
   }, [tree, collapsed]);
 
   const cell = (row: SalesReportRow | undefined, metric: Metric) => {
-    if (metric === 'vmd' && (row?.vmd === null || row?.vmd === undefined)) return '—';
+    if (metric === 'vmd' && row && row.vmd == null) return '—';
     return format(Number(row?.[metric] ?? 0));
   };
   const change = (a: SalesReportRow | undefined, b: SalesReportRow | undefined, metric: Metric) => {
-    if (metric === 'vmd' && (a?.vmd == null || b?.vmd == null)) return '—';
+    if (metric === 'vmd' && ((a && a.vmd == null) || (b && b.vmd == null))) return '—';
     const current = Number(a?.[metric] ?? 0);
     const previous = Number(b?.[metric] ?? 0);
     const diff = current - previous;
@@ -76,9 +76,10 @@ export default function SalesComparison({ first, second, fields, metrics, format
       sheet.addRow(['Назва', ...active.flatMap(metric => [labels[metric] + ' — ' + firstDates, labels[metric] + ' — ' + secondDates, labels[metric] + ' — різниця', labels[metric] + ' — %'])]);
       const write = (name: string, a: SalesReportRow | undefined, b: SalesReportRow | undefined) => {
         sheet.addRow([name, ...active.flatMap(metric => {
-          const unknownVmd = metric === 'vmd' && (a?.vmd == null || b?.vmd == null);
-          const one = unknownVmd ? null : Number(a?.[metric] ?? 0);
-          const two = unknownVmd ? null : Number(b?.[metric] ?? 0);
+          // A missing row means zero sales, not an unknown VMD.
+          // Keep an explicit null only when the backend actually reports unknown VMD.
+          const one = metric === 'vmd' && a && a.vmd == null ? null : Number(a?.[metric] ?? 0);
+          const two = metric === 'vmd' && b && b.vmd == null ? null : Number(b?.[metric] ?? 0);
           return [one, two, one == null || two == null ? null : one - two,
             one == null || two == null || two === 0 ? null : (one - two) / Math.abs(two) * 100];
         })]);
