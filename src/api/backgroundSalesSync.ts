@@ -65,6 +65,10 @@ export function startBackgroundSalesSync(): () => void {
         yieldToForeground: () => new Promise(resolve => window.setTimeout(resolve, 1000)),
         read,
       });
+      // Do not mark a revision complete unless every primary response is on disk.
+      const storedPrimary = await savedSalesRequests();
+      const storedPrimaryUrls = new Set(storedPrimary.map(entry => canonicalUrl(entry.url)));
+      const primaryStored = requests.every(entry => storedPrimaryUrls.has(canonicalUrl(entry.url)));
       // Discover every store, including cards the user has never opened.
       const details = new Map<string, { url: string; savedAt: number }>();
       const copies = new Map((await savedSalesRequests()).map(entry => [canonicalUrl(entry.url), entry.savedAt]));
@@ -95,7 +99,7 @@ export function startBackgroundSalesSync(): () => void {
         yieldToForeground: () => new Promise(resolve => window.setTimeout(resolve, 250)),
       });
       update(false);
-      if (isCurrent() && primaryComplete && detailsComplete && Number.isFinite(revision)) saveSalesSettings(revisionKey, revision);
+      if (isCurrent() && primaryComplete && primaryStored && detailsComplete && Number.isFinite(revision)) saveSalesSettings(revisionKey, revision);
     } catch { /* Background refresh must not interrupt the user's work. */ }
     finally { active = null; }
   };
