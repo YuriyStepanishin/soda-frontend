@@ -519,3 +519,7 @@
 }
 
 .filtersHeaderIcon img { width: 100%; height: 100%; border-radius: inherit; }
+
+.moveButtons { display: flex; gap: 4px; flex-shrink: 0; }
+.moveButtons button { min-width: 32px; min-height: 36px; border: 1px solid var(--soda-border); border-radius: 7px; color: var(--soda-text); background: var(--soda-control); font-size: 18px; cursor: pointer; }
+.moveButtons button:disabled { opacity: .3; cursor: default; }
