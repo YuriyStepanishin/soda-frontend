@@ -22,6 +22,8 @@ const metricKeys: Metric[] = ['stores', 'quantity', 'weight', 'sku', 'amount', '
 
 export default function SalesComparison({ first, second, fields, metrics, format, firstLabel, secondLabel }: Props) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
   const active = metricKeys.filter(key => metrics[key]);
   const keyOf = (row: SalesReportRow) => fields.length && row.dimensions
     ? JSON.stringify(fields.slice(0, (row.level ?? 0) + 1).map(field => [field, row.dimensions?.[field] ?? null]))
@@ -58,9 +60,51 @@ export default function SalesComparison({ first, second, fields, metrics, format
     const percentage = previous === 0 ? (current === 0 ? '0%' : 'н/д') : `${diff > 0 ? '+' : ''}${format(diff / Math.abs(previous) * 100)}%`;
     return `${diff > 0 ? '+' : ''}${format(diff)} (${percentage})`;
   };
+  const exportExcel = async () => {
+    if (exporting) return;
+    setExporting(true);
+    setExportError('');
+    try {
+      const { default: ExcelJS } = await import('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Порівняння');
+      sheet.addRow(['Період 1', firstLabel]);
+      sheet.addRow(['Період 2', secondLabel]);
+      sheet.addRow(['Назва', ...active.flatMap(metric => [labels[metric] + ' — 1', labels[metric] + ' — 2', labels[metric] + ' — різниця', labels[metric] + ' — %'])]);
+      const write = (name: string, a: SalesReportRow | undefined, b: SalesReportRow | undefined) => {
+        sheet.addRow([name, ...active.flatMap(metric => {
+          const unknownVmd = metric === 'vmd' && (a?.vmd == null || b?.vmd == null);
+          const one = unknownVmd ? null : Number(a?.[metric] ?? 0);
+          const two = unknownVmd ? null : Number(b?.[metric] ?? 0);
+          return [one, two, one == null || two == null ? null : one - two,
+            one == null || two == null || two === 0 ? null : (one - two) / Math.abs(two) * 100];
+        })]);
+      };
+      for (const { row, depth } of visible) write('  '.repeat(depth) + row.label, firstByKey.get(keyOf(row)), secondByKey.get(keyOf(row)));
+      write('Разом', first.totals, second.totals);
+      sheet.getRow(3).font = { bold: true };
+      sheet.getRow(sheet.rowCount).font = { bold: true };
+      sheet.getColumn(1).width = 42;
+      for (let index = 2; index <= sheet.columnCount; index++) sheet.getColumn(index).width = 17;
+      const data = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([data as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'SODA-Порівняння-продажів.xlsx';
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : 'Помилка експорту Excel');
+    } finally {
+      setExporting(false);
+    }
+  };
   return (
     <section className={styles.wrapper}>
       <h3>Порівняння періодів</h3>
+      <button type="button" onClick={() => void exportExcel()} disabled={exporting}>{exporting ? 'Готуємо Excel…' : 'Зберегти Excel'}</button>
+      {exportError && <p role="alert">{exportError}</p>}
       <p className={styles.hint}>Період 1: {firstLabel} · Період 2: {secondLabel}. Різниця = період 1 − період 2.</p>
       <div className={styles.scroll}>
         <table className={styles.table}>
