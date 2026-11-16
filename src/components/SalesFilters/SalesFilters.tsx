@@ -58,6 +58,12 @@ type Props = {
 
   isMobile?: boolean;
   dateError?: string;
+  comparePeriods?: boolean;
+  onComparePeriodsChange?: (checked: boolean) => void;
+  compareDateFrom?: string;
+  compareDateTo?: string;
+  onCompareDatesChange?: (values: { dateFrom?: string; dateTo?: string }) => void;
+  compareDateError?: string;
   hierarchyOrder?: string[];
   onHierarchyOrderChange?: (fields: string[]) => void;
 };
@@ -91,6 +97,12 @@ export default function SalesFilters({
   onApplyFilters,
 
   dateError,
+  comparePeriods = false,
+  onComparePeriodsChange,
+  compareDateFrom = '',
+  compareDateTo = '',
+  onCompareDatesChange,
+  compareDateError,
   hierarchyOrder = [
     'group',
     'subgroup',
@@ -193,6 +205,28 @@ export default function SalesFilters({
           </div>
 
           {dateError && <div className={styles.dateError}>{dateError}</div>}
+          {onComparePeriodsChange && <div style={{ marginTop: 14 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600 }}>
+              <input type="checkbox" checked={comparePeriods} onChange={event => onComparePeriodsChange(event.target.checked)} />
+              Порівняння періодів
+            </label>
+            {comparePeriods && <div style={{ marginTop: 12 }}>
+              <p style={{ margin: '0 0 8px' }}>Період 2 — для порівняння</p>
+              <div className={styles.periodGrid}>
+                <div className={styles.fieldBlock}>
+                  <label>З дати</label>
+                  <input type="date" value={compareDateFrom} onClick={e => openDatePicker(e.currentTarget)}
+                    onChange={e => onCompareDatesChange?.({ dateFrom: e.target.value })} />
+                </div>
+                <div className={styles.fieldBlock}>
+                  <label>По дату</label>
+                  <input type="date" value={compareDateTo} onClick={e => openDatePicker(e.currentTarget)}
+                    onChange={e => onCompareDatesChange?.({ dateTo: e.target.value })} />
+                </div>
+              </div>
+              {compareDateError && <div className={styles.dateError} role="alert">{compareDateError}</div>}
+            </div>}
+          </div>}
         </section>
 
         <section className={`${styles.cardSection} ${styles.dictionarySection}`}>
