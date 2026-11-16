@@ -233,8 +233,8 @@ export default function SalesPage({
 
   const compareQuery = useMemo(() => ({
     ...reportQuery,
-    dateFrom: compareDates.dateFrom,
-    dateTo: compareDates.dateTo,
+    // Keep the first period from the applied sales filters.
+    // The second period is passed separately to /api/sales/compare.
     compareDateFrom: compareDates.dateFrom,
     compareDateTo: compareDates.dateTo,
   }), [reportQuery, compareDates.dateFrom, compareDates.dateTo]);
