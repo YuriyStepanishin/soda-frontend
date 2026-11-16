@@ -14,6 +14,10 @@ export async function refreshSalesQueue(args: {
     if (now() - request.savedAt < 15 * 60 * 1000) continue;
     await args.yieldToForeground();
     if (args.signal.aborted || !args.isCurrent()) return;
-    try { await args.read(request.url, args.signal); } catch { return; }
+    // One failed store must not block caching the remaining stores. Abort and
+    // tenant/session changes are still checked before every next request.
+    try { await args.read(request.url, args.signal); } catch {
+      if (args.signal.aborted || !args.isCurrent()) return;
+    }
   }
 }
