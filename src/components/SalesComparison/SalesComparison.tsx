@@ -92,7 +92,7 @@ export default function SalesComparison({ first, second, fields, metrics, format
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: baseColor } };
           cell.font = { bold: total || depth === 0, color: { argb: total ? 'FFFFFFFF' : 'FF233247' } };
           cell.border = { bottom: { style: 'hair', color: { argb: 'FFDDE5ED' } } };
-          if (cell.col > 1 && typeof cell.value === 'number') cell.numFmt = (cell.col - 1) % 4 === 0 ? '0.0"%"' : '#,##0.00;[Red](#,##0.00);–';
+          if (Number(cell.col) > 1 && typeof cell.value === 'number') cell.numFmt = (Number(cell.col) - 1) % 4 === 0 ? '0.0"%"' : '#,##0.00;[Red](#,##0.00);–';
         });
         active.forEach((_, index) => {
           for (const offset of [2, 3]) {
