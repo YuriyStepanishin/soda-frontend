@@ -740,28 +740,6 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
                       </p>
                     ) : (
                       <>
-                        <div className={styles.mobileTotals}>
-                          <p className={styles.mobileTotalsLabel}>
-                            Разом по групі
-                          </p>
-
-                          <div className={styles.periodGrid}>
-                            {periods.map((period, index) => (
-                              <div
-                                key={period.key}
-                                className={styles.periodCell}
-                              >
-                                <span className={styles.periodLabel}>
-                                  {period.label}
-                                </span>
-                                <strong className={styles.periodValue}>
-                                  {formatHistoryCell(brand.totals[index] ?? 0)}
-                                </strong>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
                         {brand.products.map((product, productIndex) => (
                           <div
                             key={`${product.name}-${productIndex}`}
