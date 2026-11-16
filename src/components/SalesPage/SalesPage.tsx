@@ -10,6 +10,7 @@ import type { PreparedReportFile } from '../../utils/reportDelivery';
 import {
   fetchSalesFilters,
   fetchSalesReport,
+  fetchSalesComparison,
 } from '../../api/fetchSales';
 import { getActiveTenant } from '../../api/client';
 import { queryKeys } from '../../api/queryKeys';
@@ -227,20 +228,22 @@ export default function SalesPage({
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
     refetchInterval: 15 * 60 * 1000,
-    enabled: isReportReady && isValidPeriod,
+    enabled: isReportReady && isValidPeriod && !comparePeriods,
   });
 
   const compareQuery = useMemo(() => ({
     ...reportQuery,
     dateFrom: compareDates.dateFrom,
     dateTo: compareDates.dateTo,
+    compareDateFrom: compareDates.dateFrom,
+    compareDateTo: compareDates.dateTo,
   }), [reportQuery, compareDates.dateFrom, compareDates.dateTo]);
   const { data: compareData, isFetching: compareFetching, error: compareError } = useQuery({
     queryKey: [queryKeys.sales, activeTenant, authScope, 'compare', compareQuery],
     networkMode: 'always',
     refetchOnReconnect: 'always',
     retry: false,
-    queryFn: ({ signal }) => fetchSalesReport(compareQuery, signal),
+    queryFn: ({ signal }) => fetchSalesComparison(compareQuery, signal),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
     refetchInterval: 15 * 60 * 1000,
@@ -333,6 +336,7 @@ export default function SalesPage({
   };
 
   const handleGenerateReport = () => {
+    if (comparePeriods && (!filters.dateFrom || !filters.dateTo)) return;
     if (!isValidPeriod || !validComparison || !reportFields.length) return;
 
     applyFilters();
@@ -444,7 +448,7 @@ export default function SalesPage({
             compareDateFrom={compareDates.dateFrom}
             compareDateTo={compareDates.dateTo}
             onCompareDatesChange={values => setCompareDates(previous => ({ ...previous, ...values }))}
-            compareDateError={compareDateError}
+            compareDateError={compareDateError || (comparePeriods && (!filters.dateFrom || !filters.dateTo) ? 'Для порівняння вкажіть також обидві дати першого періоду.' : '')}
             dateError={
               hasInvalidDateRange
                 ? 'Дата "від" не може бути більшою за дату "до".'
@@ -476,8 +480,8 @@ export default function SalesPage({
           {isReportReady && (reportFetching || (comparePeriods && compareFetching)) ? <Loader inline label="Формування звіту…" /> : null}
           {isReportReady && comparePeriods && compareError ? <p role="alert">Не вдалося завантажити другий період: {compareError.message}</p> : null}
           {isReportReady && reportError ? <p role="alert">{reportError.message}</p> : null}
-          {isReportReady && reportData && !reportError && comparePeriods && compareData && !compareError ? (
-            <SalesComparison first={reportData} second={compareData} fields={reportFields} metrics={metrics} format={format}
+          {isReportReady && comparePeriods && compareData && !compareError ? (
+            <SalesComparison first={compareData.first} second={compareData.second} fields={reportFields} metrics={metrics} format={format}
               firstLabel={`${backendFilters.dateFrom || 'початок'} — ${backendFilters.dateTo || 'сьогодні'}`}
               secondLabel={`${compareDates.dateFrom} — ${compareDates.dateTo}`} />
           ) : isReportReady && reportData && !reportError && !comparePeriods ? (
