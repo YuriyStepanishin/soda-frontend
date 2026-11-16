@@ -36,7 +36,7 @@ test('logout, tenant switch or hiding the app while yielding prevents the next r
   await refreshSalesQueue(args);
   assert.deepEqual(reads, []);
 });
-test('aborted or offline background jobs do not fetch; an error stops the queue silently', async () => {
+test('aborted or offline background jobs do not fetch; an isolated error does not block other stores', async () => {
   const { args, reads } = fixture();
   const abort = new AbortController();
   abort.abort();
@@ -45,7 +45,7 @@ test('aborted or offline background jobs do not fetch; an error stops the queue 
   assert.deepEqual(reads, []);
   let attempts = 0;
   await refreshSalesQueue({ ...args, requests: [{ url: 'a', savedAt: 0 }, { url: 'b', savedAt: 0 }], read: async () => { attempts++; throw Error('network unavailable'); } });
-  assert.equal(attempts, 1);
+  assert.equal(attempts, 2);
 });
 const historyExports = {};
 new Function('exports', ts.transpileModule(fs.readFileSync(require.resolve('../src/utils/historyOfflineRequests.ts'), 'utf8'), {
