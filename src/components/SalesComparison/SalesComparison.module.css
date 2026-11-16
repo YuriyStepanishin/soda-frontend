@@ -10,3 +10,8 @@
 .name { display: flex; align-items: center; gap: 5px; overflow-wrap: anywhere; }
 .name button { min-width: 28px; min-height: 28px; border: 1px solid var(--soda-border); border-radius: 6px; background: var(--soda-control); color: var(--soda-text); cursor: pointer; }
 @media (max-width: 767px) { .wrapper { padding: 8px; } .table { font-size: 12px; } .table th, .table td { padding: 7px 6px; } }
+
+/* Keep the grand total visible when scrolling through a long comparison. */
+.table tfoot { position: sticky; bottom: 0; z-index: 3; }
+.table tfoot th, .table tfoot td { background: var(--soda-control); box-shadow: 0 -2px 0 var(--soda-border); }
+.table tfoot th:first-child { background: var(--soda-control); z-index: 4; }
