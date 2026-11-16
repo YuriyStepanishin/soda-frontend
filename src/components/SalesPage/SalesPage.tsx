@@ -483,7 +483,8 @@ export default function SalesPage({
           {isReportReady && comparePeriods && compareData && !compareError ? (
             <SalesComparison first={compareData.first} second={compareData.second} fields={reportFields} metrics={metrics} format={format}
               firstLabel={`${backendFilters.dateFrom || 'початок'} — ${backendFilters.dateTo || 'сьогодні'}`}
-              secondLabel={`${compareDates.dateFrom} — ${compareDates.dateTo}`} />
+              secondLabel={`${compareDates.dateFrom} — ${compareDates.dateTo}`}
+              agentLabel={filters.agent.length ? filters.agent.join(', ') : ownRepresentative || 'Усі торгові агенти'} />
           ) : isReportReady && reportData && !reportError && !comparePeriods ? (
             <SalesDetailed
               hierarchyFields={reportFields}
