@@ -1,4 +1,4 @@
-export const OFFLINE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+export const OFFLINE_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 
 export interface OfflineEntry {
   key: string;
