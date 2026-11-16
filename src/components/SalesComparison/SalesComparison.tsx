@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import ExcelJS from 'exceljs';
 import type { SalesReportResponse, SalesReportRow } from '../../api/fetchSales';
 import { buildReportTree } from '../../utils/reportHierarchy';
 import styles from './SalesComparison.module.css';
@@ -69,7 +70,6 @@ export default function SalesComparison({ first, second, fields, metrics, format
     setExporting(true);
     setExportError('');
     try {
-      const { default: ExcelJS } = await import('exceljs');
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Порівняння');
       sheet.addRow(['Перший період', firstDates]);
