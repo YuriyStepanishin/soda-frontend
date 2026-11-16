@@ -570,8 +570,13 @@
 
 .mobileBrandTitle {
   margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--soda-accent, var(--soda-text));
+  border-radius: 6px;
+  background: var(--rh-header);
   color: var(--soda-text);
   font-size: 17px;
+  font-weight: 700;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
