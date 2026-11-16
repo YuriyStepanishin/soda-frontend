@@ -1,0 +1,12 @@
+.wrapper { width: 100%; min-width: 0; padding: 16px; border: 1px solid var(--soda-border); border-radius: 12px; background: var(--soda-surface); color: var(--soda-text); }
+.wrapper h3 { margin: 0 0 8px; }
+.hint { margin: 0 0 14px; color: var(--soda-muted); font-size: 13px; }
+.scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.table { border-collapse: collapse; width: 100%; min-width: 740px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.table th, .table td { border: 1px solid var(--soda-border); padding: 9px; text-align: right; white-space: nowrap; }
+.table th:first-child, .table td:first-child { text-align: left; position: sticky; left: 0; background: var(--soda-surface); min-width: 175px; max-width: 260px; white-space: normal; z-index: 1; }
+.table thead th { background: var(--soda-control); font-weight: 700; }
+.table tfoot th, .table tfoot td { background: var(--soda-control); font-weight: 700; }
+.name { display: flex; align-items: center; gap: 5px; overflow-wrap: anywhere; }
+.name button { min-width: 28px; min-height: 28px; border: 1px solid var(--soda-border); border-radius: 6px; background: var(--soda-control); color: var(--soda-text); cursor: pointer; }
+@media (max-width: 767px) { .wrapper { padding: 8px; } .table { font-size: 12px; } .table th, .table td { padding: 7px 6px; } }
