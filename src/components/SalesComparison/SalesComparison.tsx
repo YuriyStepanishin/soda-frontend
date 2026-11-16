@@ -98,7 +98,7 @@ export default function SalesComparison({ first, second, fields, metrics, format
           for (const offset of [2, 3]) {
             const cell = excelRow.getCell(2 + index * 4 + offset);
             const value = cell.value;
-            if (!total && typeof value === 'number' && Number(value) !== 0) {
+            if (typeof value === 'number' && Number(value) !== 0) {
               const positive = Number(value) > 0;
               cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: positive ? 'FFDDF4E5' : 'FFFFE1E1' } };
               cell.font = { bold: true, color: { argb: positive ? 'FF17683B' : 'FFA52A2A' } };
