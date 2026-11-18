@@ -26,7 +26,7 @@ async function request<T>(path: string, method = 'GET', body?: unknown): Promise
   if (!response.ok) throw new Error(json.message || 'Помилка сервера');
   return json as T;
 }
-export default function DictionaryEditor({ onBack }: { onBack: () => void }) {
+export default function DictionaryEditor() {
   const [kind, setKind] = useState<Kind>('products');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -68,7 +68,7 @@ export default function DictionaryEditor({ onBack }: { onBack: () => void }) {
     catch (e) { setError(e instanceof Error ? e.message : 'Помилка видалення'); }
   };
   return <main className={styles.main}>
-    <header className={styles.header}><button onClick={onBack}>← Назад</button><h1>Редактор довідників</h1></header>
+    <header className={styles.header}><h1>Редактор довідників</h1></header>
     <div className={styles.tabs}><button aria-pressed={kind === 'products'} onClick={() => changeKind('products')}>Товари</button><button aria-pressed={kind === 'routes'} onClick={() => changeKind('routes')}>Маршрути</button></div>
     <div className={styles.tools}><input aria-label="Пошук" placeholder="Пошук за назвою..." value={query} onChange={e => { setQuery(e.target.value); setPage(1); }}/><button onClick={newEntry}>+ Додати</button></div>
     {error && <p role="alert" className={styles.error}>{error}</p>}
