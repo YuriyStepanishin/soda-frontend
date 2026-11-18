@@ -65,6 +65,7 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
     page: 1,
   });
   const [search, setSearch] = useState('');
+  const [minDaysInput, setMinDaysInput] = useState('');
   const [notice, setNotice] = useState('');
   const pickerRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
@@ -215,6 +216,7 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
           setFilters(previous => ({
             ...previous,
             search: search.trim(),
+            minDays: minDaysInput.trim() === '' ? undefined : Math.max(0, Math.floor(Number(minDaysInput))),
             page: 1,
           }));
         }}
@@ -278,6 +280,12 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
             placeholder="Назва ТТ або номер накладної"
             maxLength={200}
           />
+        </label>
+        <label className={styles.search}>
+          Більш як (днів)
+          <input type="number" inputMode="numeric" min="0" step="1" placeholder="Наприклад, 14"
+            value={minDaysInput} onChange={event => setMinDaysInput(event.target.value)}
+            aria-label="Показати накладні, яким більш як зазначена кількість днів" />
         </label>
         <button type="submit">Знайти</button>
         <fieldset className={styles.statusFilters}>
