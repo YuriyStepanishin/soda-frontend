@@ -256,7 +256,7 @@ export default function App() {
 
   function renderPage() {
   if (page === 'dictionaries' && canOpenDictionaries) {
-    return <Suspense fallback={<Loader />}><DictionaryEditor onBack={() => setPage('home')} /></Suspense>;
+    return <Suspense fallback={<Loader />}><DictionaryEditor /></Suspense>;
   }
   if (page === 'receivables' && canOpenReceivables) {
     return <Suspense fallback={<Loader />}><ReceivablesPage key={`${activeDatabase}:${email}`} onBack={() => setPage('home')} /></Suspense>;

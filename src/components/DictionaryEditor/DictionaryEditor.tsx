@@ -26,7 +26,7 @@ async function request<T>(path: string, method = 'GET', body?: unknown): Promise
   if (!response.ok) throw new Error(json.message || 'Помилка сервера');
   return json as T;
 }
-export default function DictionaryEditor({ onBack }: { onBack: () => void }) {
+export default function DictionaryEditor() {
   const [kind, setKind] = useState<Kind>('products');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -68,7 +68,7 @@ export default function DictionaryEditor({ onBack }: { onBack: () => void }) {
     catch (e) { setError(e instanceof Error ? e.message : 'Помилка видалення'); }
   };
   return <main className={styles.main}>
-    <header className={styles.header}><button onClick={onBack}>← Назад</button><h1>Редактор довідників</h1></header>
+    <header className={styles.header}><h1>Редактор довідників</h1></header>
     <div className={styles.tabs}><button aria-pressed={kind === 'products'} onClick={() => changeKind('products')}>Товари</button><button aria-pressed={kind === 'routes'} onClick={() => changeKind('routes')}>Маршрути</button></div>
     <div className={styles.tools}><input aria-label="Пошук" placeholder="Пошук за назвою..." value={query} onChange={e => { setQuery(e.target.value); setPage(1); }}/><button onClick={newEntry}>+ Додати</button></div>
     {error && <p role="alert" className={styles.error}>{error}</p>}
@@ -81,7 +81,7 @@ export default function DictionaryEditor({ onBack }: { onBack: () => void }) {
     {editing && <div className={styles.overlay} role="presentation"><section className={styles.dialog} role="dialog" aria-modal="true" aria-label="Редагування довідника">
       <h2>{editing.id ? 'Редагування' : 'Новий запис'}</h2>
       {fields[kind].map(f => <label key={f.key}>{f.label}<input type={f.key === 'stop_order' ? 'number' : 'text'} value={editing[f.key] ?? ''} onChange={e => setEditing(prev => prev ? { ...prev, [f.key]: f.key === 'stop_order' ? Number(e.target.value) : e.target.value } : prev)}/></label>)}
-      <div className={styles.actions}><button disabled={saving} onClick={() => setEditing(null)}>Скасувати</button><button disabled={saving} onClick={() => void save()}>{saving ? 'Збереження…' : 'Зберегти'}</button></div>
+      {error && <p role="alert" className={styles.error}>{error}</p>}\n      <div className={styles.actions}><button disabled={saving} onClick={() => setEditing(null)}>Скасувати</button><button disabled={saving} onClick={() => void save()}>{saving ? 'Збереження…' : 'Зберегти'}</button></div>
     </section></div>}
   </main>;
 }
