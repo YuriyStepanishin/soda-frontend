@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import DateTime from '../DateTime/DateTime';
 
 import styles from './HomePage.module.css';
@@ -137,7 +137,7 @@ export default function HomePage({
       setUpdateMessage(error instanceof Error ? error.message : 'Помилка перевірки оновлення');
     }
   };
-  const iconPaths: Record<string, React.ReactNode> = {
+  const iconPaths: Record<string, ReactNode> = {
     dictionaries: <><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="4" width="8" height="16" rx="1"/><path d="M5 8h4M15 8h4M5 12h4M15 12h4"/></>,
     receivables: <><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M7 3v4M17 3v4M7 15h4M15 15h2"/></>,
     motivation: <><path d="m3 17 6-6 4 4 8-9"/><path d="M15 6h6v6"/></>,
