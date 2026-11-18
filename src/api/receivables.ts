@@ -9,7 +9,7 @@ export type ReceivablesResponse = {
   rows: Receivable[]; pagination: { page: number; limit: number; total: number; pages: number };
 };
 export type DebtRepresentative = { agent: string | null; route: string };
-export type DebtFilters = { representatives: DebtRepresentative[]; search: string; statuses: DebtStatus[]; page: number };
+export type DebtFilters = { representatives: DebtRepresentative[]; search: string; statuses: DebtStatus[]; minDays?: number; page: number };
 function requireLaska() { if (getActiveTenant() !== 'laska') throw new Error('Оберіть компанію Ласка'); }
 export function fetchReceivables(query: DebtFilters, signal?: AbortSignal) {
   requireLaska();
