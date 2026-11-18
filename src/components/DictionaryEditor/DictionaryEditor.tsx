@@ -81,7 +81,7 @@ export default function DictionaryEditor({ onBack }: { onBack: () => void }) {
     {editing && <div className={styles.overlay} role="presentation"><section className={styles.dialog} role="dialog" aria-modal="true" aria-label="Редагування довідника">
       <h2>{editing.id ? 'Редагування' : 'Новий запис'}</h2>
       {fields[kind].map(f => <label key={f.key}>{f.label}<input type={f.key === 'stop_order' ? 'number' : 'text'} value={editing[f.key] ?? ''} onChange={e => setEditing(prev => prev ? { ...prev, [f.key]: f.key === 'stop_order' ? Number(e.target.value) : e.target.value } : prev)}/></label>)}
-      <div className={styles.actions}><button disabled={saving} onClick={() => setEditing(null)}>Скасувати</button><button disabled={saving} onClick={() => void save()}>{saving ? 'Збереження…' : 'Зберегти'}</button></div>
+      {error && <p role="alert" className={styles.error}>{error}</p>}\n      <div className={styles.actions}><button disabled={saving} onClick={() => setEditing(null)}>Скасувати</button><button disabled={saving} onClick={() => void save()}>{saving ? 'Збереження…' : 'Зберегти'}</button></div>
     </section></div>}
   </main>;
 }
