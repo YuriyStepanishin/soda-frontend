@@ -5,6 +5,10 @@ import styles from './DictionaryEditor.module.css';
 type Kind = 'products' | 'routes';
 type RecordValue = string | number | null;
 type Entry = { id: number; [key: string]: RecordValue };
+const filterFields: Record<Kind, { key: string; label: string; text?: boolean }[]> = {
+  products: [{ key: 'manufacturer', label: 'Виробник' }, { key: 'tm', label: 'ТМ' }, { key: 'group_name', label: 'Група' }, { key: 'subgroup', label: 'Підгрупа' }, { key: 'packaging', label: 'Фасовка' }],
+  routes: [{ key: 'agent_name', label: 'Торговий представник' }, { key: 'route_day', label: 'День тижня' }, { key: 'store_code', label: 'Код ТТ', text: true }],
+};
 const fields: Record<Kind, { key: string; label: string }[]> = {
   products: [
     { key: 'product_name', label: 'Товар' }, { key: 'manufacturer', label: 'Виробник' },
@@ -29,6 +33,9 @@ async function request<T>(path: string, method = 'GET', body?: unknown): Promise
 export default function DictionaryEditor() {
   const [kind, setKind] = useState<Kind>('products');
   const [query, setQuery] = useState('');
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [options, setOptions] = useState<Record<string, string[]>>({});
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState<Entry[]>([]);
   const [total, setTotal] = useState(0);
@@ -36,16 +43,24 @@ export default function DictionaryEditor() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  useEffect(() => {
+    let cancelled = false;
+    setOptions({});
+    void request<Record<string, string[]>>(`/api/admin/dictionaries/${kind}/filters`)
+      .then(data => { if (!cancelled) setOptions(data); })
+      .catch(() => { if (!cancelled) setOptions({}); });
+    return () => { cancelled = true; };
+  }, [kind]);
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      const result = await request<{ rows: Entry[]; total: number }>(`/api/admin/dictionaries/${kind}?q=${encodeURIComponent(query)}&page=${page}`);
+      const result = await request<{ rows: Entry[]; total: number }>(`/api/admin/dictionaries/${kind}?${new URLSearchParams({ q: query, page: String(page), ...Object.fromEntries(Object.entries(filters).filter(([, value]) => value)) })}`);
       setRows(result.rows); setTotal(result.total);
     } catch (e) { setError(e instanceof Error ? e.message : 'Помилка'); }
     finally { setLoading(false); }
-  }, [kind, query, page]);
+  }, [kind, query, page, filters]);
   useEffect(() => { void load(); }, [load]);
-  const changeKind = (next: Kind) => { setKind(next); setQuery(''); setPage(1); setEditing(null); };
+  const changeKind = (next: Kind) => { setKind(next); setQuery(''); setFilters({}); setPage(1); setEditing(null); };
   const newEntry = () => {
     const row: Entry = { id: 0 };
     for (const field of fields[kind]) row[field.key] = field.key === 'stop_order' ? 1 : '';
@@ -71,6 +86,11 @@ export default function DictionaryEditor() {
     <header className={styles.header}><h1>Редактор довідників</h1></header>
     <div className={styles.tabs}><button aria-pressed={kind === 'products'} onClick={() => changeKind('products')}>Товари</button><button aria-pressed={kind === 'routes'} onClick={() => changeKind('routes')}>Маршрути</button></div>
     <div className={styles.tools}><input aria-label="Пошук" placeholder="Пошук за назвою..." value={query} onChange={e => { setQuery(e.target.value); setPage(1); }}/><button onClick={newEntry}>+ Додати</button></div>
+    <div className={styles.filterBar}><button type="button" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(open => !open)}>Фільтри {Object.values(filters).filter(Boolean).length ? '(' + Object.values(filters).filter(Boolean).length + ')' : ''} {filtersOpen ? '▴' : '▾'}</button><button type="button" onClick={() => { setFilters({}); setQuery(''); setPage(1); }}>Скинути фільтри</button></div>
+    {filtersOpen && <div className={styles.filterPanel}>{filterFields[kind].map(field => <label key={field.key}>{field.label}{field.text
+      ? <input value={filters[field.key] || ''} placeholder="Код торгової точки" onChange={e => { setFilters(prev => ({ ...prev, [field.key]: e.target.value })); setPage(1); }} />
+      : <select value={filters[field.key] || ''} onChange={e => { setFilters(prev => ({ ...prev, [field.key]: e.target.value })); setPage(1); }}><option value="">Усі</option>{(options[field.key] || []).map(value => <option key={value} value={value}>{value}</option>)}</select>
+    }</label>)}</div>}
     {error && <p role="alert" className={styles.error}>{error}</p>}
     <p>{loading ? 'Завантаження…' : `Знайдено: ${total}`}</p>
     <div className={styles.list}>{rows.map(row => <article key={row.id} className={styles.item}>
