@@ -15,6 +15,8 @@ interface Props {
   onOpenDisplay: () => void;
   onOpenBonus: () => void;
   onOpenGallery: () => void;
+  onOpenDictionaries: () => void;
+  canOpenDictionaries: boolean;
   onOpenSales: () => void;
   onOpenSalesByDays: () => void;
   onOpenRouteHistory: () => void;
@@ -50,6 +52,8 @@ export default function HomePage({
   onOpenDisplay,
   onOpenBonus,
   onOpenGallery,
+  onOpenDictionaries,
+  canOpenDictionaries,
   onOpenSales,
   onOpenSalesByDays,
   onOpenRouteHistory,
@@ -91,6 +95,7 @@ export default function HomePage({
   };
 
   const topMenuItems: MenuItem[] = [
+    { key: 'dictionaries', label: 'Довідники', icon: withVersion('/icons/ClientProduct.svg'), onClick: onOpenDictionaries, visible: canOpenDictionaries },
     { key: 'receivables', label: 'Дебіторка', icon: withVersion('/icons/calendar-icon-64.svg'), onClick: onOpenReceivables, visible: canOpenReceivables },
     { key: 'motivation', label: 'Контроль мотивації', icon: withVersion('/icons/implementation.svg'), onClick: onOpenMotivation, visible: activeDatabase === 'laska' && canOpenMotivation },
     {
