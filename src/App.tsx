@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 
+const DictionaryEditor = lazy(() => import('./components/DictionaryEditor/DictionaryEditor'));
+
 const MotivationPage = lazy(() => import('./components/MotivationPage/MotivationPage'));
 const ReceivablesPage = lazy(() => import('./components/ReceivablesPage/ReceivablesPage'));
 
@@ -105,6 +107,7 @@ export default function App() {
     | 'plan-targets'
     | 'motivation'
     | 'receivables'
+    | 'dictionaries'
   >('home');
 
   const [email, setEmail] = useState<string | null>(
@@ -165,6 +168,7 @@ export default function App() {
   const userRole = getUserRole(email);
   const userDepartment = getUserDepartment(email);
 
+  const canOpenDictionaries = activeDatabase === 'laska' && getAuthSession()?.user.role === 'admin';
   const canOpenMotivation = activeDatabase === 'laska' && ['admin', 'manager'].includes(getAuthSession()?.user.role ?? '');
   const canOpenReceivables = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent'].includes(getAuthSession()?.user.role ?? '');
 
@@ -251,6 +255,9 @@ export default function App() {
   }
 
   function renderPage() {
+  if (page === 'dictionaries' && canOpenDictionaries) {
+    return <Suspense fallback={<Loader />}><DictionaryEditor onBack={() => setPage('home')} /></Suspense>;
+  }
   if (page === 'receivables' && canOpenReceivables) {
     return <Suspense fallback={<Loader />}><ReceivablesPage key={`${activeDatabase}:${email}`} onBack={() => setPage('home')} /></Suspense>;
   }
@@ -475,6 +482,8 @@ export default function App() {
             onOpenSales={() =>
               runProtectedAction(() => setPage('sales'), 'sales')
             }
+            onOpenDictionaries={() => runProtectedAction(() => setPage('dictionaries'))}
+            canOpenDictionaries={canOpenDictionaries}
             onOpenMotivation={() => runProtectedAction(() => setPage('motivation'))}
             canOpenMotivation={canOpenMotivation}
             onOpenReceivables={() => runProtectedAction(() => setPage('receivables'))}
@@ -585,6 +594,7 @@ export default function App() {
   }
 
   const navigation: NavigationItem[] = [{ id: 'home', label: 'Головна', symbol: 'home', onClick: resetToHome }];
+  if (canOpenDictionaries) navigation.push({ id: 'dictionaries', label: 'Довідники', symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage('dictionaries'); }) });
   if (canOpenReceivables) navigation.push({ id: 'receivables', label: 'Дебіторка', symbol: 'debt', onClick: () => runProtectedAction(() => { resetToHome(); setPage('receivables'); }) });
   if (canAccess('sales')) {
     navigation.push({ id: 'sales', label: 'Продажі', symbol: 'sales', onClick: () => runProtectedAction(() => { resetToHome(); setPage('sales'); }, 'sales') });
