@@ -3,6 +3,7 @@ import { API_BASE_URL, AUTH_TOKEN_KEY } from '../../api/config';
 import styles from './DictionaryEditor.module.css';
 
 type Kind = 'products' | 'routes';
+const weekdays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'НД'];
 type RecordValue = string | number | null;
 type Entry = { id: number; [key: string]: RecordValue };
 const filterFields: Record<Kind, { key: string; label: string; text?: boolean }[]> = {
@@ -100,7 +101,16 @@ export default function DictionaryEditor() {
     <div className={styles.pager}><button disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Назад</button><span>Сторінка {page}</span><button disabled={page * 50 >= total} onClick={() => setPage(p => p + 1)}>Далі →</button></div>
     {editing && <div className={styles.overlay} role="presentation"><section className={styles.dialog} role="dialog" aria-modal="true" aria-label="Редагування довідника">
       <h2>{editing.id ? 'Редагування' : 'Новий запис'}</h2>
-      {fields[kind].map(f => <label key={f.key}>{f.label}<input type={f.key === 'stop_order' ? 'number' : 'text'} value={editing[f.key] ?? ''} onChange={e => setEditing(prev => prev ? { ...prev, [f.key]: f.key === 'stop_order' ? Number(e.target.value) : e.target.value } : prev)}/></label>)}
+      {fields[kind].map(f => f.key === 'route_day' && kind === 'routes'
+        ? <fieldset key={f.key} className={styles.dayField}><legend>Дні відвідування (можна декілька або жодного)</legend><div className={styles.dayChoices}>{weekdays.map(day => {
+          const selected = String(editing.route_day ?? '').split(',').map(x => x.trim()).includes(day);
+          return <label key={day}><input type="checkbox" checked={selected} onChange={e => setEditing(prev => {
+            if (!prev) return prev;
+            const current = String(prev.route_day ?? '').split(',').map(x => x.trim()).filter(Boolean);
+            return { ...prev, route_day: weekdays.filter(x => e.target.checked ? (x === day || current.includes(x)) : (x !== day && current.includes(x))).join(', ') };
+          })}/>{day}</label>;
+        })}</div></fieldset>
+        : <label key={f.key}>{f.label}<input type={f.key === 'stop_order' ? 'number' : 'text'} value={editing[f.key] ?? ''} onChange={e => setEditing(prev => prev ? { ...prev, [f.key]: f.key === 'stop_order' ? Number(e.target.value) : e.target.value } : prev)}/></label>)} 
       {error && <p role="alert" className={styles.error}>{error}</p>}\n      <div className={styles.actions}><button disabled={saving} onClick={() => setEditing(null)}>Скасувати</button><button disabled={saving} onClick={() => void save()}>{saving ? 'Збереження…' : 'Зберегти'}</button></div>
     </section></div>}
   </main>;
