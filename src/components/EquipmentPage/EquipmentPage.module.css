@@ -1,0 +1,92 @@
+.page {
+  max-width: 1440px;
+  margin: auto;
+  padding: clamp(14px, 3vw, 32px);
+  color: var(--soda-text);
+}
+
+.page h1 {
+  margin: 0 0 18px;
+  font-size: clamp(22px, 4vw, 32px);
+}
+
+.search,
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin: 18px 0;
+}
+
+.search label {
+  display: grid;
+  flex: 1 1 230px;
+  gap: 6px;
+  max-width: 520px;
+}
+
+.search input,
+.page button {
+  min-height: 44px;
+  border: 1px solid var(--soda-border);
+  border-radius: 9px;
+  padding: 8px 12px;
+  background: var(--soda-control);
+  color: var(--soda-text);
+  font-size: 16px;
+}
+
+.search input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.page button:disabled {
+  opacity: 0.55;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr));
+  gap: 12px;
+}
+
+.card {
+  min-width: 0;
+  border: 1px solid var(--soda-border);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--soda-surface);
+  overflow-wrap: anywhere;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.card p {
+  margin: 6px 0;
+}
+
+.card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 12px 0 0;
+}
+
+.card dt {
+  color: var(--soda-muted);
+  font-size: 13px;
+}
+
+.card dd {
+  margin: 2px 0 0;
+}
+
+.pagination {
+  justify-content: center;
+  align-items: center;
+}

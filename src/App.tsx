@@ -7,6 +7,8 @@ const DictionaryEditor = lazy(() => import('./components/DictionaryEditor/Dictio
 const MotivationPage = lazy(() => import('./components/MotivationPage/MotivationPage'));
 const ReceivablesPage = lazy(() => import('./components/ReceivablesPage/ReceivablesPage'));
 
+const EquipmentPage = lazy(() => import('./components/EquipmentPage/EquipmentPage'));
+
 const HomePage = lazy(() => import('./components/HomePage/HomePage'));
 
 const StoreSelector = lazy(
@@ -107,6 +109,7 @@ export default function App() {
     | 'plan-targets'
     | 'motivation'
     | 'receivables'
+    | 'equipment'
     | 'dictionaries'
   >('home');
 
@@ -171,6 +174,8 @@ export default function App() {
   const canOpenDictionaries = activeDatabase === 'laska' && getAuthSession()?.user.role === 'admin';
   const canOpenMotivation = activeDatabase === 'laska' && ['admin', 'manager'].includes(getAuthSession()?.user.role ?? '');
   const canOpenReceivables = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent'].includes(getAuthSession()?.user.role ?? '');
+
+  const canOpenEquipment = canOpenReceivables;
 
   const canAccess = (section: AppSection) =>
     canAccessSection(userRole, section);
@@ -257,6 +262,9 @@ export default function App() {
   function renderPage() {
   if (page === 'dictionaries' && canOpenDictionaries) {
     return <Suspense fallback={<Loader />}><DictionaryEditor /></Suspense>;
+  }
+  if (page === 'equipment' && canOpenEquipment && email) {
+    return <Suspense fallback={<Loader />}><EquipmentPage email={email} /></Suspense>;
   }
   if (page === 'receivables' && canOpenReceivables) {
     return <Suspense fallback={<Loader />}><ReceivablesPage key={`${activeDatabase}:${email}`} onBack={() => setPage('home')} /></Suspense>;
@@ -488,6 +496,8 @@ export default function App() {
             canOpenMotivation={canOpenMotivation}
             onOpenReceivables={() => runProtectedAction(() => setPage('receivables'))}
             canOpenReceivables={canOpenReceivables}
+            onOpenEquipment={() => runProtectedAction(() => setPage('equipment'))}
+            canOpenEquipment={canOpenEquipment}
             activeDatabase={activeDatabase}
             onOpenRouteHistory={() =>
               runProtectedAction(
@@ -596,6 +606,7 @@ export default function App() {
   const navigation: NavigationItem[] = [{ id: 'home', label: 'Головна', symbol: 'home', onClick: resetToHome }];
   if (canOpenDictionaries) navigation.push({ id: 'dictionaries', label: 'Довідники', symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage('dictionaries'); }) });
   if (canOpenReceivables) navigation.push({ id: 'receivables', label: 'Дебіторка', symbol: 'debt', onClick: () => runProtectedAction(() => { resetToHome(); setPage('receivables'); }) });
+  if (canOpenEquipment) navigation.push({ id: 'equipment', label: 'Обладнання', symbol: 'stores', onClick: () => runProtectedAction(() => { resetToHome(); setPage('equipment'); }) });
   if (canAccess('sales')) {
     navigation.push({ id: 'sales', label: 'Продажі', symbol: 'sales', onClick: () => runProtectedAction(() => { resetToHome(); setPage('sales'); }, 'sales') });
     navigation.push({ id: 'sales-by-days', label: 'Продажі по днях', symbol: 'days', onClick: () => runProtectedAction(() => { resetToHome(); setSalesByDaysOrigin('home'); setPage('sales-by-days'); }, 'sales') });
