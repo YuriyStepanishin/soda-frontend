@@ -39,8 +39,7 @@ export default function EquipmentPage({ email }: { email: string }) {
   });
 
   return (
-    <section className={styles.page}>
-      <h1>Обладнання торгових точок</h1>
+    <section aria-label="Обладнання торгових точок">
       <form className={styles.search} onSubmit={event => {
         event.preventDefault();
         setSearch(input.trim());

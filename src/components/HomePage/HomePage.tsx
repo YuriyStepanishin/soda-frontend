@@ -26,8 +26,6 @@ interface Props {
   canOpenMotivation: boolean;
   onOpenReceivables: () => void;
   canOpenReceivables: boolean;
-  onOpenEquipment: () => void;
-  canOpenEquipment: boolean;
 
   onOpenActiveCustomerBase: () => void;
   onOpenImplementation: () => void;
@@ -65,8 +63,6 @@ export default function HomePage({
   canOpenMotivation,
   onOpenReceivables,
   canOpenReceivables,
-  onOpenEquipment,
-  canOpenEquipment,
 
   onOpenActiveCustomerBase,
   onOpenImplementation,
@@ -164,7 +160,6 @@ export default function HomePage({
   const topMenuItems: MenuItem[] = [
     { key: 'dictionaries', label: 'Довідники', icon: withVersion('/icons/ClientProduct.svg'), onClick: onOpenDictionaries, visible: canOpenDictionaries },
     { key: 'receivables', label: 'Дебіторка', icon: withVersion('/icons/calendar-icon-64.svg'), onClick: onOpenReceivables, visible: canOpenReceivables },
-    { key: 'equipment', label: 'Обладнання', icon: withVersion('/icons/ClientProduct.svg'), onClick: onOpenEquipment, visible: canOpenEquipment },
     { key: 'motivation', label: 'Контроль мотивації', icon: withVersion('/icons/implementation.svg'), onClick: onOpenMotivation, visible: activeDatabase === 'laska' && canOpenMotivation },
     {
       key: 'sales',
