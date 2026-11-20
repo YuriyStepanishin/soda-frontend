@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { API_BASE_URL, AUTH_TOKEN_KEY } from '../../api/config';
+import EquipmentPage from '../EquipmentPage/EquipmentPage';
 import styles from './DictionaryEditor.module.css';
 
 type Kind = 'products' | 'routes';
@@ -31,8 +32,28 @@ async function request<T>(path: string, method = 'GET', body?: unknown): Promise
   if (!response.ok) throw new Error(json.message || 'Помилка сервера');
   return json as T;
 }
-export default function DictionaryEditor() {
-  const [kind, setKind] = useState<Kind>('products');
+export default function Dictionaries({ email, canEdit }: { email: string; canEdit: boolean }) {
+  const [selected, setSelected] = useState<Kind | 'equipment'>(canEdit ? 'products' : 'equipment');
+  const kind = canEdit ? selected : 'equipment';
+
+  return (
+    <section className={styles.main}>
+      <header className={styles.header}><h1>Довідники</h1></header>
+      <nav className={styles.tabs} aria-label="Довідники ЛАСКА">
+        {canEdit && (
+          <>
+            <button type="button" aria-pressed={kind === 'products'} onClick={() => setSelected('products')}>Товари</button>
+            <button type="button" aria-pressed={kind === 'routes'} onClick={() => setSelected('routes')}>Маршрути</button>
+          </>
+        )}
+        <button type="button" aria-pressed={kind === 'equipment'} onClick={() => setSelected('equipment')}>Обладнання</button>
+      </nav>
+      {kind === 'equipment' ? <EquipmentPage email={email} /> : <DictionaryEditor key={kind} kind={kind} />}
+    </section>
+  );
+}
+
+function DictionaryEditor({ kind }: { kind: Kind }) {
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [options, setOptions] = useState<Record<string, string[]>>({});
@@ -61,7 +82,6 @@ export default function DictionaryEditor() {
     finally { setLoading(false); }
   }, [kind, query, page, filters]);
   useEffect(() => { void load(); }, [load]);
-  const changeKind = (next: Kind) => { setKind(next); setQuery(''); setFilters({}); setPage(1); setEditing(null); };
   const newEntry = () => {
     const row: Entry = { id: 0 };
     for (const field of fields[kind]) row[field.key] = field.key === 'stop_order' ? 1 : '';
@@ -83,9 +103,7 @@ export default function DictionaryEditor() {
     try { await request(`/api/admin/dictionaries/${kind}/${row.id}`, 'DELETE'); await load(); }
     catch (e) { setError(e instanceof Error ? e.message : 'Помилка видалення'); }
   };
-  return <main className={styles.main}>
-    <header className={styles.header}><h1>Редактор довідників</h1></header>
-    <div className={styles.tabs}><button aria-pressed={kind === 'products'} onClick={() => changeKind('products')}>Товари</button><button aria-pressed={kind === 'routes'} onClick={() => changeKind('routes')}>Маршрути</button></div>
+  return <>
     <div className={styles.tools}><input aria-label="Пошук" placeholder="Пошук за назвою..." value={query} onChange={e => { setQuery(e.target.value); setPage(1); }}/><button onClick={newEntry}>+ Додати</button></div>
     <div className={styles.filterBar}><button type="button" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(open => !open)}>Фільтри {Object.values(filters).filter(Boolean).length ? '(' + Object.values(filters).filter(Boolean).length + ')' : ''} {filtersOpen ? '▴' : '▾'}</button><button type="button" onClick={() => { setFilters({}); setQuery(''); setPage(1); }}>Скинути фільтри</button></div>
     {filtersOpen && <div className={styles.filterPanel}>{filterFields[kind].map(field => <label key={field.key}>{field.label}{field.text
@@ -113,5 +131,5 @@ export default function DictionaryEditor() {
         : <label key={f.key}>{f.label}<input type={f.key === 'stop_order' ? 'number' : 'text'} value={editing[f.key] ?? ''} onChange={e => setEditing(prev => prev ? { ...prev, [f.key]: f.key === 'stop_order' ? Number(e.target.value) : e.target.value } : prev)}/></label>)} 
       {error && <p role="alert" className={styles.error}>{error}</p>}\n      <div className={styles.actions}><button disabled={saving} onClick={() => setEditing(null)}>Скасувати</button><button disabled={saving} onClick={() => void save()}>{saving ? 'Збереження…' : 'Зберегти'}</button></div>
     </section></div>}
-  </main>;
+  </>;
 }
