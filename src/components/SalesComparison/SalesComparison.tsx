@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ExcelJS from 'exceljs';
 import type { SalesReportResponse, SalesReportRow } from '../../api/fetchSales';
 import { buildReportTree } from '../../utils/reportHierarchy';
+import type { PreparedReportFile } from '../../utils/reportDelivery';
+import SalesExcelActions from '../SalesExcelActions';
 import styles from './SalesComparison.module.css';
 
 type Metric = 'stores' | 'quantity' | 'weight' | 'sku' | 'amount' | 'vmd';
@@ -24,22 +26,22 @@ const metricKeys: Metric[] = ['stores', 'quantity', 'weight', 'sku', 'amount', '
 
 export default function SalesComparison({ first, second, fields, metrics, format, firstLabel, secondLabel, agentLabel }: Props) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
-  const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState('');
-  const active = metricKeys.filter(key => metrics[key]);
+  const [prepared, setPrepared] = useState<{ source: () => Promise<PreparedReportFile>; file: PreparedReportFile } | null>(null);
+  const active = useMemo(() => metricKeys.filter(key => metrics[key]), [metrics]);
   const shortDate = (value: string) => value.replace(/(\\d{4})-(\\d{2})-(\\d{2})/g, '$3.$2.$1');
   const firstDates = shortDate(firstLabel);
   const secondDates = shortDate(secondLabel);
-  const keyOf = (row: SalesReportRow) => fields.length && row.dimensions
+  const keyOf = useCallback((row: SalesReportRow) => fields.length && row.dimensions
     ? JSON.stringify(fields.slice(0, (row.level ?? 0) + 1).map(field => [field, row.dimensions?.[field] ?? null]))
-    : row.id;
+    : row.id, [fields]);
 
   const { tree, firstByKey, secondByKey } = useMemo(() => {
     const a = new Map(first.rows.map(row => [keyOf(row), row]));
     const b = new Map(second.rows.map(row => [keyOf(row), row]));
     const combined = [...first.rows, ...second.rows.filter(row => !a.has(keyOf(row)))];
     return { tree: buildReportTree(combined, fields), firstByKey: a, secondByKey: b };
-  }, [first, second, fields]);
+  }, [first, second, fields, keyOf]);
 
   const visible = useMemo(() => {
     const result: Array<{ row: (typeof tree)[number]; depth: number }> = [];
@@ -65,83 +67,85 @@ export default function SalesComparison({ first, second, fields, metrics, format
     const percentage = previous === 0 ? (current === 0 ? '0%' : 'н/д') : `${diff > 0 ? '+' : ''}${format(diff / Math.abs(previous) * 100)}%`;
     return `${diff > 0 ? '+' : ''}${format(diff)} (${percentage})`;
   };
-  const exportExcel = async () => {
-    if (exporting) return;
-    setExporting(true);
-    setExportError('');
-    try {
-      const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet('Порівняння');
-      sheet.addRow(['Перший період', firstDates]);
-      sheet.addRow(['Другий період', secondDates]);
-      sheet.addRow(['Назва', ...active.flatMap(metric => [labels[metric] + ' — ' + firstDates, labels[metric] + ' — ' + secondDates, labels[metric] + ' — різниця', labels[metric] + ' — %'])]);
-      const write = (name: string, a: SalesReportRow | undefined, b: SalesReportRow | undefined, depth = 0, total = false) => {
-        const excelRow = sheet.addRow([name, ...active.flatMap(metric => {
-          // A missing row means zero sales, not an unknown VMD.
-          // Keep an explicit null only when the backend actually reports unknown VMD.
-          const one = metric === 'vmd' && a && a.vmd == null ? null : Number(a?.[metric] ?? 0);
-          const two = metric === 'vmd' && b && b.vmd == null ? null : Number(b?.[metric] ?? 0);
-          return [one, two, one == null || two == null ? null : one - two,
-            one == null || two == null || two === 0 ? null : (one - two) / Math.abs(two) * 100];
-        })]);
-        excelRow.height = total ? 27 : 22;
-        excelRow.alignment = { vertical: 'middle' };
-        excelRow.getCell(1).alignment = { vertical: 'middle', indent: Math.min(depth, 8) };
-        const baseColor = total ? 'FF17324D' : depth === 0 ? 'FFEAF1F8' : 'FFFFFFFF';
-        excelRow.eachCell({ includeEmpty: true }, cell => {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: baseColor } };
-          cell.font = { bold: total || depth === 0, color: { argb: total ? 'FFFFFFFF' : 'FF233247' } };
-          cell.border = { bottom: { style: 'hair', color: { argb: 'FFDDE5ED' } } };
-          if (Number(cell.col) > 1 && typeof cell.value === 'number') cell.numFmt = (Number(cell.col) - 1) % 4 === 0 ? '0.0"%"' : '#,##0.00;[Red](#,##0.00);–';
-        });
-        active.forEach((_, index) => {
-          for (const offset of [2, 3]) {
-            const cell = excelRow.getCell(2 + index * 4 + offset);
-            const value = cell.value;
-            if (typeof value === 'number' && Number(value) !== 0) {
-              const positive = Number(value) > 0;
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: positive ? 'FFDDF4E5' : 'FFFFE1E1' } };
-              cell.font = { bold: true, color: { argb: positive ? 'FF17683B' : 'FFA52A2A' } };
-            }
-          }
-        });
-      };
-      for (const { row, depth } of visible) write(row.label, firstByKey.get(keyOf(row)), secondByKey.get(keyOf(row)), depth);
-      write('Разом', first.totals, second.totals, 0, true);
-      for (const index of [1, 2]) {
-        sheet.getRow(index).font = { bold: true, color: { argb: 'FF17324D' } };
-      }
-      const header = sheet.getRow(3);
-      header.height = 42;
-      header.alignment = { vertical: 'middle', wrapText: true };
-      header.eachCell(cell => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF24547A' } };
-        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  const prepareExcel = useCallback(async (): Promise<PreparedReportFile> => {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Порівняння');
+    sheet.addRow(['Перший період', firstDates]);
+    sheet.addRow(['Другий період', secondDates]);
+    sheet.addRow(['Назва', ...active.flatMap(metric => [labels[metric] + ' — ' + firstDates, labels[metric] + ' — ' + secondDates, labels[metric] + ' — різниця', labels[metric] + ' — %'])]);
+    const write = (name: string, a: SalesReportRow | undefined, b: SalesReportRow | undefined, depth = 0, total = false) => {
+      const excelRow = sheet.addRow([name, ...active.flatMap(metric => {
+        // A missing row means zero sales, not an unknown VMD.
+        // Keep an explicit null only when the backend actually reports unknown VMD.
+        const one = metric === 'vmd' && a && a.vmd == null ? null : Number(a?.[metric] ?? 0);
+        const two = metric === 'vmd' && b && b.vmd == null ? null : Number(b?.[metric] ?? 0);
+        return [one, two, one == null || two == null ? null : one - two,
+          one == null || two == null || two === 0 ? null : (one - two) / Math.abs(two) * 100];
+      })]);
+      excelRow.height = total ? 27 : 22;
+      excelRow.alignment = { vertical: 'middle' };
+      excelRow.getCell(1).alignment = { vertical: 'middle', indent: Math.min(depth, 8) };
+      const baseColor = total ? 'FF17324D' : depth === 0 ? 'FFEAF1F8' : 'FFFFFFFF';
+      excelRow.eachCell({ includeEmpty: true }, cell => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: baseColor } };
+        cell.font = { bold: total || depth === 0, color: { argb: total ? 'FFFFFFFF' : 'FF233247' } };
+        cell.border = { bottom: { style: 'hair', color: { argb: 'FFDDE5ED' } } };
+        if (Number(cell.col) > 1 && typeof cell.value === 'number') cell.numFmt = (Number(cell.col) - 1) % 4 === 0 ? '0.0"%"' : '#,##0.00;[Red](#,##0.00);–';
       });
-      sheet.views = [{ state: 'frozen', xSplit: 1, ySplit: 3 }];
-      sheet.autoFilter = { from: { row: 3, column: 1 }, to: { row: sheet.rowCount - 1, column: sheet.columnCount } };
-
-      sheet.getColumn(1).width = 42;
-      for (let index = 2; index <= sheet.columnCount; index++) sheet.getColumn(index).width = 17;
-      const data = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([data as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      const safePart = (value: string) => value.replace(/[^\p{L}\p{N} ._—-]/gu, '-').replace(/\s+/g, ' ').trim().slice(0, 85);
-      link.download = `Порівняння-${safePart(agentLabel || 'Усі торгові агенти')}-${safePart(firstLabel)}_vs_${safePart(secondLabel)}.xlsx`;
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (error) {
-      setExportError(error instanceof Error ? error.message : 'Помилка експорту Excel');
-    } finally {
-      setExporting(false);
+      active.forEach((_, index) => {
+        for (const offset of [2, 3]) {
+          const cell = excelRow.getCell(2 + index * 4 + offset);
+          const value = cell.value;
+          if (typeof value === 'number' && Number(value) !== 0) {
+            const positive = Number(value) > 0;
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: positive ? 'FFDDF4E5' : 'FFFFE1E1' } };
+            cell.font = { bold: true, color: { argb: positive ? 'FF17683B' : 'FFA52A2A' } };
+          }
+        }
+      });
+    };
+    for (const { row, depth } of visible) write(row.label, firstByKey.get(keyOf(row)), secondByKey.get(keyOf(row)), depth);
+    write('Разом', first.totals, second.totals, 0, true);
+    for (const index of [1, 2]) {
+      sheet.getRow(index).font = { bold: true, color: { argb: 'FF17324D' } };
     }
-  };
+    const header = sheet.getRow(3);
+    header.height = 42;
+    header.alignment = { vertical: 'middle', wrapText: true };
+    header.eachCell(cell => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF24547A' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    });
+    sheet.views = [{ state: 'frozen', xSplit: 1, ySplit: 3 }];
+    sheet.autoFilter = { from: { row: 3, column: 1 }, to: { row: sheet.rowCount - 1, column: sheet.columnCount } };
+
+    sheet.getColumn(1).width = 42;
+    for (let index = 2; index <= sheet.columnCount; index++) sheet.getColumn(index).width = 17;
+    const data = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([new Uint8Array(data)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const safePart = (value: string) => value.replace(/[^\p{L}\p{N} ._—-]/gu, '-').replace(/\s+/g, ' ').trim().slice(0, 85);
+    const fileName = `Порівняння-${safePart(agentLabel || 'Усі торгові агенти')}-${safePart(firstLabel)}_vs_${safePart(secondLabel)}.xlsx`;
+    return { blob, fileName, title: 'Порівняння періодів продажів' };
+  }, [active, agentLabel, firstDates, secondDates, firstLabel, secondLabel, visible, firstByKey, secondByKey, keyOf, first.totals, second.totals]);
+  const exportFile = prepared?.source === prepareExcel ? prepared.file : null;
+  useEffect(() => {
+    let cancelled = false;
+    setExportError('');
+    const timer = window.setTimeout(() => {
+      void prepareExcel().then(file => {
+        if (!cancelled) setPrepared({ source: prepareExcel, file });
+      }).catch(error => {
+        if (!cancelled) setExportError(error instanceof Error ? error.message : 'Не вдалося підготувати Excel.');
+      });
+    }, 100);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [prepareExcel]);
   return (
     <section className={styles.wrapper}>
       <h3>Порівняння періодів</h3>
-      <button type="button" onClick={() => void exportExcel()} disabled={exporting}>{exporting ? 'Готуємо Excel…' : 'Зберегти Excel'}</button>
+      <div className={styles.exportActions}>
+        <SalesExcelActions file={exportFile} preparing={!exportFile && !exportError} />
+      </div>
       {exportError && <p role="alert">{exportError}</p>}
       <p className={styles.hint}>{firstDates} · {secondDates}. Різниця = перший період − другий період.</p>
       <div className={styles.scroll}>

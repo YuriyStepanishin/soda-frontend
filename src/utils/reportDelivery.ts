@@ -33,7 +33,15 @@ export async function sharePreparedReport(report: PreparedReportFile): Promise<R
   }
 }
 
-export function reportDeliveryMessage(status: 'saved' | ReportSharingStatus): string {
+export function reportDeliveryMessage(status: 'saved' | ReportSharingStatus, downloaded = true): string {
+  if (!downloaded) {
+    switch (status) {
+      case 'shared': return 'Файл передано системі для відправлення.';
+      case 'cancelled': return 'Відправлення скасовано.';
+      case 'unsupported': return 'Браузер не може передати Excel-файл у застосунок. Збережіть Excel і прикріпіть файл вручну.';
+      case 'retry': return 'Не вдалося відкрити меню відправлення. Спробуйте ще раз або збережіть Excel і прикріпіть файл вручну.';
+    }
+  }
   switch (status) {
     case 'saved': return 'Завантаження Excel-файла розпочато.';
     case 'shared': return 'Завантаження файла розпочато; файл передано системі для відправлення.';

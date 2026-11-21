@@ -16,7 +16,7 @@ export type ResultsExportParams = {
   tenant: string | null;
   dateFrom: string;
   dateTo: string;
-  shareWithApps: boolean;
+  shareWithApps?: boolean;
   signal?: AbortSignal;
 };
 

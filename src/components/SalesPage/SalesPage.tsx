@@ -5,8 +5,8 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { prepareSalesReportFile } from '../../utils/exportSalesToExcel';
 import type { ResultsExportParams } from '../../utils/exportSalesToExcel';
 import type { ReportExportRow } from '../../utils/exportSalesToExcel';
-import { isMobileOrTablet, reportDeliveryMessage, sharePreparedReport, savePreparedReport } from '../../utils/reportDelivery';
 import type { PreparedReportFile } from '../../utils/reportDelivery';
+import SalesExcelActions from '../SalesExcelActions';
 import {
   fetchSalesFilters,
   fetchSalesReport,
@@ -79,9 +79,6 @@ export default function SalesPage({
   const [isReportReady, setIsReportReady] = useState(false);
   const [comparePeriods, setComparePeriods] = useState(false);
   const [compareDates, setCompareDates] = useState({ dateFrom: '', dateTo: '' });
-  const [shareWithApps, setShareWithApps] = useState(isMobileOrTablet);
-  const [exporting, setExporting] = useState(false);
-  const [exportMessage, setExportMessage] = useState('');
   const [exportError, setExportError] = useState('');
   const [prepared, setPrepared] = useState<{ input: ResultsExportParams; file: PreparedReportFile } | null>(null);
   const exportController = useRef<AbortController | null>(null);
@@ -273,19 +270,6 @@ export default function SalesPage({
   });
 
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(pointer: coarse)');
-    const handleChange = () => {
-      setShareWithApps(isMobileOrTablet());
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
-  }, []);
-
   const {
     brands = [],
     groups = [],
@@ -309,28 +293,9 @@ export default function SalesPage({
 
   const format = (n: number) => numberFormatter.format(n);
 
-  const handleSaveExcel = async () => {
-    if (!prepared || prepared.input !== exportInput || exporting || reportFetching || reportError) return;
-    setExportError('');
-    setExportMessage('');
-    setExporting(true);
-    try {
-      const status = shareWithApps ? await sharePreparedReport(prepared.file) : 'saved';
-      savePreparedReport(prepared.file);
-      setExportMessage(reportDeliveryMessage(status));
-    } catch (error) {
-      if (!(error instanceof DOMException && error.name === 'AbortError')) {
-        setExportError(error instanceof Error ? error.message : 'Не вдалося експортувати дані.');
-      }
-    } finally {
-      setExporting(false);
-    }
-  };
-
   const handleEditReport = () => {
     exportController.current?.abort();
     setPrepared(null);
-    setExportMessage('');
     setExportError('');
     setIsReportReady(false);
   };
@@ -374,11 +339,13 @@ export default function SalesPage({
     rows: visibleExportRows?.source === reportData.rows ? visibleExportRows.rows : reportData.rows,
     totals: reportData.totals, metrics, title: reportTitle,
     reportMeta: selectedSummary.slice(1), tenant: activeTenant,
-    dateFrom: backendFilters.dateFrom, dateTo: backendFilters.dateTo, shareWithApps,
-  }) : null, [comparePeriods, reportData, isReportReady, reportFetching, reportError, visibleExportRows, metrics, selectedSummary, activeTenant, backendFilters.dateFrom, backendFilters.dateTo, shareWithApps]);
+    dateFrom: backendFilters.dateFrom, dateTo: backendFilters.dateTo,
+  }) : null, [comparePeriods, reportData, isReportReady, reportFetching, reportError, visibleExportRows, metrics, selectedSummary, activeTenant, backendFilters.dateFrom, backendFilters.dateTo]);
+  const exportFile = prepared?.input === exportInput ? prepared.file : null;
 
   useEffect(() => {
     if (!exportInput) return;
+    setExportError('');
     const controller = new AbortController();
     exportController.current = controller;
     const prepare = () => {
@@ -467,11 +434,8 @@ export default function SalesPage({
               <button type="button" onClick={handleEditReport}>
                 Змінити
               </button>
-              {!comparePeriods && <button type="button" disabled={exporting || !prepared || prepared.input !== exportInput} onClick={() => void handleSaveExcel()}>
-                {exporting ? 'Відправлення…' : !prepared || prepared.input !== exportInput ? 'Підготовка Excel…' : shareWithApps ? 'Зберегти та відправити' : 'Зберегти Excel'}
-              </button>}
+              {!comparePeriods && <SalesExcelActions file={exportFile} preparing={Boolean(exportInput && !exportFile && !exportError)} />}
             </div>
-            {exportMessage ? <p role="status">{exportMessage}</p> : null}
             {exportError ? <p role="alert">{exportError}</p> : null}
           </section>
         )}

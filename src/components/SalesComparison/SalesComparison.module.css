@@ -1,5 +1,7 @@
 .wrapper { width: 100%; min-width: 0; padding: 16px; border: 1px solid var(--soda-border); border-radius: 12px; background: var(--soda-surface); color: var(--soda-text); }
 .wrapper h3 { margin: 0 0 8px; }
+.exportActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.exportActions button { min-height: 40px; padding: 0 14px; border: 1px solid var(--soda-border); border-radius: 12px; background: var(--soda-control); color: var(--soda-text); }
 .hint { margin: 0 0 14px; color: var(--soda-muted); font-size: 13px; }
 .scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
 .table { border-collapse: collapse; width: 100%; min-width: 740px; font-size: 13px; font-variant-numeric: tabular-nums; }
