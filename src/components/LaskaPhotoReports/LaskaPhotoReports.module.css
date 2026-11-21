@@ -1,0 +1,121 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(12px, 3vw, 28px);
+  color: var(--soda-text);
+}
+
+.page h1,
+.page h2,
+.page p {
+  margin: 0;
+}
+
+.page h2 { font-size: 1.05rem; }
+.page > * + * { margin-top: 14px; }
+
+.panel {
+  display: grid;
+  gap: 12px;
+  padding: clamp(12px, 2vw, 20px);
+  border: 1px solid var(--soda-border);
+  border-radius: 12px;
+  background: var(--soda-surface);
+}
+
+.panel fieldset {
+  display: grid;
+  gap: 12px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.panel legend {
+  margin-bottom: 12px;
+  padding: 0;
+  font-weight: 700;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.page > .toolbar:first-child { justify-content: space-between; }
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 155px), 1fr));
+  gap: 10px;
+}
+
+.panel label { display: grid; gap: 5px; min-width: 0; }
+
+.page button,
+.panel input,
+.panel select,
+.panel textarea {
+  min-height: 42px;
+  border-radius: 8px;
+  border: 1px solid var(--soda-border);
+  padding: 7px 10px;
+  color: var(--soda-text);
+  background: var(--soda-control);
+  font: inherit;
+}
+
+.panel input,
+.panel select,
+.panel textarea {
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 16px;
+}
+
+.panel textarea { resize: vertical; }
+.page button { cursor: pointer; }
+.page button:disabled { cursor: default; opacity: .6; }
+.page .primary { background: #205dac; border-color: #205dac; color: white; font-weight: 600; }
+
+.storeResults {
+  display: grid;
+  gap: 5px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.storeResults:empty { display: none; }
+.storeResults button { display: grid; gap: 4px; text-align: start; overflow-wrap: anywhere; }
+
+.reports {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 12px;
+}
+
+.reports article { align-content: start; min-width: 0; overflow-wrap: anywhere; }
+.detail { color: var(--soda-muted); font-size: .9rem; }
+.comment { white-space: pre-wrap; }
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.photos a,
+.photos img { display: block; }
+
+.photos img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 7px;
+  object-fit: cover;
+  background: var(--soda-control);
+}
+
+.photos button { width: 100%; margin-top: 4px; overflow-wrap: anywhere; }

@@ -24,6 +24,7 @@ const ReportBonusForm = lazy(
 const PhotoGallery = lazy(
   () => import('./components/PhotoGallery/PhotoGallery')
 );
+const LaskaPhotoReports = lazy(() => import('./components/LaskaPhotoReports/LaskaPhotoReports'));
 
 const SalesPage = lazy(() => import('./components/SalesPage/SalesPage'));
 
@@ -108,6 +109,7 @@ export default function App() {
     | 'motivation'
     | 'receivables'
     | 'dictionaries'
+    | 'photo-reports'
   >('home');
 
   const [email, setEmail] = useState<string | null>(
@@ -170,7 +172,8 @@ export default function App() {
 
   const canEditDictionaries = activeDatabase === 'laska' && userRole === 'admin';
   const canOpenMotivation = activeDatabase === 'laska' && ['admin', 'manager'].includes(getAuthSession()?.user.role ?? '');
-  const canOpenReceivables = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent'].includes(getAuthSession()?.user.role ?? '');
+  const canUseLaskaTools = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent'].includes(getAuthSession()?.user.role ?? '');
+  const canOpenReceivables = canUseLaskaTools;
 
   const canOpenDictionaries = canOpenReceivables;
 
@@ -257,6 +260,9 @@ export default function App() {
   }
 
   function renderPage() {
+  if (page === 'photo-reports' && canUseLaskaTools && email) {
+    return <Suspense fallback={<Loader />}><LaskaPhotoReports key={email} email={email} /></Suspense>;
+  }
   if (page === 'dictionaries' && canOpenDictionaries && email) {
     return <Suspense fallback={<Loader />}><DictionaryEditor key={email} email={email} canEdit={canEditDictionaries} /></Suspense>;
   }
@@ -529,6 +535,8 @@ export default function App() {
             }
             unreadMessagesCount={messagesCenter.unreadCount}
             canOpenGallery={canAccess('gallery') && backendFeatures.gallery}
+            canOpenPhotoReports={canUseLaskaTools}
+            onOpenPhotoReports={() => runProtectedAction(() => setPage('photo-reports'))}
             canOpenSales={canAccess('sales')}
             canOpenSalesByDays={canAccess('sales')}
             canOpenRouteHistory={canAccess('route-history')}
@@ -596,6 +604,7 @@ export default function App() {
   }
 
   const navigation: NavigationItem[] = [{ id: 'home', label: 'Головна', symbol: 'home', onClick: resetToHome }];
+  if (canUseLaskaTools) navigation.push({ id: 'photo-reports', label: 'Фотозвіт', symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage('photo-reports'); }) });
   if (canOpenDictionaries) navigation.push({ id: 'dictionaries', label: 'Довідники', symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage('dictionaries'); }) });
   if (canOpenReceivables) navigation.push({ id: 'receivables', label: 'Дебіторка', symbol: 'debt', onClick: () => runProtectedAction(() => { resetToHome(); setPage('receivables'); }) });
   if (canAccess('sales')) {

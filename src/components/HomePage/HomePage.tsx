@@ -16,6 +16,7 @@ interface Props {
   onOpenDisplay: () => void;
   onOpenBonus: () => void;
   onOpenGallery: () => void;
+  onOpenPhotoReports: () => void;
   onOpenDictionaries: () => void;
   canOpenDictionaries: boolean;
   onOpenSales: () => void;
@@ -38,6 +39,7 @@ interface Props {
   canOpenDisplayReport: boolean;
   canOpenBonusReport: boolean;
   canOpenGallery: boolean;
+  canOpenPhotoReports: boolean;
   canOpenSales: boolean;
   canOpenSalesByDays: boolean;
   canOpenRouteHistory: boolean;
@@ -53,6 +55,7 @@ export default function HomePage({
   onOpenDisplay,
   onOpenBonus,
   onOpenGallery,
+  onOpenPhotoReports,
   onOpenDictionaries,
   canOpenDictionaries,
   onOpenSales,
@@ -75,6 +78,7 @@ export default function HomePage({
   canOpenDisplayReport,
   canOpenBonusReport,
   canOpenGallery,
+  canOpenPhotoReports,
   canOpenSales,
   canOpenSalesByDays,
   canOpenRouteHistory,
@@ -299,10 +303,12 @@ export default function HomePage({
     },
     {
       key: 'gallery',
-      label: 'Фотогалерея',
+      label: activeDatabase === 'laska' ? 'Фотозвіт' : 'Фотогалерея',
       icon: withVersion('/icons/gallery-icon-64.svg'),
-      onClick: onOpenGallery,
-      visible: activeDatabase === 'olgatorg' && canOpenGallery,
+      onClick: activeDatabase === 'laska' ? onOpenPhotoReports : onOpenGallery,
+      visible: activeDatabase === 'laska'
+        ? canOpenPhotoReports
+        : activeDatabase === 'olgatorg' && canOpenGallery,
     },
     {
       key: 'sales-by-days',

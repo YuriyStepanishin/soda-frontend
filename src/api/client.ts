@@ -151,9 +151,10 @@ export async function apiPostJson<TResponse, TBody>(
 export async function apiPostFormData<TResponse>(
   path: string,
   body: FormData,
-  options?: { authenticated?: boolean }
+  options?: { authenticated?: boolean; tenant?: string }
 ): Promise<TResponse> {
   const headers = new Headers();
+  if (options?.tenant) headers.set('x-tenant-id', options.tenant);
 
   if (options?.authenticated) {
     const token = getToken();
