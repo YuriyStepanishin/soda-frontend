@@ -5,6 +5,11 @@
 .tabs{margin:0 0 20px;border-bottom:1px solid var(--soda-border);padding-bottom:12px}
 .tools{justify-content:space-between;margin-bottom:16px}
 .tools input{flex:1;min-width:180px}
+.main .seasonalToggle{display:flex;align-items:center;gap:9px;width:fit-content;min-height:44px;margin:0 0 12px;font-weight:600;cursor:pointer}
+.main .seasonalToggle input{appearance:none;position:relative;flex:none;width:42px;min-height:24px;height:24px;padding:0;margin:0;border-radius:999px;background:var(--soda-control);cursor:pointer}
+.main .seasonalToggle input::before{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--soda-text)}
+.main .seasonalToggle input:checked{background:var(--soda-accent);border-color:var(--soda-accent)}
+.main .seasonalToggle input:checked::before{left:21px;background:var(--soda-on-accent)}
 .main button,.main input{font:inherit;border:1px solid var(--soda-border);border-radius:10px;padding:11px 14px;background:var(--soda-surface);color:var(--soda-text);min-height:44px;box-sizing:border-box}
 .main input{width:100%;outline-offset:2px}
 .main input:focus-visible,.main button:focus-visible{outline:2px solid var(--soda-accent);outline-offset:2px}
@@ -29,6 +34,8 @@
 .dialog h2{margin:0 0 16px;font-size:22px}
 .dialog label{display:grid;gap:7px;margin:12px 0;font-size:14px;font-weight:600}
 .dialog input{width:100%;box-sizing:border-box;font-weight:400}
+.dialog select{width:100%;min-width:0;min-height:44px;box-sizing:border-box;padding:10px 14px;border:1px solid var(--soda-border);border-radius:10px;background:var(--soda-surface);color:var(--soda-text);font:inherit;font-weight:400}
+.dialog select:focus-visible{outline:2px solid var(--soda-accent);outline-offset:2px}
 .dialog .actions{justify-content:flex-end;margin-top:22px}
 @media(max-width:650px){.main{padding:14px 10px}.header{gap:10px}.header h1{font-size:20px}.tabs button{flex:1}.tools{flex-direction:column;align-items:stretch}.tools input{min-width:0}.item{align-items:stretch;flex-direction:column;padding:14px}.item .actions{display:grid;grid-template-columns:1fr 1fr}.item .actions button{min-width:0;padding:10px 6px}.dialog{max-height:calc(100dvh - 24px)}.dialog .actions{display:grid;grid-template-columns:1fr 1fr}.pager{gap:8px}}
 @media(prefers-reduced-motion:reduce){.main button{transition:none}}

@@ -87,19 +87,30 @@ export default function HomePage({
 }: Props) {
   const withVersion = (iconPath: string) => `${iconPath}?v=${__APP_VERSION__}`;
 
-  const [updateState, setUpdateState] = useState<'idle' | 'checking' | 'ready' | 'current' | 'offline' | 'error'>('idle');
+  const [updateState, setUpdateState] = useState<
+    'idle' | 'checking' | 'ready' | 'current' | 'offline' | 'error'
+  >('idle');
   const [updateMessage, setUpdateMessage] = useState('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const handleRefreshApp = async () => {
     if (updateState === 'checking') return;
     if (updateAvailable) {
-      if (!window.confirm('Завантажити нову версію? Незбережені дані форми можуть бути втрачені.')) return;
+      if (
+        !window.confirm(
+          'Завантажити нову версію? Незбережені дані форми можуть бути втрачені.'
+        )
+      )
+        return;
       setUpdateState('checking');
       setUpdateMessage('Застосовуємо оновлення…');
       const registration = await navigator.serviceWorker?.getRegistration();
       if (registration?.waiting) {
         const controllerChanged = new Promise<void>(resolve => {
-          navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true });
+          navigator.serviceWorker.addEventListener(
+            'controllerchange',
+            () => resolve(),
+            { once: true }
+          );
           window.setTimeout(resolve, 5000);
         });
         registration.waiting.postMessage({ type: 'SKIP_WAITING' });
@@ -116,7 +127,9 @@ export default function HomePage({
         setUpdateMessage('Немає інтернету. Перевірку оновлень відкладено.');
         return;
       }
-      const response = await fetch('/version.json?check=' + Date.now(), { cache: 'no-store' });
+      const response = await fetch('/version.json?check=' + Date.now(), {
+        cache: 'no-store',
+      });
       if (!response.ok) throw new Error('Не вдалося отримати версію сервера');
       const payload: { version?: string } = await response.json();
       if (!payload.version) throw new Error('Відсутній номер версії');
@@ -127,40 +140,149 @@ export default function HomePage({
       if (payload.version !== __APP_VERSION__) {
         setUpdateAvailable(true);
         setUpdateState('ready');
-        setUpdateMessage('Доступна версія ' + payload.version + '. Натисніть «Встановити оновлення».');
+        setUpdateMessage(
+          'Доступна версія ' +
+            payload.version +
+            '. Натисніть «Встановити оновлення».'
+        );
       } else {
         setUpdateState('current');
         setUpdateMessage('У вас актуальна версія ' + __APP_VERSION__ + '.');
       }
     } catch (error) {
       setUpdateState('error');
-      setUpdateMessage(error instanceof Error ? error.message : 'Помилка перевірки оновлення');
+      setUpdateMessage(
+        error instanceof Error ? error.message : 'Помилка перевірки оновлення'
+      );
     }
   };
   const iconPaths: Record<string, ReactNode> = {
-    dictionaries: <><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="4" width="8" height="16" rx="1"/><path d="M5 8h4M15 8h4M5 12h4M15 12h4"/></>,
-    receivables: <><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M7 3v4M17 3v4M7 15h4M15 15h2"/></>,
-    motivation: <><path d="m3 17 6-6 4 4 8-9"/><path d="M15 6h6v6"/></>,
-    sales: <><path d="M4 20V12M10 20V7M16 20v-5M22 20V3"/></>,
-    'route-history': <><path d="M6 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M9 16h5a4 4 0 0 0 4-4v-2"/></>,
-    gallery: <><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/></>,
-    'sales-by-days': <><path d="M3 3v18h18M7 15l4-5 4 3 5-7"/></>,
-    'active-customer-base': <><path d="M4 20V5h16v15M8 9h8M8 13h8M8 17h5"/></>,
-    messages: <><path d="M4 4h16v13H8l-4 4zM8 9h8M8 13h5"/></>,
-    implementation: <><path d="M4 20V4h16M8 15l4-4 3 2 5-7"/></>,
-    'store-check-review': <><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 12l3 3 5-6"/></>,
-    'plan-targets': <><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></>,
-    bonus: <><path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/></>,
-    display: <><path d="m3 11 13-6v14L3 14zM7 15l2 6h4l-2-5M16 10h4"/></>,
-    'store-check': <><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 12l3 3 5-6"/></>,
+    dictionaries: (
+      <>
+        <rect x="3" y="4" width="8" height="16" rx="1" />
+        <rect x="13" y="4" width="8" height="16" rx="1" />
+        <path d="M5 8h4M15 8h4M5 12h4M15 12h4" />
+      </>
+    ),
+    receivables: (
+      <>
+        <rect x="3" y="5" width="18" height="15" rx="2" />
+        <path d="M3 10h18M7 3v4M17 3v4M7 15h4M15 15h2" />
+      </>
+    ),
+    motivation: (
+      <>
+        <path d="m3 17 6-6 4 4 8-9" />
+        <path d="M15 6h6v6" />
+      </>
+    ),
+    sales: (
+      <>
+        <path d="M4 20V12M10 20V7M16 20v-5M22 20V3" />
+      </>
+    ),
+    'route-history': (
+      <>
+        <path d="M6 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+        <path d="M9 16h5a4 4 0 0 0 4-4v-2" />
+      </>
+    ),
+    gallery: (
+      <>
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <circle cx="8" cy="8" r="1.5" />
+        <path d="m3 17 6-6 4 4 3-3 5 5" />
+      </>
+    ),
+    'sales-by-days': (
+      <>
+        <path d="M3 3v18h18M7 15l4-5 4 3 5-7" />
+      </>
+    ),
+    'active-customer-base': (
+      <>
+        <path d="M4 20V5h16v15M8 9h8M8 13h8M8 17h5" />
+      </>
+    ),
+    messages: (
+      <>
+        <path d="M4 4h16v13H8l-4 4zM8 9h8M8 13h5" />
+      </>
+    ),
+    implementation: (
+      <>
+        <path d="M4 20V4h16M8 15l4-4 3 2 5-7" />
+      </>
+    ),
+    'store-check-review': (
+      <>
+        <rect x="5" y="4" width="14" height="17" rx="2" />
+        <path d="M9 4V2h6v2M8 12l3 3 5-6" />
+      </>
+    ),
+    'plan-targets': (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <circle cx="12" cy="12" r="5" />
+        <circle cx="12" cy="12" r="1" />
+      </>
+    ),
+    bonus: (
+      <>
+        <path d="M3 7h4l2-3h6l2 3h4v13H3z" />
+        <circle cx="12" cy="13" r="4" />
+      </>
+    ),
+    display: (
+      <>
+        <path d="m3 11 13-6v14L3 14zM7 15l2 6h4l-2-5M16 10h4" />
+      </>
+    ),
+    'store-check': (
+      <>
+        <rect x="5" y="4" width="14" height="17" rx="2" />
+        <path d="M9 4V2h6v2M8 12l3 3 5-6" />
+      </>
+    ),
   };
-  const renderIcon = (key: string) => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{iconPaths[key] ?? iconPaths.dictionaries}</svg>;
-
+  const renderIcon = (key: string) => (
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {iconPaths[key] ?? iconPaths.dictionaries}
+    </svg>
+  );
 
   const topMenuItems: MenuItem[] = [
-    { key: 'dictionaries', label: 'Довідники', icon: withVersion('/icons/ClientProduct.svg'), onClick: onOpenDictionaries, visible: canOpenDictionaries },
-    { key: 'receivables', label: 'Дебіторка', icon: withVersion('/icons/calendar-icon-64.svg'), onClick: onOpenReceivables, visible: canOpenReceivables },
-    { key: 'motivation', label: 'Контроль мотивації', icon: withVersion('/icons/implementation.svg'), onClick: onOpenMotivation, visible: activeDatabase === 'laska' && canOpenMotivation },
+    {
+      key: 'dictionaries',
+      label: 'Довідники',
+      icon: withVersion('/icons/ClientProduct.svg'),
+      onClick: onOpenDictionaries,
+      visible: canOpenDictionaries,
+    },
+    {
+      key: 'receivables',
+      label: 'Дебіторка',
+      icon: withVersion('/icons/calendar-icon-64.svg'),
+      onClick: onOpenReceivables,
+      visible: canOpenReceivables,
+    },
+    {
+      key: 'motivation',
+      label: 'Контроль мотивації',
+      icon: withVersion('/icons/implementation.svg'),
+      onClick: onOpenMotivation,
+      visible: activeDatabase === 'laska' && canOpenMotivation,
+    },
     {
       key: 'sales',
       label: 'Продажі',
@@ -252,16 +374,98 @@ export default function HomePage({
   ];
 
   const descriptions: Record<string, string> = {
-    sales: 'Показники, фільтри та звіти', 'sales-by-days': 'Динаміка продажів і графіки',
-    'route-history': 'Торгові точки та історія замовлень', motivation: 'Перевірки та результати команди',
-    gallery: 'Фото та результати перевірок', messages: 'Повідомлення для команди',
+    sales: 'Показники, фільтри та звіти',
+    'sales-by-days': 'Динаміка продажів і графіки',
+    'route-history': 'Торгові точки та історія замовлень',
+    motivation: 'Перевірки та результати команди',
+    gallery: 'Фото та результати перевірок',
+    messages: 'Повідомлення для команди',
   };
-  return <main className={styles.container}>
-    <header className={styles.hero}><div><p className={styles.eyebrow}>{activeDatabase ? activeDatabase.toUpperCase() : 'SODA'}</p></div><DateTime /></header>
-    <section className={styles.grid} aria-label="Розділи SODA">{topMenuItems.filter(item => item.visible).map(item => <button type="button" key={item.key} onClick={item.onClick} className={styles.card}>
-      <span className={styles.iconWrap}>{renderIcon(item.key)}</span><span className={styles.cardCopy}><strong>{item.label}</strong><small>{descriptions[item.key] ?? 'Відкрити розділ'}</small></span>{item.badge ? <span className={styles.badge}>{item.badge}</span> : <span className={styles.arrow} aria-hidden="true">↗</span>}
-    </button>)}</section>
-    {bottomMenuItems.some(item => item.visible) && <section className={styles.photoSection}><h2>Фотозвіти та перевірки</h2><div className={styles.grid}>{bottomMenuItems.filter(item => item.visible).map(item => <button type="button" key={item.key} onClick={item.onClick} className={styles.card}><span className={styles.iconWrap}>{renderIcon(item.key)}</span><span className={styles.cardCopy}><strong>{item.label}</strong></span><span className={styles.arrow} aria-hidden="true">↗</span></button>)}</div></section>}
-    <footer className={styles.footer}><span>SODA · v{__APP_VERSION__}</span><div className={styles.updateArea}><button type="button" disabled={updateState === 'checking'} aria-busy={updateState === 'checking'} onClick={() => void handleRefreshApp()}>{updateState === 'checking' ? 'Перевірка…' : updateAvailable ? 'Встановити оновлення' : 'Перевірити оновлення'}</button>{updateMessage && <span role="status" aria-live="polite">{updateMessage}</span>}</div></footer>
-  </main>;
+  return (
+    <main className={styles.container}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>
+            {activeDatabase ? activeDatabase.toUpperCase() : 'SODA'}
+          </p>
+        </div>
+        <DateTime />
+      </header>
+      <section className={styles.grid} aria-label="Розділи SODA">
+        {topMenuItems
+          .filter(item => item.visible)
+          .map(item => (
+            <button
+              type="button"
+              key={item.key}
+              onClick={item.onClick}
+              className={styles.card}
+            >
+              <span className={styles.iconWrap}>{renderIcon(item.key)}</span>
+              <span className={styles.cardCopy}>
+                <strong>{item.label}</strong>
+                <small>{descriptions[item.key] ?? 'Відкрити розділ'}</small>
+              </span>
+              {item.badge ? (
+                <span className={styles.badge}>{item.badge}</span>
+              ) : (
+                <span className={styles.arrow} aria-hidden="true">
+                  ↗
+                </span>
+              )}
+            </button>
+          ))}
+      </section>
+      {bottomMenuItems.some(item => item.visible) && (
+        <section className={styles.photoSection}>
+          <h2>Фотозвіти та перевірки</h2>
+          <div className={styles.grid}>
+            {bottomMenuItems
+              .filter(item => item.visible)
+              .map(item => (
+                <button
+                  type="button"
+                  key={item.key}
+                  onClick={item.onClick}
+                  className={styles.card}
+                >
+                  <span className={styles.iconWrap}>
+                    {renderIcon(item.key)}
+                  </span>
+                  <span className={styles.cardCopy}>
+                    <strong>{item.label}</strong>
+                  </span>
+                  <span className={styles.arrow} aria-hidden="true">
+                    ↗
+                  </span>
+                </button>
+              ))}
+          </div>
+        </section>
+      )}
+      <footer className={styles.footer}>
+        <span>SODA · v{__APP_VERSION__}</span>
+        <div className={styles.updateArea}>
+          <button
+            className={styles.updateButton}
+            type="button"
+            disabled={updateState === 'checking'}
+            aria-busy={updateState === 'checking'}
+            onClick={() => void handleRefreshApp()}
+          >
+            {updateState === 'checking'
+              ? 'Перевірка…'
+              : updateAvailable
+                ? 'Встановити оновлення'
+                : 'Перевірити оновлення'}
+          </button>
+          {updateMessage && (
+            <span role="status" aria-live="polite">
+              {updateMessage}
+            </span>
+          )}
+        </div>
+      </footer>
+    </main>
+  );
 }

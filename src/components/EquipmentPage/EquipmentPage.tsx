@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { apiGet } from '../../api/client';
 import styles from './EquipmentPage.module.css';
 
@@ -30,6 +30,7 @@ type Presence = 'all' | 'present' | 'absent' | 'unknown';
 type EquipmentDirectory = { stores: Store[]; routes: string[]; hasNext: boolean };
 
 const numberFormat = new Intl.NumberFormat('uk-UA');
+const pageSize = 20;
 
 function formatNumber(value: string | null) {
   return value === null ? '—' : numberFormat.format(Number(value));
@@ -40,20 +41,21 @@ export default function EquipmentPage({ email }: { email: string }) {
   const [search, setSearch] = useState('');
   const [route, setRoute] = useState('');
   const [presence, setPresence] = useState<Presence>('all');
-  const [page, setPage] = useState(1);
-  const { data, isPending, isError, refetch } = useQuery({
-    queryKey: ['equipment-stores', 'laska', email, search, route, presence, page],
-    queryFn: ({ signal }) => apiGet<EquipmentDirectory>(
-      '/api/laska/equipment/stores', { authenticated: true, query: { search, route, presence, page }, signal },
+  const { data, isPending, isError, refetch, hasNextPage, fetchNextPage, isFetching, isFetchNextPageError, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['equipment-stores', 'laska', email, search, route, presence, pageSize],
+    initialPageParam: 1,
+    queryFn: ({ pageParam, signal }) => apiGet<EquipmentDirectory>(
+      '/api/laska/equipment/stores', { authenticated: true, query: { search, route, presence, page: pageParam, pageSize }, signal },
     ),
+    getNextPageParam: (lastPage, _pages, lastPageParam) => lastPage.hasNext ? lastPageParam + 1 : undefined,
   });
+  const stores = data?.pages.flatMap(page => page.stores) ?? [];
 
   return (
     <section aria-label="Обладнання торгових точок">
       <form className={styles.search} onSubmit={event => {
         event.preventDefault();
         setSearch(input.trim());
-        setPage(1);
       }}>
         <label>
           Пошук торгової точки
@@ -65,10 +67,9 @@ export default function EquipmentPage({ email }: { email: string }) {
           Маршрут
           <select value={route} onChange={event => {
             setRoute(event.target.value);
-            setPage(1);
           }}>
             <option value="">Усі маршрути</option>
-            {[...new Set([route, ...(data?.routes ?? [])].filter(Boolean))].map(value => (
+            {[...new Set([route, ...(data?.pages[0]?.routes ?? [])].filter(Boolean))].map(value => (
               <option key={value} value={value}>{value}</option>
             ))}
           </select>
@@ -77,7 +78,6 @@ export default function EquipmentPage({ email }: { email: string }) {
           Наявність обладнання
           <select value={presence} onChange={event => {
             setPresence(event.target.value as Presence);
-            setPage(1);
           }}>
             <option value="all">Усі записи</option>
             <option value="present">Є в точці</option>
@@ -92,20 +92,19 @@ export default function EquipmentPage({ email }: { email: string }) {
             setSearch('');
             setRoute('');
             setPresence('all');
-            setPage(1);
           }}>Скинути</button>
         )}
       </form>
 
       {isPending && <p role="status">Завантажую довідник…</p>}
-      {isError && <div role="alert">
+      {isError && !data && <div role="alert">
         <p>Не вдалося завантажити довідник.</p>
         <button type="button" onClick={() => void refetch()}>Повторити</button>
       </div>}
-      {data?.stores.length === 0 && <p role="status">Торгових точок не знайдено.</p>}
-      {data && data.stores.length > 0 && (
+      {data && stores.length === 0 && <p role="status">Торгових точок не знайдено.</p>}
+      {stores.length > 0 && (
         <div className={styles.stores}>
-          {data.stores.map(store => (
+          {stores.map(store => (
             <details key={store.store_code} className={styles.store}>
               <summary>
                 <span className={styles.storeIdentity}>
@@ -134,12 +133,13 @@ export default function EquipmentPage({ email }: { email: string }) {
           ))}
         </div>
       )}
-      {(page > 1 || data?.hasNext) && (
-        <nav className={styles.pagination} aria-label="Сторінки довідника">
-          <button type="button" disabled={page === 1} onClick={() => setPage(page - 1)}>Попередня</button>
-          <span aria-live="polite">Сторінка {page}</span>
-          <button type="button" disabled={!data?.hasNext} onClick={() => setPage(page + 1)}>Наступна</button>
-        </nav>
+      {isFetchNextPageError && <p role="alert">Не вдалося завантажити наступні торгові точки.</p>}
+      {hasNextPage && (
+        <div className={styles.pagination}>
+          <button type="button" disabled={isFetching} onClick={() => void fetchNextPage()}>
+            {isFetchingNextPage ? 'Завантаження…' : 'Показати ще'}
+          </button>
+        </div>
       )}
     </section>
   );

@@ -1,0 +1,25 @@
+.price h2{margin:0 0 4px}
+.muted{color:var(--soda-muted);margin:5px 0 12px}
+.controls{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin:14px 0}
+.controls label,.filter{display:grid;gap:5px;min-width:0;font-size:14px}
+.controls label:first-child{flex:1 1 190px}
+.controls input.percent{width:92px}
+.controls select,.filter details>summary{box-sizing:border-box;min-height:44px;padding:10px;border:1px solid var(--soda-border);border-radius:10px;background:var(--soda-surface);color:var(--soda-text);font:inherit}
+.filter{flex:1 1 190px;position:relative}
+.filter details>summary{cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tree{position:absolute;z-index:5;top:100%;inset-inline-start:0;width:min(365px,calc(100vw - 32px));max-height:45vh;overflow:auto;padding:8px;border:1px solid var(--soda-border);border-radius:10px;background:var(--soda-surface);box-shadow:var(--soda-shadow);box-sizing:border-box}
+.tree ul{list-style:none;margin:0;padding:0}
+.tree li ul{margin-left:9px;padding-left:9px;border-left:1px solid var(--soda-border)}
+.tree button,.tree details>summary{width:100%;text-align:left;min-height:0;padding:7px;border:0;border-radius:5px;white-space:normal}
+.tree label.sectionChoice{display:flex;align-items:center;gap:6px;padding:3px 4px;cursor:pointer}
+.tree summary .sectionChoice{display:inline-flex}
+.tree .sectionChoice input[type=checkbox]{width:16px;min-height:16px;height:16px;padding:0;margin:0;flex:none;accent-color:var(--soda-accent)}
+.delivery{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.scroll{overflow:auto;max-height:62vh;border:1px solid var(--soda-border);border-radius:10px;background:var(--soda-surface)}
+.scroll table{width:100%;min-width:520px;border-collapse:separate;border-spacing:0}
+.scroll th,.scroll td{padding:9px;text-align:left;border-bottom:1px solid var(--soda-border);vertical-align:top}
+.scroll th{position:sticky;top:0;background:var(--soda-surface);z-index:1}
+.scroll th:nth-child(n+3),.scroll td:nth-child(n+3){text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll td:last-child{font-weight:700}
+.scroll .sectionHeading th{position:static;background:var(--soda-control);text-align:left;white-space:normal}
+.pager{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
