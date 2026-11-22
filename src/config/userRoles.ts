@@ -39,6 +39,8 @@ const ROLE_ACCESS: Record<UserRole, AppSection[]> = {
     'messages',
     'implementation',
   ],
+  manager: ['display-report', 'bonus-report', 'gallery', 'sales', 'route-history', 'active-customer-base', 'messages', 'implementation', 'plan-targets'],
+  brand_manager: ['display-report', 'bonus-report', 'gallery', 'sales', 'route-history', 'active-customer-base', 'messages', 'implementation', 'plan-targets'],
   admin: [
     'display-report',
     'bonus-report',
@@ -129,9 +131,9 @@ export function canViewRecordByEmail(
     const normalizedRepresentative = normalizeValue(representative);
     const role = normalizeRole(session.user.role);
 
-    if (role === 'admin') return true;
+    if (role === 'admin' || role === 'manager') return true;
 
-    if (role === 'supervisor') {
+    if (role === 'supervisor' || role === 'brand_manager') {
       const allowedDepartments = (
         session.user.departments.length
           ? session.user.departments
@@ -140,7 +142,7 @@ export function canViewRecordByEmail(
             : []
       ).map(normalizeValue);
 
-      if (allowedDepartments.length === 0) return true;
+      if (allowedDepartments.length === 0) return false;
       return allowedDepartments.includes(normalizedDepartment);
     }
 
@@ -187,6 +189,8 @@ export function canUserSeeBrand(
 
 export function getRoleLabel(role: UserRole): string {
   if (role === 'admin') return 'Адміністратор';
+  if (role === 'manager') return 'Менеджер';
+  if (role === 'brand_manager') return 'Бренд-менеджер';
   if (role === 'supervisor') return 'Супервайзер';
   return 'Торговий представник';
 }
