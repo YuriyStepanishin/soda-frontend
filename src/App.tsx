@@ -172,7 +172,7 @@ export default function App() {
   const userRole = getUserRole(email);
   const userDepartment = getUserDepartment(email);
 
-  const canEditDictionaries = activeDatabase === 'laska' && userRole === 'admin';
+  const canEditDictionaries = activeDatabase === 'laska' && ['admin', 'manager'].includes(userRole ?? '');
   const canOpenMotivation = activeDatabase === 'laska' && ['admin', 'manager'].includes(getAuthSession()?.user.role ?? '');
   const canUseLaskaTools = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent', 'brand_manager'].includes(userRole ?? getAuthSession()?.user.role ?? '');
   const canOpenReceivables = activeDatabase === 'laska' && !!email && canUseLaskaTools;
