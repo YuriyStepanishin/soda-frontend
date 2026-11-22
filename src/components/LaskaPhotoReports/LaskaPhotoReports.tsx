@@ -52,6 +52,43 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
   const camera = useRef<HTMLInputElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
 
+  const [draftStatus, setDraftStatus] = useState<'saving' | 'saved' | 'error'>('saved');
+  const pendingSave = useRef<Promise<void>>(Promise.resolve());
+  const autosaveTimer = useRef<number | null>(null);
+  const valueRef = useRef(value);
+  valueRef.current = value;
+
+  // Serialize IndexedDB writes so an older draft cannot overwrite a newer one.
+  function persistDraft(snapshot: Draft): Promise<void> {
+    const write = pendingSave.current.catch(() => undefined).then(async () => {
+      await drafts.put(snapshot);
+    });
+    pendingSave.current = write;
+    return write;
+  }
+
+  useEffect(() => {
+    setDraftStatus('saving');
+    autosaveTimer.current = window.setTimeout(() => {
+      autosaveTimer.current = null;
+      void persistDraft(value).then(() => setDraftStatus('saved'), () => setDraftStatus('error'));
+    }, 400);
+    return () => {
+      if (autosaveTimer.current !== null) window.clearTimeout(autosaveTimer.current);
+      // Save even on navigation/unmount; do not depend on a browser unload event.
+      void persistDraft(value).catch(() => undefined);
+    };
+  }, [value]);
+
+  async function flushDraft(): Promise<void> {
+    if (autosaveTimer.current !== null) {
+      window.clearTimeout(autosaveTimer.current);
+      autosaveTimer.current = null;
+    }
+    await persistDraft(valueRef.current);
+    setDraftStatus('saved');
+  }
+
   useEffect(() => {
     const timeout = window.setTimeout(() => setSearch(storeSearch.trim()), 250);
     return () => window.clearTimeout(timeout);
@@ -102,9 +139,10 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     setFeedback('');
     try {
       try {
-        await drafts.put(value);
+        await flushDraft();
       } catch {
-        if (!send || !navigator.onLine) throw new Error('Не вдалося зберегти чернетку на пристрої.');
+        setDraftStatus('error');
+        throw new Error('Не вдалося зберегти чернетку на пристрої. Перевірте вільне місце та дозволи браузера.');
       }
       if (!send) {
         setFeedback('Чернетку збережено на цьому пристрої.');
@@ -189,6 +227,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
         <button type="button" onClick={() => void save(false)}>Зберегти чернетку</button>
       </div>
     </fieldset>
+    <p role="status">{draftStatus === 'saving' ? 'Автозбереження чернетки…' : draftStatus === 'error' ? 'Не вдалося автоматично зберегти чернетку.' : 'Чернетка збережена на пристрої.'}</p>
     {busy && <p role="status">Обробляємо…</p>}
     {feedback && <p role="status">{feedback}</p>}
   </form>;
