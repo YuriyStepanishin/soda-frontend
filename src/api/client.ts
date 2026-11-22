@@ -169,3 +169,17 @@ export async function apiPostFormData<TResponse>(
 
   return parseResponse<TResponse>(response);
 }
+
+export async function apiPutJson<TResponse, TBody>(
+  path: string, body: TBody, options?: { authenticated?: boolean; tenant?: string },
+): Promise<TResponse> {
+  const headers = new Headers({ 'Content-Type': 'application/json' });
+  if (options?.tenant) headers.set('x-tenant-id', options.tenant);
+  if (options?.authenticated) {
+    const token = getToken();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+  }
+  return parseResponse<TResponse>(await fetch(buildUrl(path), {
+    method: 'PUT', headers, body: JSON.stringify(body),
+  }));
+}
