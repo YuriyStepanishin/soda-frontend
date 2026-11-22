@@ -14,7 +14,7 @@ const categories = {
 type Category = keyof typeof categories;
 type Assignment = { department: string; agent_name: string };
 type Store = Assignment & { id: string; store_code: string; store_name: string };
-type Report = Store & { report_date: string; category: Category; comment: string; photos: string[] };
+type Report = Store & { report_date: string; category: Category; comment: string; photos: { url: string; latitude: number | null; longitude: number | null }[] };
 type Draft = {
   owner: string;
   id: string;
@@ -22,7 +22,7 @@ type Draft = {
   date: string;
   category: Category;
   comment: string;
-  photos: { id: string; file: File }[];
+  photos: { id: string; file: File; latitude: number | null; longitude: number | null }[];
 };
 
 const database = new Dexie('SodaLaskaPhotoReports');
@@ -66,16 +66,19 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     retry: false,
   });
 
-  async function addPhotos(files: File[]) {
+  async function addPhotos(files: File[], fromCamera = false) {
     if (!files.length) return;
-    if (value.photos.length + files.length > 3) {
-      setFeedback('Можна додати до трьох фото.');
+    if (value.photos.length + files.length > 5) {
+      setFeedback('Можна додати до п’яти фото.');
       return;
     }
     setBusy(true);
     setFeedback('');
     try {
       const nextPhotos: Draft['photos'] = [];
+      const location = fromCamera && navigator.geolocation ? await new Promise<{latitude:number;longitude:number}|null>(resolve => {
+        navigator.geolocation.getCurrentPosition(position => resolve({latitude:position.coords.latitude,longitude:position.coords.longitude}), () => resolve(null), {enableHighAccuracy:true,timeout:10000,maximumAge:0});
+      }) : null;
       for (const file of files) {
         if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
           throw new Error('Виберіть фото JPG, PNG або WebP.');
@@ -84,7 +87,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
           maxSizeMB: 1.5, maxWidthOrHeight: 2400, useWebWorker: true, fileType: 'image/jpeg',
         });
         if (compressed.size > 5 * 1024 * 1024) throw new Error('Фото перевищує 5 МБ.');
-        nextPhotos.push({ id: crypto.randomUUID(), file: compressed });
+        nextPhotos.push({ id: crypto.randomUUID(), file: compressed, latitude: location?.latitude ?? null, longitude: location?.longitude ?? null });
       }
       setValue(current => ({ ...current, photos: [...current.photos, ...nextPhotos] }));
     } catch (error) {
@@ -121,6 +124,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
       data.set('reportDate', value.date);
       data.set('category', value.category);
       data.set('comment', value.comment);
+      data.set('photoLocations', JSON.stringify(value.photos.map(photo => ({ latitude: photo.latitude ?? null, longitude: photo.longitude ?? null }))));
       for (const { file } of value.photos) data.append('photos', file, 'photo.jpg');
       await apiPostFormData(endpoint, data, { authenticated: true, tenant: 'laska' });
       await drafts.delete(value.owner).catch(() => undefined);
@@ -164,15 +168,15 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
       <label>Коментар<textarea rows={3} maxLength={1000} value={value.comment}
         onChange={event => setValue(current => ({ ...current, comment: event.target.value }))} /></label>
       <div className={styles.toolbar}>
-        <button type="button" onClick={() => camera.current?.click()} disabled={value.photos.length >= 3}>Зробити фото</button>
-        <button type="button" onClick={() => gallery.current?.click()} disabled={value.photos.length >= 3}>Вибрати з галереї</button>
-        <span>Фото {value.photos.length} із 3</span>
+        <button type="button" onClick={() => camera.current?.click()} disabled={value.photos.length >= 5}>Зробити фото</button>
+        <button type="button" onClick={() => gallery.current?.click()} disabled={value.photos.length >= 5}>Вибрати з галереї</button>
+        <span>Фото {value.photos.length} із 5</span>
         {[camera, gallery].map((ref, index) => <input key={index} hidden ref={ref} type="file"
           accept="image/jpeg,image/png,image/webp" capture={index === 0 ? 'environment' : undefined}
           multiple={index === 1} onChange={event => {
             const files = Array.from(event.currentTarget.files ?? []);
             event.currentTarget.value = '';
-            void addPhotos(files);
+            void addPhotos(files, index === 0);
           }} />)}
       </div>
       {value.photos.length > 0 && <div className={styles.photos}>{value.photos.map(({ id, file }, index) =>
@@ -204,8 +208,8 @@ function DraftForm({ email, onSaved }: { email: string; onSaved: () => void }) {
     : <p role="status">{draft.isError ? 'Не вдалося відкрити чернетку.' : 'Відкриваємо чернетку…'}</p>;
 }
 
-export default function LaskaPhotoReports({ email }: { email: string }) {
-  const [creating, setCreating] = useState(false);
+export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: string; mode?: 'gallery' | 'create' }) {
+  const [creating, setCreating] = useState(mode === 'create');
   const [saved, setSaved] = useState(false);
   const [filters, setFilters] = useState(emptyFilters);
   const [applied, setApplied] = useState(emptyFilters);
@@ -241,11 +245,11 @@ export default function LaskaPhotoReports({ email }: { email: string }) {
 
   return <section className={styles.page} aria-label="Фотозвіт">
     <div className={styles.toolbar}>
-      <h1>Фотозвіт</h1>
-      <button type="button" className={styles.primary} aria-expanded={creating}
+      <h1>{mode === 'gallery' ? 'Галерея' : 'Фотозвіт'}</h1>
+      {mode === 'create' && <button type="button" className={styles.primary} aria-expanded={creating}
         onClick={() => { setCreating(!creating); setSaved(false); }}>
         {creating ? 'Закрити форму' : 'Додати фотозвіт'}
-      </button>
+      </button>}
     </div>
     {saved && <p role="status">Фотозвіт збережено.</p>}
     {creating && <DraftForm email={email} onSaved={() => {
@@ -254,7 +258,7 @@ export default function LaskaPhotoReports({ email }: { email: string }) {
       setPage(1);
       void client.invalidateQueries({ queryKey });
     }} />}
-    <form className={styles.panel} onSubmit={applyFilters}>
+    {mode === 'gallery' && <form className={styles.panel} onSubmit={applyFilters}>
       <div className={styles.filters}>
         <label>Дата від<input type="date" value={filters.from} onChange={event => setFilters({ ...filters, from: event.target.value })} /></label>
         <label>Дата до<input type="date" value={filters.to} onChange={event => setFilters({ ...filters, to: event.target.value })} /></label>
@@ -279,21 +283,21 @@ export default function LaskaPhotoReports({ email }: { email: string }) {
         <button className={styles.primary} type="submit" disabled={invalidDates}>Застосувати</button>
         <button type="button" onClick={() => { setFilters(emptyFilters); setApplied(emptyFilters); setPage(1); }}>Скинути</button>
       </div>
-    </form>
-    {reportList.isError && <p role="alert">{errorMessage(reportList.error)} <button type="button" onClick={() => void reportList.refetch()}>Повторити</button></p>}
-    {reportList.isPending && <p role="status">{reportList.isPaused ? 'Для перегляду звітів потрібен інтернет.' : 'Завантажуємо фотозвіти…'}</p>}
-    {reportList.isSuccess && !reportList.data.rows.length && <p>Фотозвітів за цими фільтрами немає.</p>}
-    <div className={styles.reports}>{reportList.data?.rows.map(report => <article key={report.id} className={styles.panel}>
+    </form>}
+    {mode === 'gallery' && reportList.isError && <p role="alert">{errorMessage(reportList.error)} <button type="button" onClick={() => void reportList.refetch()}>Повторити</button></p>}
+    {mode === 'gallery' && reportList.isPending && <p role="status">{reportList.isPaused ? 'Для перегляду звітів потрібен інтернет.' : 'Завантажуємо фотозвіти…'}</p>}
+    {mode === 'gallery' && reportList.isSuccess && !reportList.data.rows.length && <p>Фотозвітів за цими фільтрами немає.</p>}
+    {mode === 'gallery' && <div className={styles.reports}>{reportList.data?.rows.map(report => <article key={report.id} className={styles.panel}>
       <h2>{report.store_name}</h2>
       <p className={styles.detail}>{[report.report_date.split('-').reverse().join('.'), report.department,
         report.agent_name, categories[report.category]].filter(Boolean).join(' · ')}</p>
       {report.comment && <p className={styles.comment}>{report.comment}</p>}
-      <div className={styles.photos}>{report.photos.map((url, index) => <a key={url} href={url} target="_blank"
+      <div className={styles.photos}>{report.photos.map((photo, index) => <div key={photo.url} className={styles.photoWithLocation}><a href={photo.url} target="_blank"
         rel="noreferrer" aria-label={`Відкрити фото ${index + 1}: ${report.store_name}`}>
-        <img src={url} loading="lazy" referrerPolicy="no-referrer" alt={`Фото ${index + 1}: ${report.store_name}`} />
-      </a>)}</div>
-    </article>)}</div>
-    {(page > 1 || reportList.data?.hasNext) && <nav className={styles.toolbar} aria-label="Сторінки фотозвітів">
+        <img src={photo.url} loading="lazy" referrerPolicy="no-referrer" alt={`Фото ${index + 1}: ${report.store_name}`} />
+      </a>{photo.latitude != null && photo.longitude != null ? <a className={styles.location} target="_blank" rel="noreferrer" href={`https://www.google.com/maps?q=${photo.latitude},${photo.longitude}`}>📍 Геолокація</a> : <span className={styles.location}>Геолокація відсутня</span>}</div>)}</div>
+    </article>)}</div>}
+    {mode === 'gallery' && (page > 1 || reportList.data?.hasNext) && <nav className={styles.toolbar} aria-label="Сторінки фотозвітів">
       <button type="button" disabled={page === 1} onClick={() => setPage(page - 1)}>Попередня</button>
       <span>Сторінка {page}</span>
       <button type="button" disabled={!reportList.data?.hasNext} onClick={() => setPage(page + 1)}>Наступна</button>
