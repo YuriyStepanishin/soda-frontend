@@ -321,7 +321,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   return <section className={styles.page} aria-label="Фотозвіт">
     <div className={styles.toolbar}>
       <h1>{mode === 'gallery' ? 'Галерея' : 'Фотозвіт'}</h1>
-      {<button type="button" className={styles.primary} aria-expanded={creating}
+      {mode === 'create' && <button type="button" className={styles.primary} aria-expanded={creating}
         onClick={() => { setCreating(!creating); setSaved(false); }}>
         {creating ? 'Закрити форму' : 'Додати фотозвіт'}
       </button>}
