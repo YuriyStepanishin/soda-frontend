@@ -49,6 +49,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
   const [search, setSearch] = useState('');
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [locationError, setLocationError] = useState('');
   const camera = useRef<HTMLInputElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
 
@@ -112,11 +113,13 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     }
     setBusy(true);
     setFeedback('');
+    setLocationError('');
     try {
       const nextPhotos: Draft['photos'] = [];
-      const location = fromCamera && navigator.geolocation ? await new Promise<{latitude:number;longitude:number}|null>(resolve => {
-        navigator.geolocation.getCurrentPosition(position => resolve({latitude:position.coords.latitude,longitude:position.coords.longitude}), () => resolve(null), {enableHighAccuracy:true,timeout:10000,maximumAge:0});
-      }) : null;
+      if (!navigator.geolocation) throw new Error('Геолокація недоступна на цьому пристрої. Фотозвіт потребує GPS.');
+      const location = await new Promise<{latitude:number;longitude:number}>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(position => resolve({latitude:position.coords.latitude,longitude:position.coords.longitude}), () => reject(new Error('Увімкніть геолокацію та дозвольте доступ до місцезнаходження для фотозвіту.')), {enableHighAccuracy:true,timeout:15000,maximumAge:0});
+      });
       for (const file of files) {
         if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
           throw new Error('Виберіть фото JPG, PNG або WebP.');
@@ -125,10 +128,11 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
           maxSizeMB: 1.5, maxWidthOrHeight: 2400, useWebWorker: true, fileType: 'image/jpeg',
         });
         if (compressed.size > 5 * 1024 * 1024) throw new Error('Фото перевищує 5 МБ.');
-        nextPhotos.push({ id: crypto.randomUUID(), file: compressed, latitude: location?.latitude ?? null, longitude: location?.longitude ?? null });
+        nextPhotos.push({ id: crypto.randomUUID(), file: compressed, latitude: location.latitude, longitude: location.longitude });
       }
       setValue(current => ({ ...current, photos: [...current.photos, ...nextPhotos] }));
     } catch (error) {
+      setLocationError(errorMessage(error));
       setFeedback(errorMessage(error));
     } finally {
       setBusy(false);
@@ -151,6 +155,10 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
       }
       if (!navigator.onLine) {
         setFeedback('Чернетку збережено. Надішліть її, коли повернеться інтернет.');
+        return;
+      }
+      if (value.photos.some(photo => photo.latitude == null || photo.longitude == null)) {
+        setFeedback('Геолокація обов’язкова для кожного фото. Приберіть фото без координат та зробіть його повторно.');
         return;
       }
       if (!value.store || !value.photos.length) {
@@ -211,7 +219,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
       <div className={styles.toolbar}>
         <button type="button" onClick={() => camera.current?.click()} disabled={value.photos.length >= 5}>Зробити фото</button>
         <button type="button" onClick={() => gallery.current?.click()} disabled={value.photos.length >= 5}>Вибрати з галереї</button>
-        <span>Фото {value.photos.length} із 5</span>
+        <span>Фото {value.photos.length} із 5 · GPS обов’язковий</span>
         {[camera, gallery].map((ref, index) => <input key={index} hidden ref={ref} type="file"
           accept="image/jpeg,image/png,image/webp" capture={index === 0 ? 'environment' : undefined}
           multiple={index === 1} onChange={event => {
@@ -220,8 +228,9 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
             void addPhotos(files, index === 0);
           }} />)}
       </div>
-      {value.photos.length > 0 && <div className={styles.photos}>{value.photos.map(({ id, file }, index) =>
-        <div key={id}><FilePreview file={file} />
+      {locationError && <p role="alert">{locationError}</p>}
+      {value.photos.length > 0 && <div className={styles.photos}>{value.photos.map(({ id, file, latitude, longitude }, index) =>
+        <div key={id}><FilePreview file={file} /><small>{latitude != null && longitude != null ? `📍 ${latitude.toFixed(5)}, ${longitude.toFixed(5)}` : '⚠️ Немає GPS'}</small>
           <button type="button" aria-label={`Прибрати фото ${index + 1}`} onClick={() =>
             setValue(current => ({ ...current, photos: current.photos.filter(photo => photo.id !== id) }))}>Прибрати</button>
         </div>)}</div>}
