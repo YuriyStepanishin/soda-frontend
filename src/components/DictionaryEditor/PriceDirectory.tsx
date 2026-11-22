@@ -295,7 +295,7 @@ export default function PriceDirectory({
                 'Одиниця',
                 ...(canViewPurchase ? ['Закупка'] : []),
                 'Доставка +3',
-                'Розрахована ціна',
+                'Розрахункова ціна',
               ].map(label => (
                 <th scope="col" key={label}>
                   {label}
