@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { registerSW } from 'virtual:pwa-register';
 
 const CHECK_INTERVAL_MS = 5 * 60 * 1000;
@@ -6,7 +6,7 @@ const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 export default function AppUpdateNotice() {
   const [updateReady, setUpdateReady] = useState(false);
   const [applying, setApplying] = useState(false);
-  const [updateSW, setUpdateSW] = useState<((reloadPage?: boolean) => Promise<void>) | null>(null);
+  const updateSW = useRef<((reloadPage?: boolean) => Promise<void>) | null>(null);
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
@@ -25,7 +25,7 @@ export default function AppUpdateNotice() {
         console.error('SODA: не вдалося зареєструвати оновлення', error);
       },
     });
-    setUpdateSW(() => apply);
+    updateSW.current = apply;
 
     async function check() {
       if (disposed || !navigator.onLine || !registration) return;
@@ -61,9 +61,9 @@ export default function AppUpdateNotice() {
     }}>
       <span style={{ flex: '1 1 190px' }}>Оновлення SODA завантажено. Збережіть незавершену роботу перед перезапуском.</span>
       <button type="button" disabled={applying} onClick={() => {
-        if (!updateSW) return;
+        if (!updateSW.current) return;
         setApplying(true);
-        void updateSW(true).catch(error => {
+        void updateSW.current(true).catch(error => {
           console.error('SODA: не вдалося застосувати оновлення', error);
           setApplying(false);
         });
