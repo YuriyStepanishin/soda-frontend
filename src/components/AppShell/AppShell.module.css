@@ -40,3 +40,7 @@
 @media print{.sectionMenu,.menuButton{display:none}}
 
 .menuVersion { margin-top: 12px; padding: 12px 14px; border-top: 1px solid var(--soda-border); color: var(--soda-muted); font-size: 12px; text-align: center; }
+
+.menuUpdate { display: grid; gap: 6px; padding: 8px 0; border-top: 1px solid var(--soda-border); }
+.menuUpdate [role='status'] { padding: 0 14px; font-size: 12px; line-height: 1.4; color: var(--soda-muted); overflow-wrap: anywhere; }
+.menuUpdate button:disabled { opacity: .6; cursor: progress; }
