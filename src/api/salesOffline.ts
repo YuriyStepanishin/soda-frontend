@@ -13,6 +13,8 @@ class SalesOfflineDB extends Dexie {
 const db = new SalesOfflineDB();
 export const OFFLINE_SESSION_KEY = 'soda:offline-session';
 let generation = 0;
+let lastPruneAt = 0;
+const PRUNE_INTERVAL_MS = 15 * 60 * 1000;
 const statuses = new Map<string, ReadStatus>();
 const paths = new Set(['/api/sales/report', '/api/sales/filters', '/api/sales/by-days', '/api/sales/by-days/filters', '/api/sales/route-history']);
 export const OFFLINE_STATUS_EVENT = 'soda:offline-sales-status';
@@ -141,20 +143,25 @@ export async function offlineSalesGet<T>(
         if (entry.bytes > 8 * 1024 * 1024) throw new Error('Звіт завеликий для збереження');
         await db.transaction('rw', db.entries, async () => {
           if (!isCurrent()) return;
-          await db.entries.where('savedAt').below(Date.now() - OFFLINE_MAX_AGE).delete();
           await db.entries.put(entry);
-          const history = pathname === '/api/sales/route-history';
-          const all = (await db.entries.orderBy('savedAt').toArray()).filter(item =>
-            new URL(item.key.slice(item.scope.length + 1)).pathname === '/api/sales/route-history' ? history : !history);
-          const maxBytes = (history ? 200 : 25) * 1024 * 1024;
-          const maxEntries = history ? 10000 : 50;
-          let size = all.reduce((sum, item) => sum + item.bytes, 0);
-          let count = all.length;
-          for (const item of all) {
-            if (size <= maxBytes && count <= maxEntries) break;
-            await db.entries.delete(item.key);
-            size -= item.bytes;
-            count--;
+          // Avoid scanning the entire offline database after every downloaded store.
+          // Prune periodically while retaining the existing 200MB history budget.
+          if (Date.now() - lastPruneAt >= PRUNE_INTERVAL_MS) {
+            await db.entries.where('savedAt').below(Date.now() - OFFLINE_MAX_AGE).delete();
+            const history = pathname === '/api/sales/route-history';
+            const all = (await db.entries.orderBy('savedAt').toArray()).filter(item =>
+              new URL(item.key.slice(item.scope.length + 1)).pathname === '/api/sales/route-history' ? history : !history);
+            const maxBytes = (history ? 200 : 25) * 1024 * 1024;
+            const maxEntries = history ? 10000 : 50;
+            let size = all.reduce((sum, item) => sum + item.bytes, 0);
+            let count = all.length;
+            for (const item of all) {
+              if (size <= maxBytes && count <= maxEntries) break;
+              await db.entries.delete(item.key);
+              size -= item.bytes;
+              count--;
+            }
+            lastPruneAt = Date.now();
           }
         });
       },
