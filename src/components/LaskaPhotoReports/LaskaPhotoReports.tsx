@@ -105,7 +105,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     retry: false,
   });
 
-  async function addPhotos(files: File[], fromCamera = false) {
+  async function addPhotos(files: File[]) {
     if (!files.length) return;
     if (value.photos.length + files.length > 5) {
       setFeedback('Можна додати до п’яти фото.');
@@ -225,7 +225,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
           multiple={index === 1} onChange={event => {
             const files = Array.from(event.currentTarget.files ?? []);
             event.currentTarget.value = '';
-            void addPhotos(files, index === 0);
+            void addPhotos(files);
           }} />)}
       </div>
       {locationError && <p role="alert">{locationError}</p>}
