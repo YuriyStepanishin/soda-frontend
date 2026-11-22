@@ -174,8 +174,8 @@ export default function App() {
 
   const canEditDictionaries = activeDatabase === 'laska' && userRole === 'admin';
   const canOpenMotivation = activeDatabase === 'laska' && ['admin', 'manager'].includes(getAuthSession()?.user.role ?? '');
-  const canUseLaskaTools = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent'].includes(getAuthSession()?.user.role ?? '');
-  const canOpenReceivables = canUseLaskaTools;
+  const canUseLaskaTools = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent', 'brand_manager'].includes(userRole ?? getAuthSession()?.user.role ?? '');
+  const canOpenReceivables = activeDatabase === 'laska' && !!email && canUseLaskaTools;
 
   const canOpenDictionaries = canOpenReceivables;
 
@@ -530,11 +530,9 @@ export default function App() {
               runProtectedAction(() => setPage('store-check-review'))
             }
             onOpenPlanTargets={() =>
-              runProtectedAction(() => setPage('plan-targets'), 'plan-targets')
+              runProtectedAction(() => setPage('plan-targets'), activeDatabase === 'laska' ? undefined : 'plan-targets')
             }
-            canOpenPlanTargets={
-              (activeDatabase === 'laska' ? canUseLaskaTools : canAccess('plan-targets')) && backendFeatures.planTargets
-            }
+            canOpenPlanTargets={activeDatabase === 'laska' ? canUseLaskaTools : canAccess('plan-targets') && backendFeatures.planTargets}
             onOpenMessages={() =>
               runProtectedAction(() => setPage('messages'), 'messages')
             }
