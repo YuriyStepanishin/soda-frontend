@@ -73,7 +73,7 @@ export async function preparePriceFile(
   const titleCell = sheet.getCell('A1');
   titleCell.value = title;
   titleCell.font = { bold: true, size: 14 };
-  sheet.addRow(['Назва', 'Одиниця', 'Ціна, грн з ПДВ']).font = { bold: true };
+  sheet.addRow(['Назва', 'Одиниця', 'Розрахункова ціна']).font = { bold: true };
   for (const line of lines) {
     for (const heading of line.headings) {
       const header = sheet.addRow([heading.name]);
