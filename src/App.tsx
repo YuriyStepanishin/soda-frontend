@@ -629,6 +629,23 @@ export default function App() {
     ];
     for (const section of extraSections) if (section.enabled && canAccess(section.id)) navigation.push({ id: section.page, label: section.label, symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage(section.page); }, section.id) });
   }
+  // One navigation hierarchy for desktop, tablet and mobile.
+  for (const item of navigation) {
+    if (item.id === 'receivables') item.group = 'Дебіторка';
+    else if (item.id !== 'home') item.group = 'Аналітика';
+  }
+  if (canUseLaskaTools) {
+    navigation.push({ id: 'photo-reports', label: 'Додати фотозвіт', symbol: 'more', group: 'Фотозвіт', onClick: () => runProtectedAction(() => { resetToHome(); setPage('photo-reports'); }) });
+    const galleryItem = navigation.find(item => item.id === 'photo-gallery');
+    if (galleryItem) galleryItem.group = 'Фотозвіт';
+  }
+  if (activeDatabase === 'olgatorg') {
+    if (canAccess('gallery') && backendFeatures.gallery) navigation.push({ id: 'gallery', label: 'Галерея', symbol: 'more', group: 'Фотозвіт', onClick: () => runProtectedAction(() => { resetToHome(); setShowGallery(true); }, 'gallery') });
+    if (canAccess('bonus-report')) navigation.push({ id: 'bonus-report', label: 'Додати фотозвіт', symbol: 'more', group: 'Фотозвіт', onClick: () => runProtectedAction(() => { resetToHome(); setReportType('bonus'); setShowStoreSelector(true); }, 'bonus-report') });
+    if (canAccess('display-report')) navigation.push({ id: 'display-report', label: 'Фото акції', symbol: 'more', group: 'Фотозвіт', onClick: () => runProtectedAction(() => { resetToHome(); setReportType('display'); setShowStoreSelector(true); }, 'display-report') });
+    if (backendFeatures.storeCheckCreate) navigation.push({ id: 'store-check', label: 'Додати StoreCheck', symbol: 'more', group: 'Фотозвіт', onClick: () => runProtectedAction(() => { resetToHome(); setPage('store-check'); }) });
+    if (backendFeatures.storeCheckReview) navigation.push({ id: 'store-check-review', label: 'Перегляд StoreCheck', symbol: 'more', group: 'Фотозвіт', onClick: () => runProtectedAction(() => { resetToHome(); setPage('store-check-review'); }) });
+  }
   return <NavigationProvider enabled={!!email} hasBack={page !== 'home' || showGallery || showStoreSelector} onBack={navigateBack}><AppShell items={navigation} active={page} tenant={activeDatabase} navigationKey={`${page}:${showGallery}:${showStoreSelector}:${selectedStore?.store ?? ''}`} viewTitle={showGallery ? 'Фотогалерея' : showStoreSelector ? selectedStore ? 'Фотозвіт' : 'Вибір торгової точки' : undefined} account={<UserMenu
           email={email}
           roleLabel={userRole ? getRoleLabel(userRole) : undefined}
