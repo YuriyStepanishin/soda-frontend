@@ -364,10 +364,6 @@ function StoreCheckCard({
     [item.metrics]
   );
 
-  useEffect(() => {
-    setPhotoIndex(0);
-  }, [item.store, photos.length]);
-
   const hasPhotos = photos.length > 0;
   const safeIndex = Math.min(photoIndex, Math.max(photos.length - 1, 0));
   const activePhoto = hasPhotos ? photos[safeIndex] : '';
