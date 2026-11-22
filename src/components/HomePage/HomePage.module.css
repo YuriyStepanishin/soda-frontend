@@ -3,6 +3,9 @@
   min-width: 0;
   max-width: 1500px;
   margin: auto;
+  min-height: calc(100dvh - 110px);
+  display: flex;
+  flex-direction: column;
   padding: 28px;
   color: var(--soda-text);
 }
@@ -105,7 +108,9 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-top: 32px;
+  margin-top: auto;
+  padding-top: 32px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   color: var(--soda-muted);
   font-size: 12px;
 }
