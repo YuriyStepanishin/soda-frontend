@@ -175,7 +175,7 @@ export default function App() {
   const canEditDictionaries = activeDatabase === 'laska' && ['admin', 'manager'].includes(userRole ?? '');
   const canOpenMotivation = activeDatabase === 'laska' && ['admin', 'manager'].includes(getAuthSession()?.user.role ?? '');
   const canUseLaskaTools = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent', 'brand_manager'].includes(userRole ?? getAuthSession()?.user.role ?? '');
-  const canOpenReceivables = activeDatabase === 'laska' && !!email && canUseLaskaTools;
+  const canOpenReceivables = activeDatabase === 'laska' && !!email && ['admin', 'manager', 'supervisor', 'agent'].includes(userRole ?? getAuthSession()?.user.role ?? '');
 
   const canOpenDictionaries = canOpenReceivables;
 
