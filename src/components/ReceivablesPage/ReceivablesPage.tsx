@@ -144,27 +144,7 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
           <BackButton onBack={onBack} />
           <h1>Дебіторка</h1>
         </div>
-        <div className={styles.actions}>
-          <button
-            type="button"
-            disabled={query.isFetching}
-            onClick={() => void query.refetch()}
-          >
-            {query.isFetching ? 'Оновлення…' : 'Оновити дані'}
-          </button>
-          {canImport && (
-            <button
-              type="button"
-              disabled={importer.isPending}
-              onClick={() => {
-                setNotice('');
-                importer.mutate();
-              }}
-            >
-              {importer.isPending ? 'Імпортуємо…' : 'Імпортувати з Drive'}
-            </button>
-          )}
-        </div>
+
       </header>
       {(query.error || importer.error) && (
         <p role="alert" className={styles.error}>
