@@ -43,6 +43,7 @@ export default function AppShell({ children, items, active, account, tenant, nav
         </div>;
       })}
       <div className={styles.menuGroup}><h3 className={styles.menuAccountTitle}>Особистий кабінет</h3><div className={styles.menuAccount}>{account}</div></div>
+      <div className={styles.menuVersion}>SODA · v{__APP_VERSION__}</div>
     </nav>}
     <main id="soda-main" ref={content} tabIndex={-1} className={styles.content}>{children}</main>
   </div>;
