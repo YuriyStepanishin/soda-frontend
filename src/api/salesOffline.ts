@@ -122,6 +122,17 @@ export async function offlineSalesGet<T>(
   const canonicalUrl = new URL(url);
   canonicalUrl.searchParams.sort();
   const key = `${scope}\n${canonicalUrl}`;
+  // History is imported at most daily. Reuse today's IndexedDB snapshot for
+  // identical parameters instead of issuing repeat online requests.
+  if (pathname === '/api/sales/route-history' && navigator.onLine && !signal?.aborted) {
+    const existing = await db.entries.get(key).catch(() => undefined);
+    const kyivDay = (time: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv', year: 'numeric', month: '2-digit', day: '2-digit' }).format(time);
+    if (existing?.scope === scope && existing.savedAt <= Date.now() && kyivDay(existing.savedAt) === kyivDay(Date.now())) {
+      statuses.set(`${scope}\n${canonicalPath(url)}`, { source: 'device', savedAt: existing.savedAt });
+      emit();
+      return existing.data as T;
+    }
+  }
   return cachedRead<T>({
     key, scope, signal, isCurrent,
     isOffline: () => navigator.onLine === false,
