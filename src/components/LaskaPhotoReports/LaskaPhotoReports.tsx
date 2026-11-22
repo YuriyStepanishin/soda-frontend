@@ -110,7 +110,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     queryFn: ({ signal }) => apiGet<{ rows: Store[] }>(endpoint + '/stores', {
       authenticated: true, query: { search, department: storeDepartment, agent: storeAgent }, signal,
     }),
-    enabled: !value.store && search.length >= 2,
+    enabled: !value.store && (search.length >= 2 || Boolean(storeDepartment) || Boolean(storeAgent)),
     retry: false,
   });
 
@@ -197,24 +197,32 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
   return <form className={styles.panel} onSubmit={event => { event.preventDefault(); void save(true); }}>
     <fieldset disabled={busy}>
       <legend>Новий фотозвіт</legend>
+      <div className={styles.filters}>
+        <label>Відділ<select value={storeDepartment} onChange={event => {
+          setStoreDepartment(event.target.value);
+          setStoreAgent('');
+          setValue(current => ({ ...current, store: null }));
+        }}>
+          <option value="">Усі доступні</option>
+          {departments.map(item => <option key={item} value={item}>{item}</option>)}
+        </select></label>
+        <label>Торговий представник<select value={storeAgent} onChange={event => {
+          setStoreAgent(event.target.value);
+          setValue(current => ({ ...current, store: null }));
+        }}>
+          <option value="">Усі доступні</option>
+          {agents.map(item => <option key={item} value={item}>{item}</option>)}
+        </select></label>
+      </div>
+      {availableAssignments.isError && <p role="alert">Не вдалося завантажити доступні відділи та торгових. <button type="button" onClick={() => void availableAssignments.refetch()}>Повторити</button></p>}
       {value.store ? <div className={styles.toolbar}>
         <strong>{value.store.store_name} · {value.store.agent_name}</strong>
         <button type="button" onClick={() => setValue(current => ({ ...current, store: null }))}>Змінити точку</button>
       </div> : <>
-        <div className={styles.filters}>
-          <label>Відділ<select value={storeDepartment} onChange={event => { setStoreDepartment(event.target.value); setStoreAgent(''); }}>
-            <option value="">Усі доступні</option>
-            {departments.map(item => <option key={item} value={item}>{item}</option>)}
-          </select></label>
-          <label>Торговий представник<select value={storeAgent} onChange={event => setStoreAgent(event.target.value)}>
-            <option value="">Усі доступні</option>
-            {agents.map(item => <option key={item} value={item}>{item}</option>)}
-          </select></label>
-        </div>
         <label>Торгова точка<input type="search" maxLength={200} value={storeSearch}
-          placeholder="Введіть щонайменше 2 символи назви торгової точки"
+          placeholder="Пошук за назвою або вибір через фільтри"
           onChange={event => setStoreSearch(event.target.value)} /></label>
-        {search.length >= 2 && storeSearch.trim() === search && <>
+        {(search.length >= 2 || Boolean(storeDepartment) || Boolean(storeAgent)) && <>
           {stores.isFetching && <p role="status">Шукаємо торгові точки…</p>}
           {stores.isPaused && <p role="status">Для пошуку торгових точок потрібен інтернет.</p>}
           {stores.isError && <p role="alert">{errorMessage(stores.error)}</p>}
