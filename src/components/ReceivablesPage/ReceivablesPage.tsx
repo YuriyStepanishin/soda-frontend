@@ -57,7 +57,6 @@ function groupInvoices(rows: Receivable[]) {
 }
 export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
   const user = getAuthSession()?.user;
-  const canImport = ['admin', 'manager'].includes(user?.role ?? '');
   const [filters, setFilters] = useState<DebtFilters>({
     representatives: [],
     search: '',
