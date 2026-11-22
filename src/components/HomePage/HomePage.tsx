@@ -453,7 +453,6 @@ export default function HomePage({
         </section>
       )}
       {section === 'home' && <footer className={styles.footer}>
-        <span>SODA · v{__APP_VERSION__}</span>
         <div className={styles.updateArea}>
           <button
             className={styles.updateButton}
