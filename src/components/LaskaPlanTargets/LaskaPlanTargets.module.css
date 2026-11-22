@@ -1,0 +1,11 @@
+.page{max-width:1200px;margin:auto;padding:clamp(12px,3vw,28px);color:var(--soda-text)}
+.header{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.header h1{font-size:1.25rem;margin:0}
+.note{color:var(--soda-muted);font-size:14px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.page button,.page input,.page select{min-height:42px;border:1px solid var(--soda-border);border-radius:8px;padding:8px;color:var(--soda-text);background:var(--soda-control);font:inherit}
+.page button{cursor:pointer}.page button:disabled{opacity:.5}
+.card{background:var(--soda-surface);border:1px solid var(--soda-border);border-radius:12px;padding:14px;margin:14px 0;display:grid;gap:12px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px}
+.fields label,.agents label{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.fields input,.fields select{width:100%;box-sizing:border-box}
+.agents{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px}
+.agents input{width:100%;box-sizing:border-box}.card h3{font-size:14px;margin:0 0 8px}.danger{justify-self:start;color:#b91c1c!important}
