@@ -110,6 +110,7 @@ export default function App() {
     | 'receivables'
     | 'dictionaries'
     | 'photo-reports'
+    | 'photo-gallery'
   >('home');
 
   const [email, setEmail] = useState<string | null>(
@@ -260,8 +261,8 @@ export default function App() {
   }
 
   function renderPage() {
-  if (page === 'photo-reports' && canUseLaskaTools && email) {
-    return <Suspense fallback={<Loader />}><LaskaPhotoReports key={email} email={email} /></Suspense>;
+  if ((page === 'photo-reports' || page === 'photo-gallery') && canUseLaskaTools && email) {
+    return <Suspense fallback={<Loader />}><LaskaPhotoReports key={`${email}:${page}`} email={email} mode={page === 'photo-reports' ? 'create' : 'gallery'} /></Suspense>;
   }
   if (page === 'dictionaries' && canOpenDictionaries && email) {
     return <Suspense fallback={<Loader />}><DictionaryEditor key={email} email={email} canEdit={canEditDictionaries} /></Suspense>;
@@ -537,6 +538,7 @@ export default function App() {
             canOpenGallery={canAccess('gallery') && backendFeatures.gallery}
             canOpenPhotoReports={canUseLaskaTools}
             onOpenPhotoReports={() => runProtectedAction(() => setPage('photo-reports'))}
+            onOpenLaskaGallery={() => runProtectedAction(() => setPage('photo-gallery'))}
             canOpenSales={canAccess('sales')}
             canOpenSalesByDays={canAccess('sales')}
             canOpenRouteHistory={canAccess('route-history')}
@@ -604,7 +606,7 @@ export default function App() {
   }
 
   const navigation: NavigationItem[] = [{ id: 'home', label: 'Головна', symbol: 'home', onClick: resetToHome }];
-  if (canUseLaskaTools) navigation.push({ id: 'photo-reports', label: 'Фотозвіт', symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage('photo-reports'); }) });
+  if (canUseLaskaTools) navigation.push({ id: 'photo-gallery', label: 'Галерея', symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage('photo-gallery'); }) });
   if (canOpenDictionaries) navigation.push({ id: 'dictionaries', label: 'Довідники', symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage('dictionaries'); }) });
   if (canOpenReceivables) navigation.push({ id: 'receivables', label: 'Дебіторка', symbol: 'debt', onClick: () => runProtectedAction(() => { resetToHome(); setPage('receivables'); }) });
   if (canAccess('sales')) {
