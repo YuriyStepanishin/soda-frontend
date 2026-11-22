@@ -266,7 +266,7 @@ export default function App() {
     return <Suspense fallback={<Loader />}><LaskaPhotoReports key={`${email}:${page}`} email={email} mode={page === 'photo-reports' ? 'create' : 'gallery'} /></Suspense>;
   }
   if (page === 'plan-targets' && canUseLaskaTools) {
-    return <Suspense fallback={<Loader />}><LaskaPlanTargets onBack={() => setPage('home')} canEdit={['admin','manager'].includes(userRole)} /></Suspense>;
+    return <Suspense fallback={<Loader />}><LaskaPlanTargets onBack={() => setPage('home')} canEdit={['admin','manager'].includes(userRole ?? '')} /></Suspense>;
   }
   if (page === 'dictionaries' && canOpenDictionaries && email) {
     return <Suspense fallback={<Loader />}><DictionaryEditor key={email} email={email} canEdit={canEditDictionaries} /></Suspense>;
