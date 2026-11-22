@@ -49,3 +49,7 @@
 .tabs button{min-width:0;min-height:44px;padding:10px 5px;font-size:clamp(11px,2.8vw,15px);line-height:1.25;white-space:normal;overflow-wrap:anywhere;text-align:center}
 .item small{font-size:13px;overflow-wrap:anywhere}
 @media(max-width:650px){.tabs{gap:6px}.tabs button{padding:9px 3px;font-size:clamp(10px,2.75vw,13px)}.item small{font-size:12px;line-height:1.55}}
+
+/* Fit tab titles on one line, never wrap or clip */
+.tabs button{white-space:nowrap;overflow-wrap:normal;word-break:normal;font-size:clamp(9px,2.45vw,14px);padding-inline:2px}
+@media(max-width:650px){.tabs button{font-size:clamp(9px,2.35vw,12px);padding-inline:1px}}
