@@ -184,7 +184,7 @@ test('IndexedDB integration: reload, role/tenant isolation, cancellation and log
     navigator.onLine = false;
     await assert.rejects(read(), /Немає збережених/);
   });
-  await t.test('storage count is bounded and tokens are absent from persisted records', async () => {
+  await t.test('offline cache keeps recently downloaded reports until periodic pruning and never persists tokens', async () => {
     navigator.onLine = true;
     global.fetch = async () => new Response(JSON.stringify({ success: true, data: [] }));
     for (let i = 0; i < 52; i++) await read(`https://soda.test/api/sales/report?page=${i}`);
@@ -192,7 +192,7 @@ test('IndexedDB integration: reload, role/tenant isolation, cancellation and log
     const db = new Dexie('SodaSalesOfflineV1');
     db.version(1).stores({ entries: 'key, scope, savedAt' });
     const entries = await db.table('entries').toArray();
-    assert.equal(entries.length, 50);
+    assert.equal(entries.length, 52);
     assert.ok(!JSON.stringify(entries).includes('secret-never-persist'));
     db.close();
     await offline.clearSalesOffline();

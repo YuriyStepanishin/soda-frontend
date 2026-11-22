@@ -130,8 +130,8 @@ export default function SalesComparison({ first, second, fields, metrics, format
   const exportFile = prepared?.source === prepareExcel ? prepared.file : null;
   useEffect(() => {
     let cancelled = false;
-    setExportError('');
     const timer = window.setTimeout(() => {
+      if (!cancelled) setExportError('');
       void prepareExcel().then(file => {
         if (!cancelled) setPrepared({ source: prepareExcel, file });
       }).catch(error => {

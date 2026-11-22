@@ -137,8 +137,10 @@ export function useMessagesCenter(
   const hasFinishedFirstLoadRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
 
+  // Account switching must immediately discard the previous user's local UI preferences.
   useEffect(() => {
     if (!userEmail) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocallyReadIds([]);
       setSoundEnabled(true);
       return;
