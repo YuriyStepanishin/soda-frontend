@@ -55,6 +55,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
   const [draftStatus, setDraftStatus] = useState<'saving' | 'saved' | 'error'>('saved');
   const pendingSave = useRef<Promise<void>>(Promise.resolve());
   const autosaveTimer = useRef<number | null>(null);
+  const submitted = useRef(false);
   const valueRef = useRef(value);
   valueRef.current = value;
 
@@ -76,7 +77,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     return () => {
       if (autosaveTimer.current !== null) window.clearTimeout(autosaveTimer.current);
       // Save even on navigation/unmount; do not depend on a browser unload event.
-      void persistDraft(value).catch(() => undefined);
+      if (!submitted.current) void persistDraft(value).catch(() => undefined);
     };
   }, [value]);
 
@@ -165,6 +166,8 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
       data.set('photoLocations', JSON.stringify(value.photos.map(photo => ({ latitude: photo.latitude ?? null, longitude: photo.longitude ?? null }))));
       for (const { file } of value.photos) data.append('photos', file, 'photo.jpg');
       await apiPostFormData(endpoint, data, { authenticated: true, tenant: 'laska' });
+      submitted.current = true;
+      await pendingSave.current.catch(() => undefined);
       await drafts.delete(value.owner).catch(() => undefined);
       onSaved();
     } catch (error) {
