@@ -47,7 +47,7 @@ export function startBackgroundSalesSync(): () => void {
         defaults.push(url);
         if (tenant === 'laska') lists.push(url);
       }
-      const requests = [...saved.filter(request => new URL(request.url).pathname !== '/api/sales/route-history').map(request => { ...request, savedAt: 0 })];
+      const requests = [...saved.filter(request => new URL(request.url).pathname !== '/api/sales/route-history').map(request => ({ ...request, savedAt: 0 }))];
       for (const url of defaults) {
         if (!lists.includes(url)) requests.unshift({ url: url.toString(), savedAt: 0 });
       }
