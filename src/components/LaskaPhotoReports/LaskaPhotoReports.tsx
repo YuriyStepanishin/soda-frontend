@@ -265,6 +265,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   const [filters, setFilters] = useState(emptyFilters);
   const [applied, setApplied] = useState(emptyFilters);
   const [page, setPage] = useState(1);
+  const [activePhoto, setActivePhoto] = useState<string | null>(null);
   const client = useQueryClient();
   const queryKey = [endpoint, email];
 
@@ -342,16 +343,30 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
     {mode === 'gallery' && reportList.isError && <p role="alert">{errorMessage(reportList.error)} <button type="button" onClick={() => void reportList.refetch()}>Повторити</button></p>}
     {mode === 'gallery' && reportList.isPending && <p role="status">{reportList.isPaused ? 'Для перегляду звітів потрібен інтернет.' : 'Завантажуємо фотозвіти…'}</p>}
     {mode === 'gallery' && reportList.isSuccess && !reportList.data.rows.length && <p>Фотозвітів за цими фільтрами немає.</p>}
-    {mode === 'gallery' && <div className={styles.reports}>{reportList.data?.rows.map(report => <article key={report.id} className={styles.panel}>
-      <h2>{report.store_name}</h2>
-      <p className={styles.detail}>{[report.report_date.split('-').reverse().join('.'), report.department,
-        report.agent_name, categories[report.category]].filter(Boolean).join(' · ')}</p>
-      {report.comment && <p className={styles.comment}>{report.comment}</p>}
-      <div className={styles.photos}>{report.photos.map((photo, index) => <div key={photo.url} className={styles.photoWithLocation}><a href={photo.url} target="_blank"
-        rel="noreferrer" aria-label={`Відкрити фото ${index + 1}: ${report.store_name}`}>
-        <img src={photo.url} loading="lazy" referrerPolicy="no-referrer" alt={`Фото ${index + 1}: ${report.store_name}`} />
-      </a>{photo.latitude != null && photo.longitude != null ? <a className={styles.location} target="_blank" rel="noreferrer" href={`https://www.google.com/maps?q=${photo.latitude},${photo.longitude}`}>📍 Геолокація</a> : <span className={styles.location}>Геолокація відсутня</span>}</div>)}</div>
-    </article>)}</div>}
+    {mode === 'gallery' && <div className={styles.galleryStats}>
+      <div className={styles.statCard}><span>Кількість ТТ</span><strong>{new Set(reportList.data?.rows.map(row => row.store_code) ?? []).size}</strong></div>
+      <div className={styles.statCard}><span>Кількість фото</span><strong>{reportList.data?.rows.reduce((total, row) => total + row.photos.length, 0) ?? 0}</strong></div>
+    </div>}
+    {mode === 'gallery' && <div className={styles.galleryGrid}>{reportList.data?.rows.flatMap(report =>
+      report.photos.map((photo, index) => <article key={`${report.id}-${index}`} className={styles.galleryCard}>
+        <button type="button" className={styles.galleryImageButton} onClick={() => setActivePhoto(photo.url)} aria-label={`Переглянути фото ${index + 1}: ${report.store_name}`}>
+          <img src={photo.url} loading="lazy" referrerPolicy="no-referrer" alt={`Фото ${index + 1}: ${report.store_name}`} />
+        </button>
+        <div className={styles.galleryInfo}>
+          <strong>ТТ: {report.store_name}</strong>
+          <span>Категорія: {categories[report.category]}</span>
+          <span>{report.report_date.split('-').reverse().join('.')} · {report.agent_name}</span>
+          {report.comment && <span className={styles.comment}>{report.comment}</span>}
+          {photo.latitude != null && photo.longitude != null
+            ? <a href={`https://www.google.com/maps?q=${photo.latitude},${photo.longitude}`} target="_blank" rel="noreferrer" className={styles.location}>📍 {photo.latitude.toFixed(5)}, {photo.longitude.toFixed(5)} · Карта</a>
+            : <span className={styles.location}>Геолокація відсутня (старий звіт)</span>}
+        </div>
+      </article>)
+    )}</div>}
+    {mode === 'gallery' && activePhoto && <div className={styles.viewer} role="dialog" aria-modal="true" aria-label="Перегляд фото" onClick={() => setActivePhoto(null)}>
+      <button type="button" className={styles.viewerClose} onClick={() => setActivePhoto(null)}>✕ Закрити</button>
+      <img src={activePhoto} alt="Фото у повному розмірі" onClick={event => event.stopPropagation()} />
+    </div>}
     {mode === 'gallery' && (page > 1 || reportList.data?.hasNext) && <nav className={styles.toolbar} aria-label="Сторінки фотозвітів">
       <button type="button" disabled={page === 1} onClick={() => setPage(page - 1)}>Попередня</button>
       <span>Сторінка {page}</span>
