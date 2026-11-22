@@ -433,14 +433,14 @@ export default function HomePage({
       ) : (
         <section className={styles.subsection} aria-label="Підрозділи SODA">
           <div className={styles.sectionHeader}>
-            <button type="button" className={styles.backButton} onClick={() => setSection('home')}>← Головна</button>
+            
             <h2>{section === 'analytics' ? 'Аналітика' : section === 'photos' ? 'Фотозвіт' : section === 'orders' ? 'Замовлення' : 'Мій календар'}</h2>
           </div>
           {(section === 'orders' || section === 'calendar') ? <p className={styles.placeholder}>У розробці</p> : (
             <div className={styles.grid}>
               {(section === 'analytics'
                 ? topMenuItems.filter(item => item.visible && item.key !== 'receivables' && item.key !== 'gallery')
-                : [...topMenuItems.filter(item => item.visible && item.key === 'gallery'), ...bottomMenuItems.filter(item => item.visible)]
+                : [...topMenuItems.filter(item => item.visible && item.key === 'gallery'), ...bottomMenuItems.filter(item => item.visible && item.key !== 'bonus')]
               ).map((item, index) => (
                 <button type="button" key={`${item.key}-${index}`} onClick={item.onClick} className={styles.card}>
                   <span className={styles.iconWrap}>{renderIcon(item.key)}</span>
@@ -452,7 +452,7 @@ export default function HomePage({
           )}
         </section>
       )}
-      <footer className={styles.footer}>
+      {section === 'home' && <footer className={styles.footer}>
         <span>SODA · v{__APP_VERSION__}</span>
         <div className={styles.updateArea}>
           <button
@@ -474,7 +474,7 @@ export default function HomePage({
             </span>
           )}
         </div>
-      </footer>
+      </footer>}
     </main>
   );
 }
