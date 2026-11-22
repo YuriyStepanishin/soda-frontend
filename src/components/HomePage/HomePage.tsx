@@ -353,7 +353,7 @@ export default function HomePage({
       label: 'Планові показники',
       icon: withVersion('/icons/icons_planning.svg'),
       onClick: onOpenPlanTargets,
-      visible: activeDatabase === 'olgatorg' && canOpenPlanTargets,
+      visible: (activeDatabase === 'olgatorg' || activeDatabase === 'laska') && canOpenPlanTargets,
     },
   ];
 
