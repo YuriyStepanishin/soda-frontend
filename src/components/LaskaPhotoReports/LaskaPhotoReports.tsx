@@ -46,6 +46,15 @@ function FilePreview({ file }: { file: File }) {
 function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
   const [value, setValue] = useState(draft);
   const [storeSearch, setStoreSearch] = useState('');
+  const [storeDepartment, setStoreDepartment] = useState('');
+  const [storeAgent, setStoreAgent] = useState('');
+  const availableAssignments = useQuery({
+    queryKey: [endpoint, draft.owner, 'filters'],
+    queryFn: ({ signal }) => apiGet<{ rows: Assignment[] }>(endpoint + '/filters', { authenticated: true, signal }),
+    retry: false,
+  });
+  const departments = [...new Set((availableAssignments.data?.rows ?? []).map(row => row.department))].filter(Boolean);
+  const agents = [...new Set((availableAssignments.data?.rows ?? []).filter(row => !storeDepartment || row.department === storeDepartment).map(row => row.agent_name))].filter(Boolean);
   const [search, setSearch] = useState('');
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState('');
@@ -97,9 +106,9 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
   }, [storeSearch]);
 
   const stores = useQuery({
-    queryKey: [endpoint, draft.owner, 'stores', search],
+    queryKey: [endpoint, draft.owner, 'stores', search, storeDepartment, storeAgent],
     queryFn: ({ signal }) => apiGet<{ rows: Store[] }>(endpoint + '/stores', {
-      authenticated: true, query: { search }, signal,
+      authenticated: true, query: { search, department: storeDepartment, agent: storeAgent }, signal,
     }),
     enabled: !value.store && search.length >= 2,
     retry: false,
@@ -192,6 +201,16 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
         <strong>{value.store.store_name} · {value.store.agent_name}</strong>
         <button type="button" onClick={() => setValue(current => ({ ...current, store: null }))}>Змінити точку</button>
       </div> : <>
+        <div className={styles.filters}>
+          <label>Відділ<select value={storeDepartment} onChange={event => { setStoreDepartment(event.target.value); setStoreAgent(''); }}>
+            <option value="">Усі доступні</option>
+            {departments.map(item => <option key={item} value={item}>{item}</option>)}
+          </select></label>
+          <label>Торговий представник<select value={storeAgent} onChange={event => setStoreAgent(event.target.value)}>
+            <option value="">Усі доступні</option>
+            {agents.map(item => <option key={item} value={item}>{item}</option>)}
+          </select></label>
+        </div>
         <label>Торгова точка<input type="search" maxLength={200} value={storeSearch}
           placeholder="Введіть щонайменше 2 символи назви торгової точки"
           onChange={event => setStoreSearch(event.target.value)} /></label>
