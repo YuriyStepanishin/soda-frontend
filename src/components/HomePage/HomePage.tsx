@@ -17,6 +17,7 @@ interface Props {
   onOpenBonus: () => void;
   onOpenGallery: () => void;
   onOpenPhotoReports: () => void;
+  onOpenLaskaGallery: () => void;
   onOpenDictionaries: () => void;
   canOpenDictionaries: boolean;
   onOpenSales: () => void;
@@ -56,6 +57,7 @@ export default function HomePage({
   onOpenBonus,
   onOpenGallery,
   onOpenPhotoReports,
+  onOpenLaskaGallery,
   onOpenDictionaries,
   canOpenDictionaries,
   onOpenSales,
@@ -303,9 +305,9 @@ export default function HomePage({
     },
     {
       key: 'gallery',
-      label: activeDatabase === 'laska' ? 'Фотозвіт' : 'Фотогалерея',
+      label: 'Галерея',
       icon: withVersion('/icons/gallery-icon-64.svg'),
-      onClick: activeDatabase === 'laska' ? onOpenPhotoReports : onOpenGallery,
+      onClick: activeDatabase === 'laska' ? onOpenLaskaGallery : onOpenGallery,
       visible: activeDatabase === 'laska'
         ? canOpenPhotoReports
         : activeDatabase === 'olgatorg' && canOpenGallery,
@@ -356,6 +358,7 @@ export default function HomePage({
   ];
 
   const bottomMenuItems: MenuItem[] = [
+    { key: 'bonus', label: 'Фотозвіт', icon: withVersion('/icons/camera-icon-64.svg'), onClick: onOpenPhotoReports, visible: activeDatabase === 'laska' && canOpenPhotoReports },
     {
       key: 'bonus',
       label: 'Додавання фотозвіту',
