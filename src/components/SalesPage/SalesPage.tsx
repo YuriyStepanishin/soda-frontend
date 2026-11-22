@@ -345,11 +345,11 @@ export default function SalesPage({
 
   useEffect(() => {
     if (!exportInput) return;
-    setExportError('');
     const controller = new AbortController();
     exportController.current = controller;
     const prepare = () => {
       if (controller.signal.aborted) return;
+      setExportError('');
       void prepareSalesReportFile({ ...exportInput, signal: controller.signal }).then(file => {
         if (!controller.signal.aborted) setPrepared({ input: exportInput, file });
       }).catch(error => {
