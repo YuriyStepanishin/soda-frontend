@@ -24,13 +24,13 @@ export function setHistorySyncStatus(value: HistorySyncStatus): void {
   saveSalesSettings('history-sync', value);
   emit();
 }
-export async function savedSalesResponse<T>(url: string): Promise<T | undefined> {
+export async function savedSalesResponse<T>(url: string, maxAgeMs = 15 * 60 * 1000): Promise<T | undefined> {
   const scope = salesOfflineScope();
   if (!scope) return;
   const canonical = new URL(url);
   canonical.searchParams.sort();
   const entry = await db.entries.get(`${scope}\n${canonical}`).catch(() => undefined);
-  if (entry && Date.now() - entry.savedAt < 15 * 60 * 1000) return entry.data as T;
+  if (entry && Date.now() - entry.savedAt < maxAgeMs) return entry.data as T;
 }
 
 
