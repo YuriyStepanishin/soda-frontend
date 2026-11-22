@@ -56,7 +56,7 @@ export default defineConfig({
     },
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       workbox: {
         ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
       },
