@@ -317,7 +317,7 @@ export default function HomePage({
     },
     {
       key: 'gallery',
-      label: 'Галерея',
+      label: activeDatabase === 'laska' ? 'Фотозвіт' : 'Галерея',
       icon: withVersion('/icons/gallery-icon-64.svg'),
       onClick: activeDatabase === 'laska' ? onOpenLaskaGallery : onOpenGallery,
       visible: activeDatabase === 'laska'
