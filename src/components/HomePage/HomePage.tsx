@@ -317,12 +317,19 @@ export default function HomePage({
     },
     {
       key: 'gallery',
-      label: activeDatabase === 'laska' ? 'Фотозвіт' : 'Галерея',
+      label: 'Галерея',
       icon: withVersion('/icons/gallery-icon-64.svg'),
       onClick: activeDatabase === 'laska' ? onOpenLaskaGallery : onOpenGallery,
       visible: activeDatabase === 'laska'
         ? canOpenPhotoReports
         : activeDatabase === 'olgatorg' && canOpenGallery,
+    },
+    {
+      key: 'photo-report',
+      label: 'Фотозвіт',
+      icon: withVersion('/icons/gallery-icon-64.svg'),
+      onClick: onOpenPhotoReports,
+      visible: activeDatabase === 'laska' && canOpenPhotoReports,
     },
     {
       key: 'sales-by-days',
@@ -439,8 +446,8 @@ export default function HomePage({
           {(section === 'orders' || section === 'calendar') ? <p className={styles.placeholder}>У розробці</p> : (
             <div className={styles.grid}>
               {(section === 'analytics'
-                ? topMenuItems.filter(item => item.visible && item.key !== 'receivables' && item.key !== 'gallery')
-                : [...topMenuItems.filter(item => item.visible && item.key === 'gallery'), ...bottomMenuItems.filter(item => item.visible && item.key !== 'bonus')]
+                ? topMenuItems.filter(item => item.visible && item.key !== 'receivables' && item.key !== 'gallery' && item.key !== 'photo-report')
+                : [...topMenuItems.filter(item => item.visible && (item.key === 'gallery' || item.key === 'photo-report')), ...bottomMenuItems.filter(item => item.visible && item.key !== 'bonus')]
               ).map((item, index) => (
                 <button type="button" key={`${item.key}-${index}`} onClick={item.onClick} className={styles.card}>
                   <span className={styles.iconWrap}>{renderIcon(item.key)}</span>
