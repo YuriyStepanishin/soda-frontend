@@ -223,11 +223,15 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
       authenticated: true, query: { ...applied, page }, signal,
     }),
     retry: false,
+    enabled: mode === 'gallery',
+    staleTime: 60_000,
   });
   const options = useQuery({
     queryKey: [...queryKey, 'filters'],
     queryFn: ({ signal }) => apiGet<{ rows: Assignment[] }>(endpoint + '/filters', { authenticated: true, signal }),
     retry: false,
+    enabled: mode === 'gallery',
+    staleTime: 5 * 60_000,
   });
   const assignments = options.data?.rows ?? [];
   const departments = [...new Set(assignments.map(row => row.department))].filter(Boolean);
