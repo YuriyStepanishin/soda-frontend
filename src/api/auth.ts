@@ -37,14 +37,9 @@ export interface AuthSession {
   user: AuthUser;
 }
 
-// Backend has more granular roles; UI currently maps them into app-level roles.
+// Preserve the backend role: never promote managers to admin in the UI.
 export function normalizeRole(role: BackendRole): UserRole {
-  if (role === 'admin' || role === 'manager' || role === 'brand_manager') {
-    return 'admin';
-  }
-
-  if (role === 'supervisor') return 'supervisor';
-  return 'agent';
+  return role;
 }
 
 export function getAuthSession(): AuthSession | null {
