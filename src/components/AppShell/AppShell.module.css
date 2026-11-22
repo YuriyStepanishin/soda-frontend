@@ -28,3 +28,13 @@
   .content { padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
 }
 @media print { .shell { display: block; height: auto; overflow: visible; } .topbar, .skipLink { display: none; } .content { display: block; overflow: visible; padding: 0; } }
+
+
+.menuButton{min-height:44px;padding:8px 12px;border:1px solid var(--soda-border);border-radius:10px;background:var(--soda-control);color:var(--soda-text);font:inherit;cursor:pointer}
+.sectionMenu{position:absolute;right:12px;top:calc(72px + env(safe-area-inset-top,0px));z-index:1200;width:min(360px,calc(100vw - 24px));max-height:calc(100dvh - 100px);overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--soda-border);border-radius:14px;background:var(--soda-surface);box-shadow:0 12px 32px rgba(0,0,0,.24);padding:10px}
+.menuLink,.menuChild{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;min-height:44px;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:var(--soda-text);font:inherit;cursor:pointer}
+.menuLink{font-weight:650}.menuLink:hover,.menuChild:hover{background:var(--soda-control)}
+.menuGroup{border-top:1px solid var(--soda-border)}.menuChildren{padding:0 0 6px 14px}.menuChild{font-size:14px}.menuMuted{display:block;padding:10px 12px;font-size:13px;color:var(--soda-muted)}
+.menuAccountTitle{font-size:14px;margin:12px 12px 6px}.menuAccount{padding:8px 12px;min-height:44px}
+@media(max-width:767px){.sectionMenu{top:calc(64px + env(safe-area-inset-top,0px));right:8px;width:calc(100vw - 16px);max-height:calc(100dvh - 90px)}}
+@media print{.sectionMenu,.menuButton{display:none}}
