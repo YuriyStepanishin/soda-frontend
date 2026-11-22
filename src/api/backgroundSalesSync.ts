@@ -47,7 +47,8 @@ export function startBackgroundSalesSync(): () => void {
         defaults.push(url);
         if (tenant === 'laska') lists.push(url);
       }
-      const requests = [...saved.filter(request => new URL(request.url).pathname !== '/api/sales/route-history').map(request => ({ ...request, savedAt: 0 }))];
+      const freshToday = (savedAt: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(savedAt)) === date;
+      const requests = [...saved.filter(request => new URL(request.url).pathname !== '/api/sales/route-history').map(request => ({ ...request, savedAt: freshToday(request.savedAt) ? Date.now() : 0 }))];
       for (const url of defaults) {
         if (!lists.includes(url)) requests.unshift({ url: url.toString(), savedAt: 0 });
       }
@@ -69,9 +70,12 @@ export function startBackgroundSalesSync(): () => void {
       const copies = new Map((await savedSalesRequests()).map(entry => [canonicalUrl(entry.url), entry.savedAt]));
       for (const list of lists) {
         if (!isCurrent() || controller.signal.aborted) return;
-        const response = (await savedSalesResponse(list.toString()) ?? await read(list.toString(), controller.signal)) as { data?: { stores: Array<{ code?: string }> }; stores?: Array<{ code?: string }> };
+        const listKey = canonicalUrl(list.toString());
+        const cachedToday = freshToday(copies.get(listKey) ?? 0);
+        const response = (cachedToday ? await savedSalesResponse(list.toString()) : null) ?? await read(list.toString(), controller.signal) as { data?: { stores: Array<{ code?: string }> }; stores?: Array<{ code?: string }> };
         for (const url of historyDetailRequests(list.toString(), response.data?.stores ?? response.stores ?? [])) {
-          details.set(url, { url, savedAt: copies.has(url) ? copies.get(url)! : 0 });
+          const savedAt = copies.get(canonicalUrl(url)) ?? 0;
+          details.set(url, { url, savedAt: freshToday(savedAt) ? Date.now() : 0 });
         }
       }
       if (!history) saveSalesSettings('history', { department: '', agent: '', period: 'weeks', groupingFields: ['group'], asOfDate: date });
