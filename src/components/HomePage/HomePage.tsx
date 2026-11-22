@@ -99,6 +99,16 @@ export default function HomePage({
   >('idle');
   const [updateMessage, setUpdateMessage] = useState('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const compareVersions = (a: string, b: string): number => {
+    const parse = (value: string) => /^v?(\\d+)\\.(\\d+)\\.(\\d+)$/.exec(value.trim())?.slice(1).map(Number);
+    const left = parse(a);
+    const right = parse(b);
+    if (!left || !right) return 0;
+    for (let index = 0; index < 3; index += 1) {
+      if (left[index] !== right[index]) return left[index] > right[index] ? 1 : -1;
+    }
+    return 0;
+  };
   const handleRefreshApp = async () => {
     if (updateState === 'checking') return;
     if (updateAvailable) {
@@ -144,7 +154,7 @@ export default function HomePage({
         const registration = await navigator.serviceWorker.getRegistration();
         await registration?.update();
       }
-      if (payload.version !== __APP_VERSION__) {
+      if (compareVersions(payload.version, __APP_VERSION__) > 0) {
         setUpdateAvailable(true);
         setUpdateState('ready');
         setUpdateMessage(
@@ -153,6 +163,7 @@ export default function HomePage({
             '. Натисніть «Встановити оновлення».'
         );
       } else {
+        setUpdateAvailable(false);
         setUpdateState('current');
         setUpdateMessage('У вас актуальна версія ' + __APP_VERSION__ + '.');
       }
