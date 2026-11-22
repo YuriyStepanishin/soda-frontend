@@ -39,8 +39,8 @@
   width: 100%;
   border-radius: 12px;
   border: 1px solid var(--soda-border);
-  background: var(--soda-surface);
-  color: var(--soda-text);
+  background: var(--soda-field-bg);
+  color: var(--soda-field-text);
   font-size: 15px;
 }
 
