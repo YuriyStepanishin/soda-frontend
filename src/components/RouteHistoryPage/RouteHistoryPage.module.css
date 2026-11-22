@@ -4,7 +4,7 @@
   --rh-header: var(--soda-surface);
   --rh-border: var(--soda-border);
   --rh-text: var(--soda-text);
-  --rh-muted: var(--soda-text);
+  --rh-muted: var(--soda-muted);
   --rh-alert-bg: #492637;
   --rh-alert-text: #ffd6d6;
   --rh-alert-border: #a45b6b;
@@ -92,10 +92,10 @@
 
 .field select {
   padding: 10px 12px;
-  background: var(--field-bg-light);
-  color: var(--field-text-dark);
-  border-color: var(--field-border);
-  color-scheme: light;
+  background: var(--soda-field-bg);
+  color: var(--soda-field-text);
+  border-color: var(--soda-field-border);
+  color-scheme: inherit;
 }
 
 .lockedValue {
@@ -378,7 +378,7 @@
 }
 
 .historyModal::backdrop {
-  background: var(--soda-surface);
+  background: color-mix(in srgb, #000 65%, transparent);
   backdrop-filter: blur(5px);
 }
 
