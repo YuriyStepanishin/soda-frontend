@@ -12,7 +12,7 @@ type RecordValue = string | number | null;
 type Entry = { id: number; is_seasonal?: boolean; [key: string]: RecordValue | boolean | undefined };
 const filterFields: Record<Kind, { key: string; label: string; text?: boolean }[]> = {
   products: [{ key: 'manufacturer', label: 'Виробник' }, { key: 'tm', label: 'ТМ' }, { key: 'group_name', label: 'Група' }, { key: 'subgroup', label: 'Підгрупа' }, { key: 'packaging', label: 'Фасовка' }],
-  routes: [{ key: 'agent_name', label: 'Торговий представник' }, { key: 'route_day', label: 'День тижня' }, { key: 'store_code', label: 'Код ТТ', text: true }],
+  routes: [{ key: 'agent_name', label: 'Торговий представник' }, { key: 'route_day', label: 'День тижня' }],
 };
 const fields: Record<Kind, { key: string; label: string }[]> = {
   products: [
@@ -196,7 +196,7 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
     {error && <p role="alert" className={styles.error}>{error}</p>}
     <p>{loading ? 'Завантаження…' : `Знайдено: ${total}`}</p>
     <div className={styles.list}>{rows.map(row => <article key={row.id} className={styles.item}>
-      <div><strong>{String(row[kind === 'products' ? 'product_name' : 'store_name'] ?? '')}</strong><small>{kind === 'products' ? [{ label: 'Виробник', value: row.manufacturer }, { label: 'ТМ', value: row.tm }, { label: 'Група', value: row.group_name }, { label: 'Підгрупа', value: row.subgroup }, { label: 'Фасовка', value: row.packaging }].map(({ label, value }) => value == null || String(value).trim() === '' ? '' : `${label}: ${String(value)}`).filter(Boolean).join(' · ') : [row.agent_name, row.route_day, '№ ' + row.stop_order, row.store_code, row.is_seasonal && 'Сезонний клієнт'].filter(Boolean).join(' · ')}</small></div>
+      <div><strong>{String(row[kind === 'products' ? 'product_name' : 'store_name'] ?? '')}</strong><small>{kind === 'products' ? [{ label: 'Виробник', value: row.manufacturer }, { label: 'ТМ', value: row.tm }, { label: 'Група', value: row.group_name }, { label: 'Підгрупа', value: row.subgroup }, { label: 'Фасовка', value: row.packaging }].map(({ label, value }) => value == null || String(value).trim() === '' ? '' : String(value)).filter(Boolean).join(' · ') : [row.agent_name, row.route_day, '№ ' + row.stop_order, row.store_code, row.is_seasonal && 'Сезонний клієнт'].filter(Boolean).join(' · ')}</small></div>
       <div className={styles.actions}><button onClick={() => openEditor({ ...row })}>Редагувати</button><button className={styles.danger} onClick={() => void remove(row)}>Видалити</button></div>
     </article>)}</div>
     {loadedPage > 0 && loadedPage * pageSize < total && <div className={styles.pager}>
