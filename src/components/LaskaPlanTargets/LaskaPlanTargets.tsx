@@ -23,7 +23,7 @@ export default function LaskaPlanTargets({onBack,canEdit}:{onBack:()=>void;canEd
  async function save(){setBusy(true);setMessage('');try{await apiPutJson(endpoint,draft.map((row,index)=>({...row,displayOrder:index+1})),{authenticated:true,tenant:'laska'});setDirty(false);await client.invalidateQueries({queryKey:['laska-plan-targets']});setMessage('Плани збережено в Neon LASKA.');}catch(e){setMessage(e instanceof Error?e.message:'Помилка збереження');}finally{setBusy(false);}}
  return <section className={styles.page}>
  <header className={styles.header}><button type="button" onClick={onBack}>← Назад</button><h1>Планові показники · LASKA</h1></header>
- <p className={styles.note}>Плани LASKA зберігаються окремо від OLGATORG. Тут задаються цілі; фактичне виконання розраховується у звітах продажів.</p>
+ <p className={styles.note}>Плани LASKA зберігаються окремо від OLGATORG. Тут задаються планові цілі. Автоматичне порівняння з фактичними продажами ще не реалізовано.</p>
  {plans.isLoading&&<p>Завантаження…</p>}{plans.isError&&<p role="alert">Не вдалося отримати плани. <button onClick={()=>void plans.refetch()}>Повторити</button></p>}
  {canEdit&&<div className={styles.actions}><button type="button" onClick={add}>+ Додати показник</button><button type="button" disabled={!dirty||busy} onClick={()=>void save()}>{busy?'Зберігаємо…':'Зберегти всі'}</button></div>}
  {message&&<p role="status">{message}</p>}
