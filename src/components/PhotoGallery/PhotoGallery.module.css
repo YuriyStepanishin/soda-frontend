@@ -20,12 +20,12 @@
   top: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: minmax(212px, auto) minmax(120px, 1fr) 160px 240px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 6px;
   row-gap: 6px;
   padding: 10px;
   border-bottom: 1px solid var(--soda-border);
-  background: transparent;
+  background: var(--soda-bg);
   align-items: stretch;
 }
 
@@ -65,8 +65,8 @@
   height: 56px;
   border-radius: 14px;
   border: 2px solid var(--soda-border);
-  background: var(--soda-surface);
-  color: var(--soda-text);
+  background: var(--soda-field-bg);
+  color: var(--soda-field-text);
   font-size: 16px;
 }
 
@@ -117,6 +117,7 @@
 .card {
   background: var(--soda-surface);
   border-radius: 12px;
+  border: 1px solid var(--soda-border);
   overflow: hidden;
   margin-bottom: 16px;
   display: flex;
@@ -298,11 +299,11 @@
 
   border: 2px solid var(--soda-border);
 
-  background: var(--soda-surface);
+  background: var(--soda-field-bg);
 
   font-size: 16px;
 
-  color: var(--soda-text);
+  color: var(--soda-field-text);
 
   outline: none;
 
@@ -401,4 +402,13 @@
     aspect-ratio: auto;
     height: clamp(180px, 18vw, 260px);
   }
+}
+
+@media (min-width: 561px) and (max-width: 900px) {
+  .topBar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .topBar > * { min-width: 0; }
+  .searchInput input { width: 100%; min-width: 0; }
+  .closeBtn { width: 44px; height: 44px; }
 }
