@@ -146,7 +146,6 @@ export function useMessagesCenter(
       return;
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocallyReadIds(readStoredIds(userEmail));
     setSoundEnabled(readStoredSoundPreference(userEmail));
   }, [userEmail]);
