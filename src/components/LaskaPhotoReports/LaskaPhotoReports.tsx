@@ -193,7 +193,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
         <button type="button" onClick={() => setValue(current => ({ ...current, store: null }))}>Змінити точку</button>
       </div> : <>
         <label>Торгова точка<input type="search" maxLength={200} value={storeSearch}
-          placeholder="Введіть щонайменше 2 символи назви або коду"
+          placeholder="Введіть щонайменше 2 символи назви торгової точки"
           onChange={event => setStoreSearch(event.target.value)} /></label>
         {search.length >= 2 && storeSearch.trim() === search && <>
           {stores.isFetching && <p role="status">Шукаємо торгові точки…</p>}
