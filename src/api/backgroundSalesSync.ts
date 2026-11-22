@@ -72,7 +72,7 @@ export function startBackgroundSalesSync(): () => void {
         if (!isCurrent() || controller.signal.aborted) return;
         const listKey = canonicalUrl(list.toString());
         const cachedToday = freshToday(copies.get(listKey) ?? 0);
-        const response = (cachedToday ? await savedSalesResponse(list.toString()) : null) ?? await read(list.toString(), controller.signal) as { data?: { stores: Array<{ code?: string }> }; stores?: Array<{ code?: string }> };
+        const response = (cachedToday ? await savedSalesResponse(list.toString(), 31 * 24 * 60 * 60 * 1000) : null) ?? await read(list.toString(), controller.signal) as { data?: { stores: Array<{ code?: string }> }; stores?: Array<{ code?: string }> };
         for (const url of historyDetailRequests(list.toString(), response.data?.stores ?? response.stores ?? [])) {
           const savedAt = copies.get(canonicalUrl(url)) ?? 0;
           details.set(url, { url, savedAt: freshToday(savedAt) ? Date.now() : 0 });
