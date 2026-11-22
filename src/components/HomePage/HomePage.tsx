@@ -94,86 +94,6 @@ export default function HomePage({
   const withVersion = (iconPath: string) => `${iconPath}?v=${__APP_VERSION__}`;
   const [section, setSection] = useState<'home' | 'analytics' | 'photos' | 'orders' | 'calendar'>('home');
 
-  const [updateState, setUpdateState] = useState<
-    'idle' | 'checking' | 'ready' | 'current' | 'offline' | 'error'
-  >('idle');
-  const [updateMessage, setUpdateMessage] = useState('');
-  const [updateAvailable, setUpdateAvailable] = useState(false);
-  const compareVersions = (a: string, b: string): number => {
-    const parse = (value: string) => /^v?(\\d+)\\.(\\d+)\\.(\\d+)$/.exec(value.trim())?.slice(1).map(Number);
-    const left = parse(a);
-    const right = parse(b);
-    if (!left || !right) return 0;
-    for (let index = 0; index < 3; index += 1) {
-      if (left[index] !== right[index]) return left[index] > right[index] ? 1 : -1;
-    }
-    return 0;
-  };
-  const handleRefreshApp = async () => {
-    if (updateState === 'checking') return;
-    if (updateAvailable) {
-      if (
-        !window.confirm(
-          'Завантажити нову версію? Незбережені дані форми можуть бути втрачені.'
-        )
-      )
-        return;
-      setUpdateState('checking');
-      setUpdateMessage('Застосовуємо оновлення…');
-      const registration = await navigator.serviceWorker?.getRegistration();
-      if (registration?.waiting) {
-        const controllerChanged = new Promise<void>(resolve => {
-          navigator.serviceWorker.addEventListener(
-            'controllerchange',
-            () => resolve(),
-            { once: true }
-          );
-          window.setTimeout(resolve, 5000);
-        });
-        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-        await controllerChanged;
-      }
-      window.location.reload();
-      return;
-    }
-    setUpdateState('checking');
-    setUpdateMessage('Перевіряємо версію на сервері…');
-    try {
-      if (!navigator.onLine) {
-        setUpdateState('offline');
-        setUpdateMessage('Немає інтернету. Перевірку оновлень відкладено.');
-        return;
-      }
-      const response = await fetch('/version.json?check=' + Date.now(), {
-        cache: 'no-store',
-      });
-      if (!response.ok) throw new Error('Не вдалося отримати версію сервера');
-      const payload: { version?: string } = await response.json();
-      if (!payload.version) throw new Error('Відсутній номер версії');
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.getRegistration();
-        await registration?.update();
-      }
-      if (compareVersions(payload.version, __APP_VERSION__) > 0) {
-        setUpdateAvailable(true);
-        setUpdateState('ready');
-        setUpdateMessage(
-          'Доступна версія ' +
-            payload.version +
-            '. Натисніть «Встановити оновлення».'
-        );
-      } else {
-        setUpdateAvailable(false);
-        setUpdateState('current');
-        setUpdateMessage('У вас актуальна версія ' + __APP_VERSION__ + '.');
-      }
-    } catch (error) {
-      setUpdateState('error');
-      setUpdateMessage(
-        error instanceof Error ? error.message : 'Помилка перевірки оновлення'
-      );
-    }
-  };
   const iconPaths: Record<string, ReactNode> = {
     dictionaries: (
       <>
@@ -459,28 +379,7 @@ export default function HomePage({
           )}
         </section>
       )}
-      {section === 'home' && <footer className={styles.footer}>
-        <div className={styles.updateArea}>
-          <button
-            className={styles.updateButton}
-            type="button"
-            disabled={updateState === 'checking'}
-            aria-busy={updateState === 'checking'}
-            onClick={() => void handleRefreshApp()}
-          >
-            {updateState === 'checking'
-              ? 'Перевірка…'
-              : updateAvailable
-                ? 'Встановити оновлення'
-                : 'Перевірити оновлення'}
-          </button>
-          {updateMessage && (
-            <span role="status" aria-live="polite">
-              {updateMessage}
-            </span>
-          )}
-        </div>
-      </footer>}
+
     </main>
   );
 }
