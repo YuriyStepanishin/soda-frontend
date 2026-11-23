@@ -630,6 +630,7 @@ export default function App() {
   // One navigation hierarchy for desktop, tablet and mobile.
   for (const item of navigation) {
     if (item.id === 'receivables') item.group = 'Дебіторка';
+    else if (item.id === 'dictionaries') item.group = 'Довідники';
     else if (item.id !== 'home') item.group = 'Аналітика';
   }
   if (canUseLaskaTools) {
@@ -645,6 +646,7 @@ export default function App() {
     if (backendFeatures.storeCheckReview) navigation.push({ id: 'store-check-review', label: 'Перегляд StoreCheck', symbol: 'more', group: 'Фотозвіт', onClick: () => runProtectedAction(() => { resetToHome(); setPage('store-check-review'); }) });
   }
   return <NavigationProvider enabled={!!email} hasBack={page !== 'home' || showGallery || showStoreSelector} onBack={navigateBack}><AppShell items={navigation} active={page} tenant={activeDatabase} navigationKey={`${page}:${showGallery}:${showStoreSelector}:${selectedStore?.store ?? ''}`} viewTitle={showGallery ? 'Фотогалерея' : showStoreSelector ? selectedStore ? 'Фотозвіт' : 'Вибір торгової точки' : undefined} account={<UserMenu
+          compact
           email={email}
           roleLabel={userRole ? getRoleLabel(userRole) : undefined}
           departmentLabel={userDepartment ?? undefined}
