@@ -352,7 +352,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
             setValue(current => ({ ...current, photos: current.photos.filter(photo => photo.id !== id) }))}>Прибрати</button>
         </div>)}</div>}
     </fieldset>
-    <p role="status">{draftStatus === 'saving' ? 'Автозбереження чернетки…' : draftStatus === 'error' ? 'Не вдалося автоматично зберегти чернетку.' : 'Чернетка збережена на пристрої.'}</p>
+    {draftStatus === 'error' && <p role="alert">Не вдалося автоматично зберегти чернетку.</p>}
     {busy && <p role="status">Обробляємо…</p>}
     {feedback && <p role="status">{feedback}</p>}
   </form>;
@@ -493,15 +493,15 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   }
 
   return <section className={styles.page} aria-label="Фотозвіт">
-    <div className={styles.toolbar}>
+    <div className={styles.reportHeader}>
       <h1>{mode === 'gallery' ? 'Галерея' : 'Фотозвіт'}</h1>
-    </div>
     {mode === 'create' && <button className={styles.sendReport} type="submit" form="laska-photo-create-form">
       <span className={styles.sendLabel}>{queuedCount > 0 ? 'Надсилання фотозвіту' : 'Надіслати фотозвіт'}</span>
       {queuedCount > 0 && <span className={styles.sendDetail}>У черзі: {queuedCount} · {uploadProgress == null ? 'Очікування мережі' : `${uploadProgress}%`}</span>}
       {queuedCount > 0 && <span className={styles.sendProgressTrack} aria-hidden="true"><span style={{ width: `${uploadProgress ?? 0}%` }}/></span>}
     </button>}
-    {saved && <p role="status">Фотозвіт збережено в черзі. Можна продовжувати роботу.</p>}
+    </div>
+    {saved && <p role="status">Фотозвіт поставлено в чергу.</p>}
     {mode === 'create' && <DraftForm email={email} onSaved={() => {
       setSaved(true);
       setPage(1);
@@ -571,7 +571,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
         </div>
         <div className={styles.photoMeta}><span>{selectedPhoto.report.report_date.split('-').reverse().join('.')} · {categories[selectedPhoto.report.category]}</span></div>
         {selectedPhoto.report.comment && <p className={styles.photoComment}>{selectedPhoto.report.comment}</p>}
-        <div className={styles.placeInfo} aria-live="polite">
+        <a className={styles.placeInfo} aria-label="Відкрити місце фотозйомки в Google Maps" href={hasGps ? `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}` : undefined} target="_blank" rel="noopener noreferrer" aria-live="polite">
           <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
           <div>
             {!hasGps ? <strong>Геолокація відсутня</strong> :
@@ -580,7 +580,8 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
             {photoPlace.data?.address && <span>{photoPlace.data.address}</span>}
             {hasGps && <span className={styles.coordinates}>GPS: {latitude?.toFixed(5)}, {longitude?.toFixed(5)}</span>}
           </div>
-        </div>
+          {hasGps && <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 4h6v6M20 4l-9 9"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/></svg>}
+        </a>
 
       </section>
     </div>}
