@@ -91,11 +91,14 @@ export default function AppShell({ children, items, active, account, tenant, nav
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [sectionLanding, setSectionLanding] = useState<string | null>(null);
   const back = useNavigationBack();
-  useEffect(() => { content.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }, [navigationKey]);
-  const title = viewTitle || items.find(item => item.id === active)?.label || 'Робочий простір';
+  useEffect(() => { content.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' }); setSectionLanding(null); }, [navigationKey]);
+  const title = sectionLanding || viewTitle || items.find(item => item.id === active)?.label || 'Робочий простір';
   const groups = ['Замовлення', 'Аналітика', 'Довідники', 'Дебіторка', 'Фотозвіт', 'Мій календар'] as const;
-  const navigate = (item: NavigationItem) => { setMenuOpen(false); item.onClick(); };
+  const navigate = (item: NavigationItem) => { setSectionLanding(null); setMenuOpen(false); item.onClick(); };
+  const openSection = (group: string) => { setMenuOpen(false); setSectionLanding(group); setExpanded(null); };
+  const goHome = () => { setSectionLanding(null); items.find(item => item.id === 'home')?.onClick(); };
   useEffect(() => {
     if (updateState !== 'current') return;
     const timer = window.setTimeout(() => { setUpdateMessage(''); setUpdateState('idle'); }, 3000);
@@ -105,9 +108,9 @@ export default function AppShell({ children, items, active, account, tenant, nav
   return <div className={styles.shell}>
     <a href="#soda-main" className={styles.skipLink}>Перейти до вмісту</a>
     <header className={styles.topbar}>
-      {(back || active !== 'home') && <nav className={styles.returnNavigation} aria-label="Повернення">
-        <button type="button" className={styles.back} onClick={back?.onBack ?? (() => items.find(item => item.id === 'home')?.onClick())} aria-label="Назад" title="Назад"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m14 6-6 6 6 6M8 12h13" /></svg><span>Назад</span></button>
-        <button type="button" className={styles.back} onClick={() => items.find(item => item.id === 'home')?.onClick()} aria-label="Головна" title="Головна"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true"><path d="M3 10 12 3l9 7v11h-6v-7H9v7H3Z" /></svg><span>Головна</span></button>
+      {(back || active !== 'home' || sectionLanding) && <nav className={styles.returnNavigation} aria-label="Повернення">
+        <button type="button" className={styles.back} onClick={sectionLanding ? () => setSectionLanding(null) : back?.onBack ?? goHome} aria-label="Назад" title="Назад"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m14 6-6 6 6 6M8 12h13" /></svg><span>Назад</span></button>
+        <button type="button" className={styles.back} onClick={goHome} aria-label="Головна" title="Головна"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true"><path d="M3 10 12 3l9 7v11h-6v-7H9v7H3Z" /></svg><span>Головна</span></button>
       </nav>}
       <div className={styles.heading}><strong>{title}</strong><small>{tenant ? tenant.toUpperCase() : 'SODA'}</small></div>
       <div className={styles.toolbar}>{!back && <ThemeSwitcher />}<button type="button" className={styles.menuButton} onClick={() => setMenuOpen(value => !value)} aria-expanded={menuOpen} aria-controls="soda-section-menu">☰ Меню</button></div>
@@ -119,7 +122,7 @@ export default function AppShell({ children, items, active, account, tenant, nav
         const placeholder = false;
         const direct = group === 'Замовлення' || group === 'Мій календар' || group === 'Довідники' || group === 'Дебіторка';
         return <div key={group} className={styles.menuGroup}>
-          <button type="button" className={styles.menuLink} onClick={() => direct ? (entries[0] ? navigate(entries[0]) : setExpanded(value => value === group ? null : group)) : setExpanded(value => value === group ? null : group)} aria-expanded={direct ? undefined : expanded === group}>
+          <button type="button" className={styles.menuLink} onClick={() => direct && entries.length === 1 ? navigate(entries[0]) : openSection(group)} aria-current={sectionLanding === group ? 'page' : undefined}>
             {group} {!direct && <span aria-hidden="true">{expanded === group ? '⌃' : '⌄'}</span>}
           </button>
           {!direct && expanded === group && <div className={styles.menuChildren}>
@@ -138,6 +141,11 @@ export default function AppShell({ children, items, active, account, tenant, nav
       </div>
       <div className={styles.menuVersion}>SODA · v{__APP_VERSION__}</div>
     </nav>}
-    <main id="soda-main" ref={content} tabIndex={-1} className={styles.content}>{children}</main>
+    <main id="soda-main" ref={content} tabIndex={-1} className={styles.content}>{sectionLanding ? <section className={styles.sectionLanding}>
+      <h1>{sectionLanding}</h1>
+      {items.filter(item => item.group === sectionLanding).length ? <div className={styles.sectionEntries}>
+        {items.filter(item => item.group === sectionLanding).map(item => <button type="button" key={item.id} onClick={() => navigate(item)}>{item.label}</button>)}
+      </div> : <p>У цьому розділі поки немає доступних сторінок.</p>}
+    </section> : children}</main>
   </div>;
 }
