@@ -427,7 +427,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
 
   const reportList = useQuery({
     queryKey: [...queryKey, applied, page],
-    queryFn: ({ signal }) => apiGet<{ rows: Report[]; hasNext: boolean }>(endpoint, {
+    queryFn: ({ signal }) => apiGet<{ rows: Report[]; hasNext: boolean }>(endpoint + '/grouped', {
       authenticated: true, query: { ...applied, page }, signal,
     }),
     retry: false,
