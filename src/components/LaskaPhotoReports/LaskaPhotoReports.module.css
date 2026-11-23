@@ -162,7 +162,7 @@
 .carouselPhoto img{display:block;width:100%;height:min(46dvh,450px);max-height:min(46dvh,450px);object-fit:contain;background:#111;border-radius:10px}
 .page .carouselArrow{min-height:42px;padding:3px;background:var(--soda-control);color:var(--soda-text);border:1px solid var(--soda-border);font-size:29px;border-radius:10px}
 .photoMeta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--soda-muted);gap:10px}
-.page .photoMeta .galleryDelete{position:absolute;bottom:8px;right:48px;width:auto;min-width:45px;height:30px;min-height:30px;padding:3px 7px;background:#a3222b;color:#fff;border-radius:8px;border:1px solid #fff9;font-size:12px;z-index:2}
+.page .carouselPhoto .galleryDelete{position:absolute;bottom:8px;right:48px;width:auto;min-width:45px;height:30px;min-height:30px;padding:3px 7px;background:#a3222b;color:#fff;border-radius:8px;border:1px solid #fff9;font-size:12px;z-index:2}
 .photoComment{font-size:12px;white-space:pre-wrap}
 .miniMap{display:grid;gap:6px;border:1px solid var(--soda-border);padding:6px;border-radius:10px;min-height:90px}
 .miniMap iframe{border:0;width:100%;height:155px;border-radius:8px;background:var(--soda-control)}
