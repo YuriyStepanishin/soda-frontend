@@ -65,6 +65,7 @@ import { NavigationProvider } from './components/Navigation/NavigationContext';
 import AppShell, { type NavigationItem } from './components/AppShell/AppShell';
 import Loader from './components/Loader/Loader';
 import UserMenu from './components/UserMenu/UserMenu';
+import AppDialog from './components/Navigation/AppDialog';
 
 import { clearAuthSession, getAuthSession } from './api/auth';
 import { startBackgroundSalesSync } from './api/backgroundSalesSync';
@@ -136,6 +137,8 @@ export default function App() {
   }, [email, activeDatabase]);
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(() => !email || !activeDatabase);
+  const [logoutPending, setLogoutPending] = useState(false);
+  const [sessionNotice, setSessionNotice] = useState(false);
 
   useEffect(() => {
     const expired = () => {
@@ -143,7 +146,7 @@ export default function App() {
       clearAuthSession();
       setEmail(null);
       setIsUserMenuOpen(true);
-      window.alert('Сесія завершилася. Увійдіть у застосунок повторно.');
+      setSessionNotice(true);
     };
     window.addEventListener('soda:session-expired', expired);
     return () => window.removeEventListener('soda:session-expired', expired);
@@ -224,8 +227,8 @@ export default function App() {
     setIsUserMenuOpen(!tenant);
   }
 
-  async function handleLogout() {
-    if (!window.confirm('Вийти з SODA?\n\nДля продовження роботи потрібно буде увійти знову. Незбережені зміни можуть бути втрачені.')) return;
+  async function performLogout() {
+    setLogoutPending(false);
     await queryClient.cancelQueries();
     clearAuthSession();
 
@@ -239,6 +242,8 @@ export default function App() {
 
     setIsUserMenuOpen(true);
   }
+
+  function handleLogout() { setLogoutPending(true); }
 
   /**
    * Centralized authorization for protected sections.
@@ -667,5 +672,7 @@ export default function App() {
           onLogout={handleLogout}
         />}>
     {renderPage()}
+    {logoutPending && <AppDialog title="Вийти з SODA?" message="Для продовження роботи потрібно буде увійти знову. Незбережені дані форми можуть бути втрачені." onClose={() => setLogoutPending(false)} onConfirm={() => void performLogout()} confirmLabel="Вийти" destructive />}
+    {sessionNotice && <AppDialog title="Сесія завершилася" message="Увійдіть у SODA повторно, щоб продовжити роботу." onClose={() => setSessionNotice(false)} />}
   </AppShell></NavigationProvider>;
 }
