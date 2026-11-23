@@ -5,6 +5,7 @@ import LoginPage from '../LoginPage/LoginPage';
 import LoginAppPage from '../LoginAppPage/LoginAppPage';
 
 interface Props {
+  compact?: boolean;
   email: string | null;
   roleLabel?: string;
   departmentLabel?: string;
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function UserMenu({
+  compact = false,
   email,
   roleLabel,
   departmentLabel,
@@ -43,12 +45,12 @@ export default function UserMenu({
     <>
       <div className={styles.anchor}>
         <button
-          className={styles.trigger}
+          className={compact ? styles.compactTrigger : styles.trigger}
           onClick={isOpen ? onClose : onOpen}
           aria-label={email ? 'Відкрити меню користувача' : 'Відкрити вхід'}
           aria-expanded={isOpen}
         >
-          {email ? (
+          {compact ? <span>Відкрити профіль</span> : email ? (
             <span className={styles.avatarText}>{userLabel}</span>
           ) : (
             <svg
