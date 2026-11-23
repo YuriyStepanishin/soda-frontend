@@ -104,7 +104,7 @@ if (typeof window !== 'undefined') {
   window.setInterval(() => void processPhotoOutbox(), 30_000);
   void processPhotoOutbox();
 }
-const emptyFilters = { from: '', to: '', department: '', agent: '', search: '', category: '' };
+const emptyFilters = { from: '', to: '', department: '', agent: '', search: '' };
 const reportDate = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Kyiv' });
 const errorMessage = (error: unknown) => error instanceof Error && error.name !== 'TypeError'
   ? error.message : 'Немає зв’язку із сервером. Спробуйте ще раз.';
@@ -335,10 +335,13 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
       </div>
       <label>Коментар<textarea rows={3} maxLength={1000} value={value.comment}
         onChange={event => setValue(current => ({ ...current, comment: event.target.value }))} /></label>
-      <div className={styles.toolbar}>
-        <button type="button" onClick={() => camera.current?.click()} disabled={value.photos.length >= 5}>Зробити фото</button>
-        <button type="button" onClick={() => gallery.current?.click()} disabled={value.photos.length >= 5}>Вибрати з галереї</button>
-        <span>Фото {value.photos.length} із 5 · GPS обов’язковий</span>
+      <div className={styles.cameraActions}>
+        <button type="button" className={styles.galleryPick} onClick={() => gallery.current?.click()} disabled={value.photos.length >= 5}>▧ З галереї</button>
+        <button type="button" className={styles.cameraMain} onClick={() => camera.current?.click()} disabled={value.photos.length >= 5} aria-label="Зробити фото">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h4l2-3h4l2 3h6v12H4z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span>Зробити фото</span>
+        </button>
+        <span className={styles.cameraCount}>Фото {value.photos.length}/5 · GPS</span>
         {[camera, gallery].map((ref, index) => <input key={index} hidden ref={ref} type="file"
           accept="image/jpeg,image/png,image/webp" capture={index === 0 ? 'environment' : undefined}
           multiple={index === 1} onChange={event => {
@@ -384,7 +387,11 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   const [filters, setFilters] = useState(emptyFilters);
   const [applied, setApplied] = useState(emptyFilters);
   const [page, setPage] = useState(1);
-  const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const [selectedStore, setSelectedStore] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [confirmDelete, setConfirmDelete] = useState<{ report: Report; index: number } | null>(null);
+  const [galleryNotice, setGalleryNotice] = useState('');
+  const touchStart = useRef<number | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [queuedCount, setQueuedCount] = useState(0);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -403,7 +410,6 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   }, [email, client]);
 
   async function deleteGalleryPhoto(report: Report, index: number) {
-    if (!window.confirm('Видалити це фото назавжди з Neon і Cloudinary? Дію не можна скасувати.')) return;
     const key = report.id + ':' + index;
     setDeleting(key);
     try {
@@ -412,7 +418,10 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
       });
       if (!response.ok) throw new Error((await response.json() as { message?: string }).message || 'Помилка видалення');
       await client.invalidateQueries({ queryKey: [endpoint, email] });
-    } catch (error) { window.alert(errorMessage(error)); }
+      setGalleryNotice('Фото видалено.');
+      setConfirmDelete(null);
+      setSelectedIndex(index => Math.max(0, index - 1));
+    } catch (error) { setGalleryNotice(errorMessage(error)); }
     finally { setDeleting(null); }
   }
 
@@ -446,6 +455,39 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   const agents = [...new Set(assignments.filter(row => !filters.department || row.department === filters.department)
     .map(row => row.agent_name))].sort((a, b) => a.localeCompare(b, 'uk'));
   const invalidDates = Boolean(filters.from && filters.to && filters.from > filters.to);
+  const groupedStores = new Map<string, { name: string; code: string; agent: string; photos: { report: Report; index: number; url: string; latitude: number | null; longitude: number | null }[] }>();
+  for (const report of reportList.data?.rows ?? []) {
+    const key = report.store_code || report.store_name;
+    if (!groupedStores.has(key)) groupedStores.set(key, { name: report.store_name, code: report.store_code, agent: report.agent_name, photos: [] });
+    report.photos.forEach((photo, index) => groupedStores.get(key)?.photos.push({ ...photo, report, index }));
+  }
+  const storeCards = Array.from(groupedStores.entries());
+  const selectedGroup = storeCards.find(([key]) => key === selectedStore)?.[1];
+  const selectedPhoto = selectedGroup?.photos[selectedIndex];
+  const movePhoto = (step: number) => {
+    if (selectedGroup?.photos.length) setSelectedIndex(i => (i + step + selectedGroup.photos.length) % selectedGroup.photos.length);
+  };
+  // The mini-map always shows GPS shooting coordinates, never a thumbnail.
+  const mapUrl = selectedPhoto?.latitude != null && selectedPhoto.longitude != null ? (() => {
+    const lat = selectedPhoto.latitude;
+    const lon = selectedPhoto.longitude;
+    const params = new URLSearchParams({
+      bbox: [lon - .008, lat - .005, lon + .008, lat + .005].join(','),
+      layer: 'mapnik', marker: lat + ',' + lon,
+    });
+    return 'https://www.openstreetmap.org/export/embed.html?' + params.toString();
+  })() : null;
+  useEffect(() => {
+    if (!selectedStore) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (confirmDelete) return;
+      if (event.key === 'Escape') setSelectedStore(null);
+      if (event.key === 'ArrowLeft') movePhoto(-1);
+      if (event.key === 'ArrowRight') movePhoto(1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
   function applyFilters(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -485,10 +527,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
         </select></label>
         <label>Торгова точка<input type="search" maxLength={200} placeholder="Назва або код"
           value={filters.search} onChange={event => setFilters({ ...filters, search: event.target.value })} /></label>
-        <label>Категорія<select value={filters.category} onChange={event => setFilters({ ...filters, category: event.target.value })}>
-          <option value="">Усі категорії</option>
-          {Object.entries(categories).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-        </select></label>
+
       </div>
       {options.isError && <p role="alert">Не вдалося завантажити відділи й агентів. <button type="button" onClick={() => void options.refetch()}>Повторити</button></p>}
       {invalidDates && <p role="alert">Кінцева дата має бути не раніше початкової.</p>}
@@ -504,26 +543,56 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
       <div className={styles.statCard}><span>Кількість ТТ</span><strong>{stats.data?.storeCount ?? '—'}</strong></div>
       <div className={styles.statCard}><span>Кількість фото</span><strong>{stats.data?.photoCount ?? '—'}</strong></div>
     </div>}
-    {mode === 'gallery' && <div className={styles.galleryGrid}>{reportList.data?.rows.flatMap(report =>
-      report.photos.map((photo, index) => <article key={`${report.id}-${index}`} className={styles.galleryCard}>
-        <button type="button" className={styles.galleryDelete} disabled={deleting !== null} aria-label={`Видалити фото ${index + 1}`} onClick={() => void deleteGalleryPhoto(report, index)}>{deleting === report.id + ':' + index ? '…' : '✕'}</button>
-        <button type="button" className={styles.galleryImageButton} onClick={() => setActivePhoto(photo.url)} aria-label={`Переглянути фото ${index + 1}: ${report.store_name}`}>
-          <img src={photo.url} loading="lazy" referrerPolicy="no-referrer" alt={`Фото ${index + 1}: ${report.store_name}`} />
+    {mode === 'gallery' && galleryNotice && <div className={styles.appNotice} role="status"><span>{galleryNotice}</span><button type="button" onClick={() => setGalleryNotice('')}>Закрити</button></div>}
+    {mode === 'gallery' && <div className={styles.galleryGrid}>{storeCards.map(([key, group]) =>
+      <article key={key} className={styles.galleryCard}>
+        <button type="button" className={styles.galleryImageButton} onClick={() => { setSelectedStore(key); setSelectedIndex(0); }} aria-label={`Переглянути фото: ${group.name}`}>
+          {group.photos[0] && <img src={group.photos[0].url} loading="lazy" referrerPolicy="no-referrer" alt={group.name} />}
+          <span className={styles.photoCounter}>📷 {group.photos.length} фото</span>
         </button>
-        <div className={styles.galleryInfo}>
-          <strong>ТТ: {report.store_name}</strong>
-          <span>Категорія: {categories[report.category]}</span>
-          <span>{report.report_date.split('-').reverse().join('.')} · {report.agent_name}</span>
-          {report.comment && <span className={styles.comment}>{report.comment}</span>}
-          {photo.latitude != null && photo.longitude != null
-            ? <a href={`https://www.google.com/maps?q=${photo.latitude},${photo.longitude}`} target="_blank" rel="noreferrer" className={styles.location}>📍 {photo.latitude.toFixed(5)}, {photo.longitude.toFixed(5)} · Карта</a>
-            : <span className={styles.location}>Геолокація відсутня (старий звіт)</span>}
-        </div>
-      </article>)
+        <div className={styles.galleryInfo}><strong>ТТ: {group.name}</strong><span>{group.code} · {group.agent}</span></div>
+      </article>
     )}</div>}
-    {mode === 'gallery' && activePhoto && <div className={styles.viewer} role="dialog" aria-modal="true" aria-label="Перегляд фото" onClick={() => setActivePhoto(null)}>
-      <button type="button" className={styles.viewerClose} onClick={() => setActivePhoto(null)}>✕ Закрити</button>
-      <img src={activePhoto} alt="Фото у повному розмірі" onClick={event => event.stopPropagation()} />
+    {mode === 'gallery' && selectedStore && selectedGroup && selectedPhoto && <div className={styles.viewer} role="presentation" onClick={() => setSelectedStore(null)}>
+      <section className={styles.photoDialog} role="dialog" aria-modal="true" aria-label={`Фотографії торгової точки ${selectedGroup.name}`}
+        onClick={event => event.stopPropagation()}
+        onTouchStart={event => { touchStart.current = event.touches[0]?.clientX ?? null; }}
+        onTouchEnd={event => {
+          if (touchStart.current === null) return;
+          const delta = event.changedTouches[0].clientX - touchStart.current;
+          if (Math.abs(delta) > 55) movePhoto(delta > 0 ? -1 : 1);
+          touchStart.current = null;
+        }}>
+        <div className={styles.dialogTop}>
+          <div><strong>{selectedGroup.name}</strong><small>{selectedGroup.code} · {selectedPhoto.report.agent_name} · {selectedIndex + 1} із {selectedGroup.photos.length}</small></div>
+          <button type="button" onClick={() => setSelectedStore(null)} aria-label="Закрити перегляд">✕</button>
+        </div>
+        <div className={styles.carouselPhoto}>
+          <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(-1)} aria-label="Попереднє фото" disabled={selectedGroup.photos.length < 2}>‹</button>
+          <img src={selectedPhoto.url} alt={`Фото ${selectedIndex + 1}: ${selectedGroup.name}`} />
+          <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(1)} aria-label="Наступне фото" disabled={selectedGroup.photos.length < 2}>›</button>
+        </div>
+        <div className={styles.photoMeta}><span>{selectedPhoto.report.report_date.split('-').reverse().join('.')} · {categories[selectedPhoto.report.category]}</span>
+          <button type="button" className={styles.galleryDelete} onClick={() => setConfirmDelete({ report: selectedPhoto.report, index: selectedPhoto.index })}>Del</button>
+        </div>
+        {selectedPhoto.report.comment && <p className={styles.photoComment}>{selectedPhoto.report.comment}</p>}
+        <div className={styles.miniMap}>
+          {mapUrl ? <>
+            <iframe key={mapUrl} title="Місце фотозйомки за GPS" src={mapUrl} loading="lazy" referrerPolicy="no-referrer" />
+            <a target="_blank" rel="noreferrer" href={`https://www.google.com/maps?q=${selectedPhoto.latitude},${selectedPhoto.longitude}`}>📍 Місце зйомки на карті</a>
+          </> : <p>Геолокація відсутня для цього фото</p>}
+        </div>
+        {confirmDelete && <div className={styles.confirmBackdrop} role="presentation">
+          <div className={styles.confirmBox} role="alertdialog" aria-modal="true" aria-labelledby="confirm-photo-delete-title" aria-describedby="confirm-photo-delete-description">
+            <h2 id="confirm-photo-delete-title">Видалити фото?</h2>
+            <p id="confirm-photo-delete-description">Фото буде назавжди видалене з Neon і Cloudinary. Цю дію не можна скасувати.</p>
+            <div className={styles.confirmActions}>
+              <button type="button" onClick={() => setConfirmDelete(null)} disabled={deleting !== null}>Скасувати</button>
+              <button type="button" className={styles.galleryDelete} onClick={() => void deleteGalleryPhoto(confirmDelete.report, confirmDelete.index)} disabled={deleting !== null}>{deleting ? 'Видаляємо…' : 'Видалити'}</button>
+            </div>
+          </div>
+        </div>}
+      </section>
     </div>}
     {mode === 'gallery' && (page > 1 || reportList.data?.hasNext) && <nav className={styles.toolbar} aria-label="Сторінки фотозвітів">
       <button type="button" disabled={page === 1} onClick={() => setPage(page - 1)}>Попередня</button>
