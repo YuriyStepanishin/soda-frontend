@@ -6,8 +6,7 @@ import styles from './DictionaryEditor.module.css';
 
 type Kind = 'products' | 'routes';
 const pageSize = 20;
-const weekdays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'НД'];
-const editableRouteDays = weekdays.filter(day => day !== 'НД');
+const editableRouteDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ'];
 type RecordValue = string | number | null;
 type Entry = { id: number; is_seasonal?: boolean; [key: string]: RecordValue | boolean | undefined };
 const filterFields: Record<Kind, { key: string; label: string; text?: boolean }[]> = {
@@ -190,6 +189,7 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
       }}>
         <option value="" aria-label="Усі значення">{kind === 'routes' ? 'Усі' : ''}</option>
         {kind === 'products' && <option value="empty">Пусто</option>}
+        {kind === 'routes' && field.key === 'route_day' && <option value="__none__">Без дня маршруту</option>}
         {(options[field.key] || []).map(value => <option key={value} value={kind === 'products' ? 'value:' + value : value}>{value}</option>)}
       </select>
     }</label>)}</div>}
@@ -251,18 +251,12 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
             /></label>}
           </div>;
         }
-        if (kind === 'routes' && f.key === 'route_day') return <fieldset key={f.key} className={styles.dayField}><legend>Дні відвідування (можна декілька або жодного)</legend><div className={styles.dayChoices}>{editableRouteDays.map(day => {
-          const selected = String(editing.route_day ?? '').split(',').map(x => x.trim()).includes(day);
-          return <label key={day}><input type="checkbox" checked={selected} onChange={event => {
-            const checked = event.currentTarget.checked;
-            setEditing(prev => {
-              if (!prev) return prev;
-              const current = String(prev.route_day ?? '').split(',').map(value => value.trim());
-              const routeDay = weekdays.filter(value => value === day ? checked : current.includes(value));
-              return { ...prev, route_day: routeDay.join(', ') };
-            });
-          }}/>{day}</label>;
-        })}</div></fieldset>;
+        if (kind === 'routes' && f.key === 'route_day') return <label key={f.key}>День маршруту
+          <select value={String(editing.route_day ?? '')} onChange={event => setEditing(prev => prev ? { ...prev, route_day: event.target.value } : prev)}>
+            <option value="">Без дня маршруту</option>
+            {editableRouteDays.map(day => <option key={day} value={day}>{day}</option>)}
+          </select>
+        </label>;
         return <label key={f.key}>{f.label}<input type="text" value={String(editing[f.key] ?? '')} onChange={event => {
           const value = event.currentTarget.value;
           setEditing(prev => prev ? { ...prev, [f.key]: value } : prev);
