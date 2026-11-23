@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { API_BASE_URL, AUTH_TOKEN_KEY } from '../../api/config';
 import EquipmentPage from '../EquipmentPage/EquipmentPage';
+import AppDialog from '../Navigation/AppDialog';
 import PriceDirectory, { type PriceSnapshot } from './PriceDirectory';
 import styles from './DictionaryEditor.module.css';
 
@@ -79,6 +80,8 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
   const [rows, setRows] = useState<Entry[]>([]);
   const [total, setTotal] = useState(0);
   const [editing, setEditing] = useState<Entry | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Entry | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [customValues, setCustomValues] = useState<Partial<Record<string, string>>>({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -161,14 +164,16 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
     finally { setSaving(false); }
   };
   const remove = async (row: Entry) => {
-    if (!window.confirm('Видалити запис назавжди? Цю дію неможливо скасувати.')) return;
+    setDeleting(true);
     setError('');
     try {
       await request(`/api/admin/dictionaries/${kind}/${row.id}`, 'DELETE');
       setPage(1);
       setRefresh(value => value + 1);
+      setPendingDelete(null);
     }
     catch (e) { setError(e instanceof Error ? e.message : 'Помилка видалення'); }
+    finally { setDeleting(false); }
   };
   return <>
     <div className={styles.tools}><input aria-label="Пошук" placeholder="Пошук за назвою..." value={query} onChange={e => { setQuery(e.target.value); setPage(1); }}/><button onClick={newEntry}>+ Додати</button></div>
@@ -197,7 +202,7 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
     <p>{loading ? 'Завантаження…' : `Знайдено: ${total}`}</p>
     <div className={styles.list}>{rows.map(row => <article key={row.id} className={styles.item}>
       <div><strong>{String(row[kind === 'products' ? 'product_name' : 'store_name'] ?? '')}</strong><small>{kind === 'products' ? [{ label: 'Виробник', value: row.manufacturer }, { label: 'ТМ', value: row.tm }, { label: 'Група', value: row.group_name }, { label: 'Підгрупа', value: row.subgroup }, { label: 'Фасовка', value: row.packaging }].map(({ value }) => value == null || String(value).trim() === '' ? '' : String(value)).filter(Boolean).join(' · ') : [row.agent_name, row.route_day, '№ ' + row.stop_order, row.store_code, row.is_seasonal && 'Сезонний клієнт'].filter(Boolean).join(' · ')}</small></div>
-      <div className={styles.actions}><button onClick={() => openEditor({ ...row })}>Редагувати</button><button className={styles.danger} onClick={() => void remove(row)}>Видалити</button></div>
+      <div className={styles.actions}><button onClick={() => openEditor({ ...row })}>Редагувати</button><button className={styles.danger} onClick={() => setPendingDelete(row)}>Видалити</button></div>
     </article>)}</div>
     {loadedPage > 0 && loadedPage * pageSize < total && <div className={styles.pager}>
       <button type="button" disabled={loading} onClick={() => {
@@ -206,6 +211,7 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
         else setPage(loadedPage + 1);
       }}>{loading && page > 1 ? 'Завантаження…' : 'Показати ще'}</button>
     </div>}
+    {pendingDelete && <AppDialog title="Видалити запис?" message={`Запис «${String(pendingDelete[kind === 'products' ? 'product_name' : 'store_name'] ?? '')}» буде видалено назавжди. Цю дію неможливо скасувати.`} onClose={() => setPendingDelete(null)} onConfirm={() => void remove(pendingDelete)} confirmLabel="Видалити" destructive busy={deleting} />}
     {editing && <div className={styles.overlay} role="presentation"><section className={styles.dialog} role="dialog" aria-modal="true" aria-label="Редагування довідника">
       <h2>{editing.id ? 'Редагування' : 'Новий запис'}</h2>
       {kind === 'products' && optionsStatus === 'loading' && <p role="status">Завантаження варіантів…</p>}
