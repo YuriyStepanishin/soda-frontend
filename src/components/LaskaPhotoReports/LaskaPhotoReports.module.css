@@ -175,3 +175,5 @@
 .page .confirmActions .galleryDelete{position:static;min-width:98px;width:auto;padding:8px 12px;min-height:44px}
 .appNotice{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-radius:12px;border:1px solid var(--soda-border);background:var(--soda-surface);color:var(--soda-text)}
 @media(max-width:600px){.cameraActions{grid-template-columns:1fr 1.4fr 1fr;gap:6px;padding:8px 0}.page .cameraMain{min-height:75px}.page .galleryPick{padding:5px;font-size:11px}.cameraCount{font-size:11px}.photoDialog{padding:10px}.carouselPhoto{grid-template-columns:30px minmax(0,1fr) 30px}.carouselPhoto img{height:min(42dvh,380px);max-height:min(42dvh,380px)}.miniMap iframe{height:130px}}
+
+.page .carouselPhoto .galleryDelete{top:auto;bottom:8px;right:43px}
