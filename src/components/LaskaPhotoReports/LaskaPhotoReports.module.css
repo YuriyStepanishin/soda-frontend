@@ -216,3 +216,18 @@
 .page .carouselPhoto .carouselArrow:nth-of-type(2){right:8px}
 .page .carouselPhoto .galleryDelete{right:12px;bottom:12px}
 @media(max-width:600px){.page .carouselPhoto{width:100%;border-radius:10px}.page .carouselPhoto .carouselArrow{width:28px;height:36px;min-height:36px;font-size:24px}.page .carouselPhoto .galleryDelete{right:9px;bottom:9px}}
+
+/* Photo-report creation is the page itself, not a card inside the page. */
+.page:has(#laska-photo-create-form){max-width:none;width:100%;box-sizing:border-box;min-height:calc(100dvh - 120px);padding:clamp(12px,2vw,20px);display:flex;flex-direction:column;gap:12px}
+.page:has(#laska-photo-create-form) > * + *{margin-top:0}
+.page #laska-photo-create-form{flex:1 1 auto;align-content:start;box-sizing:border-box;width:100%;border:0;border-radius:0;box-shadow:none;background:transparent;padding:0;gap:14px}
+.page #laska-photo-create-form fieldset{gap:18px}
+.visuallyHidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.page .sendReport{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%;min-height:56px;padding:12px 18px;overflow:hidden;border:1px solid #1872ed;border-radius:14px;background:#0969e8;color:#fff;font-weight:700;font-size:16px;box-shadow:0 4px 14px #0969e826}
+.sendLabel{position:relative;z-index:1}
+.sendDetail{position:relative;z-index:1;font-size:12px;font-weight:500;color:#ffffffde}
+.sendProgressTrack{position:absolute;bottom:0;left:0;right:0;height:5px;background:#ffffff44}
+.sendProgressTrack>span{display:block;height:100%;background:#fff;transition:width .25s ease}
+.page .galleryPick{display:flex;align-items:center;justify-content:center;gap:6px}
+.page .galleryPick svg{flex:none}
+@media(max-width:600px){.page:has(#laska-photo-create-form){min-height:calc(100dvh - 110px);padding:14px 16px}.page #laska-photo-create-form{gap:12px}.page #laska-photo-create-form fieldset{gap:16px}.page .sendReport{min-height:54px}}

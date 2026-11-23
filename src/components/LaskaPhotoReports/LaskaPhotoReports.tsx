@@ -271,6 +271,8 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     // Only queue after the latest autosave is durable. Never block on network.
     setBusy(true);
     try {
+      // Fix the report date to the Kyiv calendar day when the user submits.
+      valueRef.current = { ...valueRef.current, date: reportDate.format(new Date()), category: 'merchandising' };
       await flushDraft();
       await database.transaction('rw', drafts, photoOutbox, async () => {
         await photoOutbox.put(valueRef.current);
@@ -287,9 +289,9 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     }
   }
 
-  return <form className={styles.panel} onSubmit={event => { event.preventDefault(); void save(); }}>
+  return <form id="laska-photo-create-form" className={styles.panel} onSubmit={event => { event.preventDefault(); void save(); }}>
     <fieldset disabled={busy}>
-      <legend>Новий фотозвіт</legend>
+      <legend className={styles.visuallyHidden}>Новий фотозвіт</legend>
       <div className={styles.filters}>
         <label>Відділ<select value={storeDepartment} onChange={event => {
           setStoreDepartment(event.target.value);
@@ -326,18 +328,10 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
             </button>)}</div>
         </>}
       </>}
-      <div className={styles.filters}>
-        <label>Дата звіту<input required type="date" value={value.date}
-          onChange={event => setValue(current => ({ ...current, date: event.target.value }))} /></label>
-        <label>Категорія<select value={value.category}
-          onChange={event => setValue(current => ({ ...current, category: event.target.value as Category }))}>
-          {Object.entries(categories).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-        </select></label>
-      </div>
       <label>Коментар<textarea rows={3} maxLength={1000} value={value.comment}
         onChange={event => setValue(current => ({ ...current, comment: event.target.value }))} /></label>
       <div className={styles.cameraActions}>
-        <button type="button" className={styles.galleryPick} onClick={() => gallery.current?.click()} disabled={value.photos.length >= 5}>▧ З галереї</button>
+        <button type="button" className={styles.galleryPick} onClick={() => gallery.current?.click()} disabled={value.photos.length >= 5}><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/></svg><span>З галереї</span></button>
         <button type="button" className={styles.cameraMain} onClick={() => camera.current?.click()} disabled={value.photos.length >= 5} aria-label="Зробити фото">
           <svg aria-hidden="true" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h4l2-3h4l2 3h6v12H4z"/><circle cx="12" cy="13" r="4"/></svg>
         </button>
@@ -357,9 +351,6 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
           <button type="button" aria-label={`Прибрати фото ${index + 1}`} onClick={() =>
             setValue(current => ({ ...current, photos: current.photos.filter(photo => photo.id !== id) }))}>Прибрати</button>
         </div>)}</div>}
-      <div className={styles.toolbar}>
-        <button className={styles.primary} type="submit">Надіслати фотозвіт</button>
-      </div>
     </fieldset>
     <p role="status">{draftStatus === 'saving' ? 'Автозбереження чернетки…' : draftStatus === 'error' ? 'Не вдалося автоматично зберегти чернетку.' : 'Чернетка збережена на пристрої.'}</p>
     {busy && <p role="status">Обробляємо…</p>}
@@ -504,10 +495,13 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   return <section className={styles.page} aria-label="Фотозвіт">
     <div className={styles.toolbar}>
       <h1>{mode === 'gallery' ? 'Галерея' : 'Фотозвіт'}</h1>
-
     </div>
-    {saved && <p role="status">Фотозвіт поставлено в чергу. Можна продовжувати роботу.</p>}
-    {(queuedCount > 0 || uploadProgress !== null && uploadProgress < 100) && <p role="status">У черзі: {queuedCount} · Завантаження: {uploadProgress ?? 0}% <progress max={100} value={uploadProgress ?? 0} /></p>}
+    {mode === 'create' && <button className={styles.sendReport} type="submit" form="laska-photo-create-form">
+      <span className={styles.sendLabel}>{queuedCount > 0 ? 'Надсилання фотозвіту' : 'Надіслати фотозвіт'}</span>
+      {queuedCount > 0 && <span className={styles.sendDetail}>У черзі: {queuedCount} · {uploadProgress == null ? 'Очікування мережі' : `${uploadProgress}%`}</span>}
+      {queuedCount > 0 && <span className={styles.sendProgressTrack} aria-hidden="true"><span style={{ width: `${uploadProgress ?? 0}%` }}/></span>}
+    </button>}
+    {saved && <p role="status">Фотозвіт збережено в черзі. Можна продовжувати роботу.</p>}
     {mode === 'create' && <DraftForm email={email} onSaved={() => {
       setSaved(true);
       setPage(1);
