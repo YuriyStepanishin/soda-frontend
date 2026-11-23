@@ -7,18 +7,23 @@ const ts = require('typescript');
 const source = fs.readFileSync(require.resolve('../src/App.tsx'), 'utf8');
 const tree = ts.createSourceFile('App.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 let logout;
+let performLogout;
 function visit(node) {
   if (ts.isFunctionDeclaration(node) && node.name?.text === 'handleLogout') logout = node;
+  if (ts.isFunctionDeclaration(node) && node.name?.text === 'performLogout') performLogout = node;
   ts.forEachChild(node, visit);
 }
 visit(tree);
 assert.ok(logout);
-const code = ts.transpileModule(logout.getText(tree), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+assert.ok(performLogout);
+const code = ts.transpileModule([logout, performLogout].map(node => node.getText(tree)).join('\n'), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+assert.match(source, /onClose=\{\(\) => setLogoutPending\(false\)\}/);
+assert.match(source, /onConfirm=\{\(\) => void performLogout\(\)\}/);
 
-function setup(confirmed) {
+function setup() {
   const calls = [];
   const context = {
-    window: { confirm(message) { calls.push('confirm'); assert.match(message, /Незбережені зміни/); return confirmed; } },
+    setLogoutPending(value) { calls.push(value ? 'show-dialog' : 'hide-dialog'); },
     queryClient: { async cancelQueries() { calls.push('cancel-queries'); }, clear() { calls.push('clear-cache'); } },
     clearAuthSession() { calls.push('clear-session'); },
     setEmail(value) { assert.equal(value, null); calls.push('email'); },
@@ -29,19 +34,20 @@ function setup(confirmed) {
   };
   vm.createContext(context);
   vm.runInContext(code, context);
-  return { calls, run: () => vm.runInContext('handleLogout()', context) };
+  return { calls, run: () => vm.runInContext('handleLogout()', context), confirm: () => vm.runInContext('performLogout()', context) };
 }
 
 test('cancel logout preserves session, tenant, navigation and cache', async () => {
-  const { calls, run } = setup(false);
+  const { calls, run } = setup();
   await run();
-  assert.deepEqual(calls, ['confirm']);
+  assert.deepEqual(calls, ['show-dialog']);
 });
 
 test('confirmed logout cancels reads before clearing session and cached tenant data', async () => {
-  const { calls, run } = setup(true);
+  const { calls, run, confirm } = setup();
   await run();
-  assert.deepEqual(calls, ['confirm', 'cancel-queries', 'clear-session', 'email', 'tenant', 'storage', 'clear-cache', 'home', 'login']);
+  await confirm();
+  assert.deepEqual(calls, ['show-dialog', 'hide-dialog', 'cancel-queries', 'clear-session', 'email', 'tenant', 'storage', 'clear-cache', 'home', 'login']);
 });
 
 test('daily sales returns to its entry screen for both home and sales entry points', () => {

@@ -50,7 +50,7 @@ export default function UserMenu({
           aria-label={email ? 'Відкрити меню користувача' : 'Відкрити вхід'}
           aria-expanded={isOpen}
         >
-          {compact ? <span>Відкрити профіль</span> : email ? (
+          {compact ? <span>Особистий кабінет</span> : email ? (
             <span className={styles.avatarText}>{userLabel}</span>
           ) : (
             <svg

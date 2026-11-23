@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import ThemeSwitcher from './ThemeSwitcher';
+import AppDialog from '../Navigation/AppDialog';
 import { useNavigationBack } from '../Navigation/useNavigationBack';
 import styles from './AppShell.module.css';
 
@@ -13,6 +14,7 @@ export default function AppShell({ children, items, active, account, tenant, nav
   >('idle');
   const [updateMessage, setUpdateMessage] = useState('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [confirmUpdate, setConfirmUpdate] = useState(false);
   const [photoPercent, setPhotoPercent] = useState<number | null>(null);
   useEffect(() => {
     const onPhotoProgress = (event: Event) => setPhotoPercent((event as CustomEvent<number>).detail);
@@ -34,15 +36,11 @@ export default function AppShell({ children, items, active, account, tenant, nav
     }
     return 0;
   };
-  const handleRefreshApp = async () => {
+  const handleRefreshApp = async (approved = false) => {
     if (updateState === 'checking') return;
     if (updateAvailable) {
-      if (
-        !window.confirm(
-          'Завантажити нову версію? Незбережені дані форми можуть бути втрачені.'
-        )
-      )
-        return;
+      if (!approved) { setConfirmUpdate(true); return; }
+      setConfirmUpdate(false);
       setUpdateState('checking');
       setUpdateMessage('Застосовуємо оновлення…');
       const registration = await navigator.serviceWorker?.getRegistration();
@@ -103,6 +101,11 @@ export default function AppShell({ children, items, active, account, tenant, nav
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [sectionLanding, setSectionLanding] = useState<string | null>(null);
+  useEffect(() => {
+    const fromHome = (event: Event) => { setSectionLanding((event as CustomEvent<string>).detail); setMenuOpen(false); };
+    window.addEventListener('soda:open-section', fromHome);
+    return () => window.removeEventListener('soda:open-section', fromHome);
+  }, []);
   const back = useNavigationBack();
   useEffect(() => { content.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' }); setSectionLanding(null); }, [navigationKey]);
   const title = sectionLanding || viewTitle || items.find(item => item.id === active)?.label || 'Робочий простір';
@@ -144,7 +147,7 @@ export default function AppShell({ children, items, active, account, tenant, nav
           </div>}
         </div>;
       })}
-      <div className={styles.menuGroup}><h3 className={styles.menuAccountTitle}>Особистий кабінет</h3><div className={styles.menuAccount}>{account}</div></div>
+      <div className={styles.menuGroup} onClick={() => setMenuOpen(false)}>{account}</div>
       <div className={styles.menuUpdate}>
         <button type="button" className={styles.menuLink} disabled={updateState === 'checking'} aria-busy={updateState === 'checking'} onClick={() => void handleRefreshApp()}>
           {updateState === 'checking' ? 'Перевірка…' : updateAvailable ? 'Встановити оновлення' : 'Перевірити оновлення'}
@@ -159,5 +162,6 @@ export default function AppShell({ children, items, active, account, tenant, nav
         {items.filter(item => item.group === sectionLanding).map(item => <button type="button" key={item.id} onClick={() => navigate(item)}>{item.label}</button>)}
       </div> : <p>У цьому розділі поки немає доступних сторінок.</p>}
     </section> : children}</main>
+    {confirmUpdate && <AppDialog title="Встановити оновлення?" message="SODA завантажить нову версію. Незбережені дані форми можуть бути втрачені." onClose={() => setConfirmUpdate(false)} onConfirm={() => void handleRefreshApp(true)} confirmLabel="Оновити" />}
   </div>;
 }
