@@ -13,6 +13,17 @@ export default function AppShell({ children, items, active, account, tenant, nav
   >('idle');
   const [updateMessage, setUpdateMessage] = useState('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [photoPercent, setPhotoPercent] = useState<number | null>(null);
+  useEffect(() => {
+    const onPhotoProgress = (event: Event) => setPhotoPercent((event as CustomEvent<number>).detail);
+    window.addEventListener('soda:laska-photo-progress', onPhotoProgress);
+    return () => window.removeEventListener('soda:laska-photo-progress', onPhotoProgress);
+  }, []);
+  useEffect(() => {
+    if (photoPercent !== 100) return;
+    const timer = window.setTimeout(() => setPhotoPercent(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [photoPercent]);
   const compareVersions = (a: string, b: string): number => {
     const parse = (value: string) => /^v?(\d+)\.(\d+)\.(\d+)$/.exec(value.trim())?.slice(1).map(Number);
     const left = parse(a);
@@ -113,6 +124,7 @@ export default function AppShell({ children, items, active, account, tenant, nav
         <button type="button" className={styles.back} onClick={goHome} aria-label="Головна" title="Головна"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true"><path d="M3 10 12 3l9 7v11h-6v-7H9v7H3Z" /></svg><span>Головна</span></button>
       </nav>}
       <div className={styles.heading}><strong>{title}</strong><small>{tenant ? tenant.toUpperCase() : 'SODA'}</small></div>
+      {photoPercent !== null && <span className={styles.photoProgress} role="status">Фото {photoPercent}% <progress max={100} value={photoPercent}/></span>}
       <div className={styles.toolbar}>{!back && <ThemeSwitcher />}<button type="button" className={styles.menuButton} onClick={() => setMenuOpen(value => !value)} aria-expanded={menuOpen} aria-controls="soda-section-menu">☰ Меню</button></div>
     </header>
     {menuOpen && <nav id="soda-section-menu" className={styles.sectionMenu} aria-label="Меню SODA">
