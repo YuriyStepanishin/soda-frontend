@@ -340,7 +340,6 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
         <button type="button" className={styles.galleryPick} onClick={() => gallery.current?.click()} disabled={value.photos.length >= 5}>▧ З галереї</button>
         <button type="button" className={styles.cameraMain} onClick={() => camera.current?.click()} disabled={value.photos.length >= 5} aria-label="Зробити фото">
           <svg aria-hidden="true" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h4l2-3h4l2 3h6v12H4z"/><circle cx="12" cy="13" r="4"/></svg>
-          <span>Зробити фото</span>
         </button>
         <span className={styles.cameraCount}>Фото {value.photos.length}/5 · GPS</span>
         {[camera, gallery].map((ref, index) => <input key={index} hidden ref={ref} type="file"
@@ -383,7 +382,6 @@ function DraftForm({ email, onSaved }: { email: string; onSaved: () => void }) {
 }
 
 export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: string; mode?: 'gallery' | 'create' }) {
-  const [creating, setCreating] = useState(mode === 'create');
   const [saved, setSaved] = useState(false);
   const [filters, setFilters] = useState(emptyFilters);
   const [applied, setApplied] = useState(emptyFilters);
@@ -468,16 +466,21 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   const movePhoto = (step: number) => {
     if (selectedGroup?.photos.length) setSelectedIndex(i => (i + step + selectedGroup.photos.length) % selectedGroup.photos.length);
   };
-  // The mini-map always shows GPS shooting coordinates, never a thumbnail.
-  const mapUrl = selectedPhoto?.latitude != null && selectedPhoto.longitude != null ? (() => {
-    const lat = selectedPhoto.latitude;
-    const lon = selectedPhoto.longitude;
-    const params = new URLSearchParams({
-      bbox: [lon - .008, lat - .005, lon + .008, lat + .005].join(','),
-      layer: 'mapnik', marker: lat + ',' + lon,
-    });
-    return 'https://www.openstreetmap.org/export/embed.html?' + params.toString();
-  })() : null;
+  // Resolve a human-readable shooting location only for the currently opened image.
+  // The backend caches results and rate-limits the external geocoder.
+  const hasGps = selectedPhoto?.latitude != null && selectedPhoto.longitude != null;
+  const latitude = selectedPhoto?.latitude ?? null;
+  const longitude = selectedPhoto?.longitude ?? null;
+  const photoPlace = useQuery({
+    queryKey: [...queryKey, 'reverse-location', latitude?.toFixed(4), longitude?.toFixed(4)],
+    queryFn: ({ signal }) => apiGet<{ locality: string; address: string }>(endpoint + '/reverse-location', {
+      authenticated: true, query: { latitude: latitude!, longitude: longitude! }, signal,
+    }),
+    enabled: mode === 'gallery' && Boolean(selectedStore) && hasGps,
+    retry: false,
+    staleTime: 30 * 86400_000,
+    gcTime: 30 * 86400_000,
+  });
   useEffect(() => {
     if (!selectedStore) return;
     const onKey = (event: KeyboardEvent) => {
@@ -501,15 +504,11 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   return <section className={styles.page} aria-label="Фотозвіт">
     <div className={styles.toolbar}>
       <h1>{mode === 'gallery' ? 'Галерея' : 'Фотозвіт'}</h1>
-      {mode === 'create' && <button type="button" className={styles.primary} aria-expanded={creating}
-        onClick={() => { setCreating(!creating); setSaved(false); }}>
-        {creating ? 'Закрити форму' : 'Додати фотозвіт'}
-      </button>}
+
     </div>
     {saved && <p role="status">Фотозвіт поставлено в чергу. Можна продовжувати роботу.</p>}
     {(queuedCount > 0 || uploadProgress !== null && uploadProgress < 100) && <p role="status">У черзі: {queuedCount} · Завантаження: {uploadProgress ?? 0}% <progress max={100} value={uploadProgress ?? 0} /></p>}
-    {creating && <DraftForm email={email} onSaved={() => {
-      setCreating(false);
+    {mode === 'create' && <DraftForm email={email} onSaved={() => {
       setSaved(true);
       setPage(1);
       void client.invalidateQueries({ queryKey });
@@ -572,15 +571,19 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
           <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(-1)} aria-label="Попереднє фото" disabled={selectedGroup.photos.length < 2}>‹</button>
           <img src={selectedPhoto.url} alt={`Фото ${selectedIndex + 1}: ${selectedGroup.name}`} />
           <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(1)} aria-label="Наступне фото" disabled={selectedGroup.photos.length < 2}>›</button>
-          <button type="button" className={styles.galleryDelete} onClick={() => setConfirmDelete({ report: selectedPhoto.report, index: selectedPhoto.index })} aria-label="Видалити фото">Del</button>
+          <button type="button" className={styles.galleryDelete} onClick={() => setConfirmDelete({ report: selectedPhoto.report, index: selectedPhoto.index })} aria-label="Видалити фото"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v7M14 10v7"/></svg>Видалити</button>
         </div>
         <div className={styles.photoMeta}><span>{selectedPhoto.report.report_date.split('-').reverse().join('.')} · {categories[selectedPhoto.report.category]}</span></div>
         {selectedPhoto.report.comment && <p className={styles.photoComment}>{selectedPhoto.report.comment}</p>}
-        <div className={styles.miniMap}>
-          {mapUrl ? <>
-            <iframe key={mapUrl} title="Місце фотозйомки за GPS" src={mapUrl} loading="lazy" referrerPolicy="no-referrer" />
-            <a target="_blank" rel="noreferrer" href={`https://www.google.com/maps?q=${selectedPhoto.latitude},${selectedPhoto.longitude}`}>📍 Місце зйомки на карті</a>
-          </> : <p>Геолокація відсутня для цього фото</p>}
+        <div className={styles.placeInfo} aria-live="polite">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <div>
+            {!hasGps ? <strong>Геолокація відсутня</strong> :
+              photoPlace.data?.locality ? <strong>{photoPlace.data.locality}</strong> :
+              photoPlace.isFetching ? <strong>Визначаємо населений пункт…</strong> : <strong>Населений пункт не визначено</strong>}
+            {photoPlace.data?.address && <span>{photoPlace.data.address}</span>}
+            {hasGps && <span className={styles.coordinates}>GPS: {latitude?.toFixed(5)}, {longitude?.toFixed(5)}</span>}
+          </div>
         </div>
 
       </section>
