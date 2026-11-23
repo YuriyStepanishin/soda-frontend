@@ -568,9 +568,11 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
           <button type="button" onClick={() => setSelectedStore(null)} aria-label="Закрити перегляд">✕</button>
         </div>
         <div className={styles.carouselPhoto}>
-          <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(-1)} aria-label="Попереднє фото" disabled={selectedGroup.photos.length < 2}>‹</button>
           <img src={selectedPhoto.url} alt={`Фото ${selectedIndex + 1}: ${selectedGroup.name}`} />
-          <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(1)} aria-label="Наступне фото" disabled={selectedGroup.photos.length < 2}>›</button>
+          {selectedGroup.photos.length > 1 && <>
+            <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(-1)} aria-label="Попереднє фото">‹</button>
+            <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(1)} aria-label="Наступне фото">›</button>
+          </>}
           <button type="button" className={styles.galleryDelete} onClick={() => setConfirmDelete({ report: selectedPhoto.report, index: selectedPhoto.index })} aria-label="Видалити фото"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v7M14 10v7"/></svg>Видалити</button>
         </div>
         <div className={styles.photoMeta}><span>{selectedPhoto.report.report_date.split('-').reverse().join('.')} · {categories[selectedPhoto.report.category]}</span></div>
