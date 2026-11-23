@@ -130,7 +130,7 @@ export default function AppShell({ children, items, active, account, tenant, nav
       {photoPercent !== null && <span className={styles.photoProgress} role="status">Фото {photoPercent}% <progress max={100} value={photoPercent}/></span>}
       <div className={styles.toolbar}>{!back && <ThemeSwitcher />}<button type="button" className={styles.menuButton} onClick={() => setMenuOpen(value => !value)} aria-expanded={menuOpen} aria-controls="soda-section-menu">☰ Меню</button></div>
     </header>
-    {menuOpen && <nav id="soda-section-menu" className={styles.sectionMenu} aria-label="Меню SODA">
+    <nav id="soda-section-menu" className={styles.sectionMenu} aria-label="Меню SODA" hidden={!menuOpen} aria-hidden={!menuOpen}>
       <button type="button" className={styles.menuLink} onClick={() => navigate(items[0])}>⌂ Головна</button>
       {groups.map(group => {
         const entries = items.filter(item => item.group === group);
@@ -155,7 +155,7 @@ export default function AppShell({ children, items, active, account, tenant, nav
         {updateMessage && <span role="status" aria-live="polite">{updateMessage}</span>}
       </div>
       <div className={styles.menuVersion}>SODA · v{__APP_VERSION__}</div>
-    </nav>}
+    </nav>
     <main id="soda-main" ref={content} tabIndex={-1} className={styles.content}>{sectionLanding ? <section className={styles.sectionLanding}>
       <h1>{sectionLanding}</h1>
       {items.filter(item => item.group === sectionLanding).length ? <div className={styles.sectionEntries}>
