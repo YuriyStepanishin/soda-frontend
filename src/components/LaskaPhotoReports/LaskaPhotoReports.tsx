@@ -457,7 +457,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   const invalidDates = Boolean(filters.from && filters.to && filters.from > filters.to);
   const groupedStores = new Map<string, { name: string; code: string; agent: string; photos: { report: Report; index: number; url: string; latitude: number | null; longitude: number | null }[] }>();
   for (const report of reportList.data?.rows ?? []) {
-    const key = report.store_code || report.store_name;
+    const key = (report.store_code || report.store_name) + '::' + report.report_date;
     if (!groupedStores.has(key)) groupedStores.set(key, { name: report.store_name, code: report.store_code, agent: report.agent_name, photos: [] });
     report.photos.forEach((photo, index) => groupedStores.get(key)?.photos.push({ ...photo, report, index }));
   }
@@ -550,7 +550,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
           {group.photos[0] && <img src={group.photos[0].url} loading="lazy" referrerPolicy="no-referrer" alt={group.name} />}
           <span className={styles.photoCounter}>📷 {group.photos.length} фото</span>
         </button>
-        <div className={styles.galleryInfo}><strong>ТТ: {group.name}</strong><span>{group.code} · {group.agent}</span></div>
+        <div className={styles.galleryInfo}><strong>ТТ: {group.name}</strong><span>{group.photos[0]?.report.report_date.split('-').reverse().join('.')} · {group.code} · {group.agent}</span></div>
       </article>
     )}</div>}
     {mode === 'gallery' && selectedStore && selectedGroup && selectedPhoto && <div className={styles.viewer} role="presentation" onClick={() => setSelectedStore(null)}>
