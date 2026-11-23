@@ -343,15 +343,21 @@ export default function HomePage({
         <section className={styles.grid} aria-label="П'ять розділів SODA">
           {([
             ['orders', 'Замовлення', 'У розробці'],
-            ['analytics', 'Аналітика', 'Продажі, звіти, показники та довідники'],
+            ['analytics', 'Аналітика', 'Продажі, звіти та показники'],
+            ['dictionaries', 'Довідники', 'Товари, маршрути, обладнання і прайс'],
             ['receivables', 'Дебіторка', 'Заборгованість та накладні'],
             ['photos', 'Фотозвіт', 'Створення, галерея та перевірки'],
             ['calendar', 'Мій календар', 'У розробці'],
           ] as const).map(([key, label, description]) => (
             <button key={key} type="button" className={styles.card}
               disabled={key === 'receivables' && !canOpenReceivables}
-              onClick={() => key === 'receivables' ? onOpenReceivables() : setSection(key)}>
-              <span className={styles.iconWrap}>{renderIcon(key === 'receivables' ? 'receivables' : key === 'photos' ? 'gallery' : key === 'analytics' ? 'sales' : key === 'calendar' ? 'sales-by-days' : 'dictionaries')}</span>
+              onClick={() => {
+                setSection('home');
+                if (key === 'receivables') onOpenReceivables();
+                else if (key === 'dictionaries') onOpenDictionaries();
+                else window.dispatchEvent(new CustomEvent('soda:open-section', { detail: ({ analytics: 'Аналітика', photos: 'Фотозвіт', orders: 'Замовлення', calendar: 'Мій календар' } as Record<string,string>)[key] }));
+              }}>
+              <span className={styles.iconWrap}>{renderIcon(key === 'receivables' ? 'receivables' : key === 'dictionaries' ? 'dictionaries' : key === 'photos' ? 'gallery' : key === 'analytics' ? 'sales' : key === 'calendar' ? 'sales-by-days' : 'dictionaries')}</span>
               <span className={styles.cardCopy}><strong>{label}</strong><small>{description}</small></span>
               <span className={styles.arrow} aria-hidden="true">›</span>
             </button>
@@ -366,7 +372,7 @@ export default function HomePage({
           {(section === 'orders' || section === 'calendar') ? <p className={styles.placeholder}>У розробці</p> : (
             <div className={styles.grid}>
               {(section === 'analytics'
-                ? topMenuItems.filter(item => item.visible && item.key !== 'receivables' && item.key !== 'gallery' && item.key !== 'photo-report')
+                ? topMenuItems.filter(item => item.visible && item.key !== 'receivables' && item.key !== 'dictionaries' && item.key !== 'gallery' && item.key !== 'photo-report')
                 : [...topMenuItems.filter(item => item.visible && (item.key === 'gallery' || item.key === 'photo-report')), ...bottomMenuItems.filter(item => item.visible && item.key !== 'bonus')]
               ).map((item, index) => (
                 <button type="button" key={`${item.key}-${index}`} onClick={item.onClick} className={styles.card}>
