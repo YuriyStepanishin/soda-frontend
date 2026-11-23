@@ -175,12 +175,14 @@ export default function App() {
   const userRole = getUserRole(email);
   const userDepartment = getUserDepartment(email);
 
-  const canEditDictionaries = activeDatabase === 'laska' && ['admin', 'manager'].includes(userRole ?? '');
+  const canEditDictionaries = activeDatabase === 'laska' && userRole === 'admin';
   const canOpenMotivation = activeDatabase === 'laska' && ['admin', 'manager'].includes(getAuthSession()?.user.role ?? '');
-  const canUseLaskaTools = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent', 'brand_manager'].includes(userRole ?? getAuthSession()?.user.role ?? '');
+  // Photo-report backend accepts only admin/manager/supervisor/agent.
+  const canUseLaskaTools = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent'].includes(userRole ?? getAuthSession()?.user.role ?? '');
   const canOpenReceivables = activeDatabase === 'laska' && !!email && ['admin', 'manager', 'supervisor', 'agent'].includes(userRole ?? getAuthSession()?.user.role ?? '');
 
-  const canOpenDictionaries = canOpenReceivables;
+  // Admin dictionaries API is admin-only; do not offer unusable actions to other roles.
+  const canOpenDictionaries = activeDatabase === 'laska' && userRole === 'admin';
 
   const canAccess = (section: AppSection) =>
     canAccessSection(userRole, section);
