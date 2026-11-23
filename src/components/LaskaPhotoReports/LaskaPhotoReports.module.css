@@ -144,3 +144,34 @@
 .galleryCard{position:relative}
 .page .galleryDelete{position:absolute;z-index:2;top:6px;right:6px;width:30px;min-height:30px;height:30px;border-radius:8px;padding:0;background:rgba(135,20,25,.90);border:1px solid rgba(255,255,255,.8);color:white;font-size:16px;font-weight:700;line-height:1}
 .page progress{vertical-align:middle;width:min(100%,180px);height:12px;accent-color:var(--soda-accent)}
+
+/* Mobile-first store gallery with GPS location modal. */
+.cameraActions{display:grid;grid-template-columns:minmax(0,1fr) minmax(145px,1.5fr) minmax(0,1fr);gap:12px;align-items:end;padding:12px 4px}
+.page .cameraMain{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-height:78px;border-radius:18px;border:2px solid var(--soda-accent);background:var(--soda-accent);color:var(--soda-on-accent);font-weight:700}
+.page .galleryPick{min-height:52px;font-size:13px}
+.cameraCount{font-size:12px;color:var(--soda-muted);text-align:right;align-self:center}
+.galleryImageButton{position:relative}
+.photoCounter{position:absolute;right:8px;bottom:8px;color:#fff;background:rgba(0,0,0,.73);border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700}
+.page .viewer{padding:12px;background:rgba(0,0,0,.82);overflow-y:auto;align-items:center}
+.photoDialog{width:min(680px,100%);max-height:calc(100dvh - 24px);overflow:auto;display:grid;gap:10px;background:var(--soda-surface);color:var(--soda-text);border-radius:16px;padding:14px;border:1px solid var(--soda-border);box-shadow:0 16px 60px #0008}
+.dialogTop{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.dialogTop div{display:grid;gap:5px;min-width:0}
+.dialogTop strong{font-size:16px;overflow-wrap:anywhere}
+.dialogTop small{color:var(--soda-muted);font-size:12px}
+.carouselPhoto{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;gap:6px;align-items:center;position:relative}
+.carouselPhoto img{display:block;width:100%;height:min(46dvh,450px);max-height:min(46dvh,450px);object-fit:contain;background:#111;border-radius:10px}
+.page .carouselArrow{min-height:42px;padding:3px;background:var(--soda-control);color:var(--soda-text);border:1px solid var(--soda-border);font-size:29px;border-radius:10px}
+.photoMeta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--soda-muted);gap:10px}
+.page .photoMeta .galleryDelete{position:absolute;bottom:8px;right:48px;width:auto;min-width:45px;height:30px;min-height:30px;padding:3px 7px;background:#a3222b;color:#fff;border-radius:8px;border:1px solid #fff9;font-size:12px;z-index:2}
+.photoComment{font-size:12px;white-space:pre-wrap}
+.miniMap{display:grid;gap:6px;border:1px solid var(--soda-border);padding:6px;border-radius:10px;min-height:90px}
+.miniMap iframe{border:0;width:100%;height:155px;border-radius:8px;background:var(--soda-control)}
+.miniMap a{font-size:12px;color:var(--soda-accent-text)}
+.confirmBackdrop{position:fixed;inset:0;z-index:11000;display:grid;place-items:center;background:#000a;padding:14px}
+.confirmBox{width:min(420px,100%);background:var(--soda-surface);color:var(--soda-text);border:1px solid var(--soda-border);box-shadow:0 8px 44px #0006;border-radius:16px;padding:20px;display:grid;gap:14px}
+.confirmBox h2{font-size:18px;margin:0}
+.confirmBox p{font-size:14px;line-height:1.5}
+.confirmActions{display:flex;gap:10px;justify-content:end}
+.page .confirmActions .galleryDelete{position:static;min-width:98px;width:auto;padding:8px 12px;min-height:44px}
+.appNotice{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-radius:12px;border:1px solid var(--soda-border);background:var(--soda-surface);color:var(--soda-text)}
+@media(max-width:600px){.cameraActions{grid-template-columns:1fr 1.4fr 1fr;gap:6px;padding:8px 0}.page .cameraMain{min-height:75px}.page .galleryPick{padding:5px;font-size:11px}.cameraCount{font-size:11px}.photoDialog{padding:10px}.carouselPhoto{grid-template-columns:30px minmax(0,1fr) 30px}.carouselPhoto img{height:min(42dvh,380px);max-height:min(42dvh,380px)}.miniMap iframe{height:130px}}
