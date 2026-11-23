@@ -231,3 +231,17 @@
 .page .galleryPick{display:flex;align-items:center;justify-content:center;gap:6px}
 .page .galleryPick svg{flex:none}
 @media(max-width:600px){.page:has(#laska-photo-create-form){min-height:calc(100dvh - 110px);padding:14px 16px}.page #laska-photo-create-form{gap:12px}.page #laska-photo-create-form fieldset{gap:16px}.page .sendReport{min-height:54px}}
+
+/* Photo-report: a single edge-to-edge screen, not a card. */
+.page:has(#laska-photo-create-form){width:100%;max-width:none;min-height:calc(100dvh - 110px);box-sizing:border-box;display:flex;flex-direction:column;padding:12px 0 0;gap:12px}
+.page:has(#laska-photo-create-form) .reportHeader{padding:0 16px}
+.reportHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;box-sizing:border-box}
+.reportHeader h1{margin:0;min-width:0;flex:1;font-size:clamp(24px,6vw,34px)}
+.page .reportHeader .sendReport{width:auto;max-width:56%;flex:0 1 auto;min-height:50px;padding:9px 12px;font-size:clamp(12px,3.2vw,15px);white-space:normal;text-align:center;border-radius:12px}
+.page #laska-photo-create-form{flex:1 1 auto;width:100%;max-width:none;margin:0;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;padding:0 16px 16px;box-sizing:border-box}
+.page #laska-photo-create-form fieldset{width:100%;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.page .placeInfo{color:inherit;text-decoration:none;cursor:pointer}
+.page .placeInfo:hover{border-color:var(--soda-accent)}
+.page .placeInfo:focus-visible{outline:3px solid var(--soda-accent);outline-offset:2px}
+.page .placeInfo>svg:last-child{margin-left:auto;flex:0 0 18px}
+@media(min-width:768px){.page:has(#laska-photo-create-form){padding:18px 0 0}.page:has(#laska-photo-create-form) .reportHeader,.page #laska-photo-create-form{padding-left:24px;padding-right:24px}}
