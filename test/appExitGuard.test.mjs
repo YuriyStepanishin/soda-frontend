@@ -11,6 +11,7 @@ function setup({ handled = false, confirmed = false, state = { idx: 0, routerKey
     pushState(value) { this.state = value; calls.push('push'); },
     forward() { calls.push('forward'); },
     back() { calls.push('back'); },
+    go(delta) { calls.push('go:' + delta); },
   };
   globalThis.window = { history, addEventListener(name, handler) { listeners.set(name, handler); }, removeEventListener(name) { listeners.delete(name); } };
   const cleanup = installAppExitGuard({ onBack() { calls.push('screen-back'); return handled; }, confirmExit() { calls.push('confirm'); return confirmed; } });
@@ -52,4 +53,37 @@ test('remount/reload reuses the guard; forward traversal does not request exit',
   app.listeners.get('popstate')({ state: { sodaNavigationGuard: 'active' } });
   assert.deepEqual(app.calls, []);
   app.cleanup();
+});
+
+test('async SODA dialog keeps app protected while open and exits only after confirmation', async () => {
+  const calls = [];
+  const listeners = new Map();
+  let resolveDialog;
+  const history = {
+    state: { idx: 12 },
+    replaceState(value) { this.state = value; },
+    pushState(value) { this.state = value; },
+    forward() { calls.push('forward'); },
+    back() { calls.push('back'); },
+    go(delta) { calls.push('go:' + delta); },
+  };
+  globalThis.window = {
+    history,
+    addEventListener(name, handler) { listeners.set(name, handler); },
+    removeEventListener(name) { listeners.delete(name); },
+  };
+  const cleanup = installAppExitGuard({
+    onBack: () => false,
+    confirmExit: () => new Promise(resolve => { resolveDialog = resolve; }),
+  });
+  listeners.get('popstate')({ state: { sodaNavigationGuard: 'root' } });
+  assert.deepEqual(calls, ['forward']);
+  resolveDialog(false);
+  await Promise.resolve();
+  assert.deepEqual(calls, ['forward']);
+  listeners.get('popstate')({ state: { sodaNavigationGuard: 'root' } });
+  resolveDialog(true);
+  await Promise.resolve();
+  assert.deepEqual(calls, ['forward', 'forward', 'go:-2']);
+  cleanup();
 });
