@@ -4,3 +4,6 @@
 .avatarIcon { width: 25px; height: 25px; }
 .trigger:focus-visible { outline: 3px solid var(--soda-accent); outline-offset: 2px; }
 @media (hover: hover) { .trigger:hover { background: var(--soda-control); } }
+
+.compactTrigger{min-height:44px;width:100%;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:var(--soda-text);text-align:left;font:inherit;cursor:pointer}
+.compactTrigger:hover{background:var(--soda-control)}

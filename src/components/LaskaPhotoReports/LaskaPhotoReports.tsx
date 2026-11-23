@@ -2,7 +2,9 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Dexie, { type Table } from 'dexie';
 import imageCompression from 'browser-image-compression';
-import { apiGet, apiPostFormData } from '../../api/client';
+import { apiGet, getActiveTenant } from '../../api/client';
+import { API_BASE_URL } from '../../api/config';
+import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '../../api/config';
 import styles from './LaskaPhotoReports.module.css';
 
 const endpoint = '/api/laska/photo-reports';
@@ -27,7 +29,81 @@ type Draft = {
 
 const database = new Dexie('SodaLaskaPhotoReports');
 database.version(1).stores({ drafts: 'owner' });
+database.version(2).stores({ drafts: 'owner', photoOutbox: 'id,owner' });
 const drafts: Table<Draft, string> = database.table('drafts');
+const photoOutbox: Table<Draft, string> = database.table('photoOutbox');
+
+// An upload is owned by the app, not the form: navigating away does not abort it.
+// IndexedDB retains the photos until the server confirms success.
+let outboxRunning = false;
+const queueEvent = 'soda:laska-photo-outbox';
+const queueProgressEvent = 'soda:laska-photo-progress';
+const postQueueProgress = (percent: number) => window.dispatchEvent(new CustomEvent(queueProgressEvent, { detail: percent }));
+function uploadPhotoReport(data: FormData): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', new URL(endpoint, API_BASE_URL).toString());
+    xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem(AUTH_TOKEN_KEY));
+    xhr.setRequestHeader('x-tenant-id', 'laska');
+    xhr.timeout = 120_000;
+    xhr.upload.onprogress = event => { if (event.lengthComputable && event.total > 0) postQueueProgress(Math.min(99, Math.round(event.loaded / event.total * 100))); };
+    xhr.onerror = () => reject(new Error('Немає з’єднання'));
+    xhr.ontimeout = () => reject(new Error('Перевищено час завантаження'));
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) { postQueueProgress(100); resolve(); }
+      else reject(new Error('HTTP ' + xhr.status));
+    };
+    xhr.send(data);
+  });
+}
+function currentEmail(): string {
+  try {
+    const raw = window.localStorage.getItem(AUTH_USER_KEY);
+    const user = raw ? JSON.parse(raw) as { email?: string } : null;
+    return (user?.email ?? '').trim().toLowerCase();
+  } catch { return ''; }
+}
+async function processPhotoOutbox(): Promise<void> {
+  if (outboxRunning || !navigator.onLine || !window.localStorage.getItem(AUTH_TOKEN_KEY)
+      || getActiveTenant() !== 'laska') return;
+  outboxRunning = true;
+  try {
+    const owner = currentEmail();
+    if (!owner) return;
+    const queued = (await photoOutbox.toArray()).filter(row => row.owner.toLowerCase() === owner);
+    for (const item of queued) {
+      if (!navigator.onLine || getActiveTenant() !== 'laska' || currentEmail() !== owner) break;
+      if (!item.store || !item.photos.length || item.photos.some(photo => photo.latitude == null || photo.longitude == null)) continue;
+      const data = new FormData();
+      data.set('id', item.id);
+      data.set('routeId', item.store.id);
+      data.set('reportDate', item.date);
+      data.set('category', item.category);
+      data.set('comment', item.comment);
+      data.set('photoLocations', JSON.stringify(item.photos.map(photo => ({ latitude: photo.latitude, longitude: photo.longitude }))));
+      for (const { file } of item.photos) data.append('photos', file, 'photo.jpg');
+      try {
+        postQueueProgress(0);
+        await uploadPhotoReport(data);
+        await photoOutbox.delete(item.id);
+        window.dispatchEvent(new Event(queueEvent));
+      } catch {
+        // Do not delete the local copy on failure. Retry when online / app is active.
+        break;
+      }
+    }
+  } catch {
+    // Storage can become temporarily unavailable; keep queued data untouched.
+  } finally {
+    outboxRunning = false;
+  }
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => void processPhotoOutbox());
+  window.addEventListener('focus', () => void processPhotoOutbox());
+  window.setInterval(() => void processPhotoOutbox(), 30_000);
+  void processPhotoOutbox();
+}
 const emptyFilters = { from: '', to: '', department: '', agent: '', search: '', category: '' };
 const reportDate = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Kyiv' });
 const errorMessage = (error: unknown) => error instanceof Error && error.name !== 'TypeError'
@@ -59,6 +135,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [locationError, setLocationError] = useState('');
+  const [preparing, setPreparing] = useState(0);
   const camera = useRef<HTMLInputElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
 
@@ -114,6 +191,28 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     retry: false,
   });
 
+  async function requestLocation(): Promise<{ latitude: number; longitude: number }> {
+    if (!navigator.geolocation) throw new Error('Геолокація недоступна. Фото збережене — увімкніть GPS та повторіть.');
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        position => resolve({latitude: position.coords.latitude, longitude: position.coords.longitude}),
+        () => reject(new Error('Не вдалося отримати GPS. Фото збережене — повторіть визначення координат.')),
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 },
+      );
+    });
+  }
+
+  async function retryLocation() {
+    setBusy(true);
+    setLocationError('');
+    try {
+      const location = await requestLocation();
+      setValue(current => ({ ...current, photos: current.photos.map(photo =>
+        photo.latitude == null || photo.longitude == null ? { ...photo, ...location } : photo) }));
+    } catch (error) { setLocationError(errorMessage(error)); }
+    finally { setBusy(false); }
+  }
+
   async function addPhotos(files: File[]) {
     if (!files.length) return;
     if (value.photos.length + files.length > 5) {
@@ -121,15 +220,12 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
       return;
     }
     setBusy(true);
+    setPreparing(0);
     setFeedback('');
     setLocationError('');
+    const nextPhotos: Draft['photos'] = [];
     try {
-      const nextPhotos: Draft['photos'] = [];
-      if (!navigator.geolocation) throw new Error('Геолокація недоступна на цьому пристрої. Фотозвіт потребує GPS.');
-      const location = await new Promise<{latitude:number;longitude:number}>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(position => resolve({latitude:position.coords.latitude,longitude:position.coords.longitude}), () => reject(new Error('Увімкніть геолокацію та дозвольте доступ до місцезнаходження для фотозвіту.')), {enableHighAccuracy:true,timeout:15000,maximumAge:0});
-      });
-      for (const file of files) {
+      for (const [index, file] of files.entries()) {
         if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
           throw new Error('Виберіть фото JPG, PNG або WebP.');
         }
@@ -137,64 +233,60 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
           maxSizeMB: 1.5, maxWidthOrHeight: 2400, useWebWorker: true, fileType: 'image/jpeg',
         });
         if (compressed.size > 5 * 1024 * 1024) throw new Error('Фото перевищує 5 МБ.');
-        nextPhotos.push({ id: crypto.randomUUID(), file: compressed, latitude: location.latitude, longitude: location.longitude });
+        nextPhotos.push({ id: crypto.randomUUID(), file: compressed, latitude: null, longitude: null });
+        setPreparing(Math.round((index + 1) / files.length * 100));
       }
-      setValue(current => ({ ...current, photos: [...current.photos, ...nextPhotos] }));
-    } catch (error) {
-      setLocationError(errorMessage(error));
-      setFeedback(errorMessage(error));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function save(send: boolean) {
-    setBusy(true);
-    setFeedback('');
-    try {
+      const savedSnapshot = { ...valueRef.current, photos: [...valueRef.current.photos, ...nextPhotos] };
+      // Persist photos before GPS: a slow/failed location request must never force a re-take.
+      await persistDraft(savedSnapshot);
+      valueRef.current = savedSnapshot;
+      setValue(savedSnapshot);
       try {
-        await flushDraft();
-      } catch {
-        setDraftStatus('error');
-        throw new Error('Не вдалося зберегти чернетку на пристрої. Перевірте вільне місце та дозволи браузера.');
+        const location = await requestLocation();
+        setValue(current => ({ ...current, photos: current.photos.map(photo =>
+          nextPhotos.some(newPhoto => newPhoto.id === photo.id) ? { ...photo, ...location } : photo) }));
+      } catch (error) {
+        setLocationError(errorMessage(error));
       }
-      if (!send) {
-        setFeedback('Чернетку збережено на цьому пристрої.');
-        return;
-      }
-      if (!navigator.onLine) {
-        setFeedback('Чернетку збережено. Надішліть її, коли повернеться інтернет.');
-        return;
-      }
-      if (value.photos.some(photo => photo.latitude == null || photo.longitude == null)) {
-        setFeedback('Геолокація обов’язкова для кожного фото. Приберіть фото без координат та зробіть його повторно.');
-        return;
-      }
-      if (!value.store || !value.photos.length) {
-        setFeedback('Виберіть торгову точку й додайте хоча б одне фото.');
-        return;
-      }
-      const data = new FormData();
-      data.set('id', value.id);
-      data.set('routeId', value.store.id);
-      data.set('reportDate', value.date);
-      data.set('category', value.category);
-      data.set('comment', value.comment);
-      data.set('photoLocations', JSON.stringify(value.photos.map(photo => ({ latitude: photo.latitude ?? null, longitude: photo.longitude ?? null }))));
-      for (const { file } of value.photos) data.append('photos', file, 'photo.jpg');
-      await apiPostFormData(endpoint, data, { authenticated: true, tenant: 'laska' });
-      submitted.current = true;
-      await pendingSave.current.catch(() => undefined);
-      await drafts.delete(value.owner).catch(() => undefined);
-      onSaved();
     } catch (error) {
       setFeedback(errorMessage(error));
     } finally {
       setBusy(false);
+      setPreparing(0);
     }
   }
 
-  return <form className={styles.panel} onSubmit={event => { event.preventDefault(); void save(true); }}>
+  async function save() {
+    if (busy) return;
+    setFeedback('');
+    if (value.photos.some(photo => photo.latitude == null || photo.longitude == null)) {
+      setFeedback('Геолокація обов’язкова для кожного фото. Чернетка залишається на пристрої.');
+      return;
+    }
+    if (!value.store || !value.photos.length) {
+      setFeedback('Виберіть торгову точку й додайте хоча б одне фото.');
+      return;
+    }
+    // Only queue after the latest autosave is durable. Never block on network.
+    setBusy(true);
+    try {
+      await flushDraft();
+      await database.transaction('rw', drafts, photoOutbox, async () => {
+        await photoOutbox.put(valueRef.current);
+        await drafts.delete(valueRef.current.owner);
+      });
+      submitted.current = true;
+      onSaved();
+      void processPhotoOutbox();
+    } catch {
+      setDraftStatus('error');
+      setFeedback('Не вдалося поставити звіт у чергу. Фото залишаються у чернетці. Перевірте місце на пристрої.');
+    } finally {
+      if (!submitted.current) setBusy(false);
+    }
+  }
+
+  return <form className={styles.panel} onSubmit={event => { event.preventDefault(); void save(); }}>
     <fieldset disabled={busy}>
       <legend>Новий фотозвіт</legend>
       <div className={styles.filters}>
@@ -255,7 +347,8 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
             void addPhotos(files);
           }} />)}
       </div>
-      {locationError && <p role="alert">{locationError}</p>}
+      {locationError && <p role="alert">{locationError} <button type="button" onClick={() => void retryLocation()}>Повторити GPS</button></p>}
+      {busy && preparing > 0 && <p role="status">Підготовка фото: {preparing}% <progress max={100} value={preparing} /></p>}
       {value.photos.length > 0 && <div className={styles.photos}>{value.photos.map(({ id, file, latitude, longitude }, index) =>
         <div key={id}><FilePreview file={file} /><small>{latitude != null && longitude != null ? `📍 ${latitude.toFixed(5)}, ${longitude.toFixed(5)}` : '⚠️ Немає GPS'}</small>
           <button type="button" aria-label={`Прибрати фото ${index + 1}`} onClick={() =>
@@ -263,7 +356,6 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
         </div>)}</div>}
       <div className={styles.toolbar}>
         <button className={styles.primary} type="submit">Надіслати фотозвіт</button>
-        <button type="button" onClick={() => void save(false)}>Зберегти чернетку</button>
       </div>
     </fieldset>
     <p role="status">{draftStatus === 'saving' ? 'Автозбереження чернетки…' : draftStatus === 'error' ? 'Не вдалося автоматично зберегти чернетку.' : 'Чернетка збережена на пристрої.'}</p>
@@ -293,13 +385,50 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
   const [applied, setApplied] = useState(emptyFilters);
   const [page, setPage] = useState(1);
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [queuedCount, setQueuedCount] = useState(0);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const client = useQueryClient();
   const queryKey = [endpoint, email];
+  useEffect(() => {
+    const progress = (event: Event) => setUploadProgress((event as CustomEvent<number>).detail);
+    const refresh = () => {
+      void photoOutbox.toArray().then(rows => setQueuedCount(rows.filter(row => row.owner.toLowerCase() === email.toLowerCase()).length));
+      void client.invalidateQueries({ queryKey: [endpoint, email] });
+    };
+    window.addEventListener(queueProgressEvent, progress);
+    window.addEventListener(queueEvent, refresh);
+    refresh();
+    return () => { window.removeEventListener(queueProgressEvent, progress); window.removeEventListener(queueEvent, refresh); };
+  }, [email, client]);
+
+  async function deleteGalleryPhoto(report: Report, index: number) {
+    if (!window.confirm('Видалити це фото назавжди з Neon і Cloudinary? Дію не можна скасувати.')) return;
+    const key = report.id + ':' + index;
+    setDeleting(key);
+    try {
+      const response = await fetch(new URL(endpoint + '/' + report.id + '/photos/' + index, API_BASE_URL), {
+        method: 'DELETE', headers: { Authorization: 'Bearer ' + localStorage.getItem(AUTH_TOKEN_KEY), 'x-tenant-id': 'laska' },
+      });
+      if (!response.ok) throw new Error((await response.json() as { message?: string }).message || 'Помилка видалення');
+      await client.invalidateQueries({ queryKey: [endpoint, email] });
+    } catch (error) { window.alert(errorMessage(error)); }
+    finally { setDeleting(null); }
+  }
 
   const reportList = useQuery({
     queryKey: [...queryKey, applied, page],
     queryFn: ({ signal }) => apiGet<{ rows: Report[]; hasNext: boolean }>(endpoint, {
       authenticated: true, query: { ...applied, page }, signal,
+    }),
+    retry: false,
+    enabled: mode === 'gallery',
+    staleTime: 60_000,
+  });
+  const stats = useQuery({
+    queryKey: [...queryKey, 'stats', applied],
+    queryFn: ({ signal }) => apiGet<{ storeCount: number; photoCount: number }>(endpoint + '/stats', {
+      authenticated: true, query: applied, signal,
     }),
     retry: false,
     enabled: mode === 'gallery',
@@ -334,7 +463,8 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
         {creating ? 'Закрити форму' : 'Додати фотозвіт'}
       </button>}
     </div>
-    {saved && <p role="status">Фотозвіт збережено.</p>}
+    {saved && <p role="status">Фотозвіт поставлено в чергу. Можна продовжувати роботу.</p>}
+    {(queuedCount > 0 || uploadProgress !== null && uploadProgress < 100) && <p role="status">У черзі: {queuedCount} · Завантаження: {uploadProgress ?? 0}% <progress max={100} value={uploadProgress ?? 0} /></p>}
     {creating && <DraftForm email={email} onSaved={() => {
       setCreating(false);
       setSaved(true);
@@ -371,11 +501,12 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
     {mode === 'gallery' && reportList.isPending && <p role="status">{reportList.isPaused ? 'Для перегляду звітів потрібен інтернет.' : 'Завантажуємо фотозвіти…'}</p>}
     {mode === 'gallery' && reportList.isSuccess && !reportList.data.rows.length && <p>Фотозвітів за цими фільтрами немає.</p>}
     {mode === 'gallery' && <div className={styles.galleryStats}>
-      <div className={styles.statCard}><span>Кількість ТТ</span><strong>{new Set(reportList.data?.rows.map(row => row.store_code) ?? []).size}</strong></div>
-      <div className={styles.statCard}><span>Кількість фото</span><strong>{reportList.data?.rows.reduce((total, row) => total + row.photos.length, 0) ?? 0}</strong></div>
+      <div className={styles.statCard}><span>Кількість ТТ</span><strong>{stats.data?.storeCount ?? '—'}</strong></div>
+      <div className={styles.statCard}><span>Кількість фото</span><strong>{stats.data?.photoCount ?? '—'}</strong></div>
     </div>}
     {mode === 'gallery' && <div className={styles.galleryGrid}>{reportList.data?.rows.flatMap(report =>
       report.photos.map((photo, index) => <article key={`${report.id}-${index}`} className={styles.galleryCard}>
+        <button type="button" className={styles.galleryDelete} disabled={deleting !== null} aria-label={`Видалити фото ${index + 1}`} onClick={() => void deleteGalleryPhoto(report, index)}>{deleting === report.id + ':' + index ? '…' : '✕'}</button>
         <button type="button" className={styles.galleryImageButton} onClick={() => setActivePhoto(photo.url)} aria-label={`Переглянути фото ${index + 1}: ${report.store_name}`}>
           <img src={photo.url} loading="lazy" referrerPolicy="no-referrer" alt={`Фото ${index + 1}: ${report.store_name}`} />
         </button>
