@@ -3,7 +3,7 @@ import ThemeSwitcher from './ThemeSwitcher';
 import { useNavigationBack } from '../Navigation/useNavigationBack';
 import styles from './AppShell.module.css';
 
-export type NavigationItem = { id: string; label: string; symbol: 'home' | 'sales' | 'days' | 'stores' | 'debt' | 'more'; onClick: () => void; group?: 'Аналітика' | 'Фотозвіт' | 'Дебіторка' | 'Замовлення' | 'Мій календар' };
+export type NavigationItem = { id: string; label: string; symbol: 'home' | 'sales' | 'days' | 'stores' | 'debt' | 'more'; onClick: () => void; group?: 'Аналітика' | 'Фотозвіт' | 'Дебіторка' | 'Замовлення' | 'Мій календар' | 'Довідники' };
 type Props = { children: ReactNode; items: NavigationItem[]; active: string; account: ReactNode; tenant: string; navigationKey: string; viewTitle?: string };
 
 export default function AppShell({ children, items, active, account, tenant, navigationKey, viewTitle }: Props) {
@@ -94,14 +94,19 @@ export default function AppShell({ children, items, active, account, tenant, nav
   const back = useNavigationBack();
   useEffect(() => { content.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }, [navigationKey]);
   const title = viewTitle || items.find(item => item.id === active)?.label || 'Робочий простір';
-  const groups = ['Замовлення', 'Аналітика', 'Дебіторка', 'Фотозвіт', 'Мій календар'] as const;
+  const groups = ['Замовлення', 'Аналітика', 'Довідники', 'Дебіторка', 'Фотозвіт', 'Мій календар'] as const;
   const navigate = (item: NavigationItem) => { setMenuOpen(false); item.onClick(); };
+  useEffect(() => {
+    if (updateState !== 'current') return;
+    const timer = window.setTimeout(() => { setUpdateMessage(''); setUpdateState('idle'); }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [updateState]);
 
   return <div className={styles.shell}>
     <a href="#soda-main" className={styles.skipLink}>Перейти до вмісту</a>
     <header className={styles.topbar}>
-      {back && <nav className={styles.returnNavigation} aria-label="Повернення">
-        <button type="button" className={styles.back} onClick={back.onBack} aria-label={back.label} title={back.label}><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m14 6-6 6 6 6M8 12h13" /></svg><span>{back.label}</span></button>
+      {(back || active !== 'home') && <nav className={styles.returnNavigation} aria-label="Повернення">
+        <button type="button" className={styles.back} onClick={back?.onBack ?? (() => items.find(item => item.id === 'home')?.onClick())} aria-label="Назад" title="Назад"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m14 6-6 6 6 6M8 12h13" /></svg><span>Назад</span></button>
         <button type="button" className={styles.back} onClick={() => items.find(item => item.id === 'home')?.onClick()} aria-label="Головна" title="Головна"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true"><path d="M3 10 12 3l9 7v11h-6v-7H9v7H3Z" /></svg><span>Головна</span></button>
       </nav>}
       <div className={styles.heading}><strong>{title}</strong><small>{tenant ? tenant.toUpperCase() : 'SODA'}</small></div>
@@ -111,12 +116,13 @@ export default function AppShell({ children, items, active, account, tenant, nav
       <button type="button" className={styles.menuLink} onClick={() => navigate(items[0])}>⌂ Головна</button>
       {groups.map(group => {
         const entries = items.filter(item => item.group === group);
-        const placeholder = group === 'Замовлення' || group === 'Мій календар';
+        const placeholder = false;
+        const direct = group === 'Замовлення' || group === 'Мій календар' || group === 'Довідники' || group === 'Дебіторка';
         return <div key={group} className={styles.menuGroup}>
-          <button type="button" className={styles.menuLink} onClick={() => setExpanded(value => value === group ? null : group)} aria-expanded={expanded === group}>
-            {group} <span aria-hidden="true">{expanded === group ? '⌃' : '⌄'}</span>
+          <button type="button" className={styles.menuLink} onClick={() => direct ? (entries[0] ? navigate(entries[0]) : setExpanded(value => value === group ? null : group)) : setExpanded(value => value === group ? null : group)} aria-expanded={direct ? undefined : expanded === group}>
+            {group} {!direct && <span aria-hidden="true">{expanded === group ? '⌃' : '⌄'}</span>}
           </button>
-          {expanded === group && <div className={styles.menuChildren}>
+          {!direct && expanded === group && <div className={styles.menuChildren}>
             {placeholder && <span className={styles.menuMuted}>У розробці</span>}
             {!placeholder && entries.map(item => <button type="button" key={item.id} className={styles.menuChild} onClick={() => navigate(item)}>{item.label}</button>)}
             {!placeholder && !entries.length && <span className={styles.menuMuted}>Немає доступних підрозділів</span>}
