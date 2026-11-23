@@ -501,7 +501,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
       {queuedCount > 0 && <span className={styles.sendDetail}>У черзі: {queuedCount} · {uploadProgress == null ? 'Очікування мережі' : `${uploadProgress}%`}</span>}
       {queuedCount > 0 && <span className={styles.sendProgressTrack} aria-hidden="true"><span style={{ width: `${uploadProgress ?? 0}%` }}/></span>}
     </button>}
-    {saved && <p role="status">Фотозвіт збережено в черзі. Можна продовжувати роботу.</p>
+    {saved && <p role="status">Фотозвіт збережено в черзі. Можна продовжувати роботу.</p>}
     {mode === 'create' && <DraftForm email={email} onSaved={() => {
       setSaved(true);
       setPage(1);
