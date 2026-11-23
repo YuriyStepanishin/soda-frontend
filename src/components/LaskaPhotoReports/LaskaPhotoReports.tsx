@@ -289,8 +289,8 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     }
   }
 
-  return <form id="laska-photo-create-form" className={styles.panel} onSubmit={event => { event.preventDefault(); void save(); }}>
-    <fieldset disabled={busy}>
+  return <form id="laska-photo-create-form" className={`${styles.panel} ${styles.createForm}`} onSubmit={event => { event.preventDefault(); void save(); }}>
+    <fieldset className={styles.createFieldset} disabled={busy}>
       <legend className={styles.visuallyHidden}>Новий фотозвіт</legend>
       <div className={styles.filters}>
         <label>Відділ<select value={storeDepartment} onChange={event => {
@@ -492,7 +492,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
     if (applied === filters && page === 1) void reportList.refetch();
   }
 
-  return <section className={styles.page} aria-label="Фотозвіт">
+  return <section className={`${styles.page} ${mode === 'create' ? styles.createPage : ''}`} aria-label="Фотозвіт">
     <div className={styles.reportHeader}>
       <h1>{mode === 'gallery' ? 'Галерея' : 'Фотозвіт'}</h1>
     {mode === 'create' && <button className={styles.sendReport} type="submit" form="laska-photo-create-form">
