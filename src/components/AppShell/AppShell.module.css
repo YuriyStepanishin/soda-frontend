@@ -46,3 +46,5 @@
 .menuUpdate button:disabled { opacity: .6; cursor: progress; }
 
 .sectionLanding{max-width:900px;margin:auto;padding:16px}.sectionLanding h1{font-size:20px;margin:6px 0 16px}.sectionEntries{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.sectionEntries button{padding:16px;min-height:56px;border-radius:12px;background:var(--soda-surface);border:1px solid var(--soda-border);color:var(--soda-text);font:inherit;text-align:left;cursor:pointer}.menuLink[aria-current='page']{background:var(--soda-control)}
+
+.photoProgress{font-size:11px;display:flex;align-items:center;gap:6px;flex-shrink:0;white-space:nowrap}.photoProgress progress{width:70px;height:8px;accent-color:var(--soda-accent)}@media(max-width:767px){.photoProgress{font-size:10px}.photoProgress progress{width:35px}}
