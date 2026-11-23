@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import ThemeSwitcher from './ThemeSwitcher';
+import SectionIcon from './SectionIcon';
 import AppDialog from '../Navigation/AppDialog';
 import { useNavigationBack } from '../Navigation/useNavigationBack';
 import styles from './AppShell.module.css';
@@ -142,7 +143,7 @@ export default function AppShell({ children, items, active, account, tenant, nav
           </button>
           {!direct && expanded === group && <div className={styles.menuChildren}>
             {placeholder && <span className={styles.menuMuted}>У розробці</span>}
-            {!placeholder && entries.map(item => <button type="button" key={item.id} className={styles.menuChild} onClick={() => navigate(item)}>{item.label}</button>)}
+            {!placeholder && entries.map(item => <button type="button" key={item.id} className={styles.menuChild} onClick={() => navigate(item)}><SectionIcon id={item.id}/>{item.label}</button>)}
             {!placeholder && !entries.length && <span className={styles.menuMuted}>Немає доступних підрозділів</span>}
           </div>}
         </div>;
@@ -159,7 +160,7 @@ export default function AppShell({ children, items, active, account, tenant, nav
     <main id="soda-main" ref={content} tabIndex={-1} className={styles.content}>{sectionLanding ? <section className={styles.sectionLanding}>
       <h1>{sectionLanding}</h1>
       {items.filter(item => item.group === sectionLanding).length ? <div className={styles.sectionEntries}>
-        {items.filter(item => item.group === sectionLanding).map(item => <button type="button" key={item.id} onClick={() => navigate(item)}>{item.label}</button>)}
+        {items.filter(item => item.group === sectionLanding).map(item => <button type="button" key={item.id} onClick={() => navigate(item)}><span className={styles.sectionIcon}><SectionIcon id={item.id}/></span><span>{item.label}</span><span className={styles.sectionArrow} aria-hidden="true">›</span></button>)}
       </div> : <p>У цьому розділі поки немає доступних сторінок.</p>}
     </section> : children}</main>
     {confirmUpdate && <AppDialog title="Встановити оновлення?" message="SODA завантажить нову версію. Незбережені дані форми можуть бути втрачені." onClose={() => setConfirmUpdate(false)} onConfirm={() => void handleRefreshApp(true)} confirmLabel="Оновити" />}
