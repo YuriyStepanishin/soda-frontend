@@ -103,6 +103,11 @@ export default function AppShell({ children, items, active, account, tenant, nav
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [sectionLanding, setSectionLanding] = useState<string | null>(null);
+  useEffect(() => {
+    const fromHome = (event: Event) => { setSectionLanding((event as CustomEvent<string>).detail); setMenuOpen(false); };
+    window.addEventListener('soda:open-section', fromHome);
+    return () => window.removeEventListener('soda:open-section', fromHome);
+  }, []);
   const back = useNavigationBack();
   useEffect(() => { content.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' }); setSectionLanding(null); }, [navigationKey]);
   const title = sectionLanding || viewTitle || items.find(item => item.id === active)?.label || 'Робочий простір';
@@ -144,7 +149,7 @@ export default function AppShell({ children, items, active, account, tenant, nav
           </div>}
         </div>;
       })}
-      <div className={styles.menuGroup}><h3 className={styles.menuAccountTitle}>Особистий кабінет</h3><div className={styles.menuAccount}>{account}</div></div>
+      <div className={styles.menuGroup} onClick={() => setMenuOpen(false)}>{account}</div>
       <div className={styles.menuUpdate}>
         <button type="button" className={styles.menuLink} disabled={updateState === 'checking'} aria-busy={updateState === 'checking'} onClick={() => void handleRefreshApp()}>
           {updateState === 'checking' ? 'Перевірка…' : updateAvailable ? 'Встановити оновлення' : 'Перевірити оновлення'}
