@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Dexie, { type Table } from 'dexie';
 import imageCompression from 'browser-image-compression';
-import { apiGet, apiPostFormData } from '../../api/client';
+import { apiGet, apiPostFormData, getActiveTenant } from '../../api/client';
+import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '../../api/config';
 import styles from './LaskaPhotoReports.module.css';
 
 const endpoint = '/api/laska/photo-reports';
@@ -27,7 +28,61 @@ type Draft = {
 
 const database = new Dexie('SodaLaskaPhotoReports');
 database.version(1).stores({ drafts: 'owner' });
+database.version(2).stores({ drafts: 'owner', photoOutbox: 'id,owner' });
 const drafts: Table<Draft, string> = database.table('drafts');
+const photoOutbox: Table<Draft, string> = database.table('photoOutbox');
+
+// An upload is owned by the app, not the form: navigating away does not abort it.
+// IndexedDB retains the photos until the server confirms success.
+let outboxRunning = false;
+const queueEvent = 'soda:laska-photo-outbox';
+function currentEmail(): string {
+  try {
+    const raw = window.localStorage.getItem(AUTH_USER_KEY);
+    const user = raw ? JSON.parse(raw) as { email?: string } : null;
+    return (user?.email ?? '').trim().toLowerCase();
+  } catch { return ''; }
+}
+async function processPhotoOutbox(): Promise<void> {
+  if (outboxRunning || !navigator.onLine || !window.localStorage.getItem(AUTH_TOKEN_KEY)
+      || getActiveTenant() !== 'laska') return;
+  outboxRunning = true;
+  try {
+    const owner = currentEmail();
+    if (!owner) return;
+    const queued = (await photoOutbox.toArray()).filter(row => row.owner.toLowerCase() === owner);
+    for (const item of queued) {
+      if (!navigator.onLine || getActiveTenant() !== 'laska' || currentEmail() !== owner) break;
+      if (!item.store || !item.photos.length || item.photos.some(photo => photo.latitude == null || photo.longitude == null)) continue;
+      const data = new FormData();
+      data.set('id', item.id);
+      data.set('routeId', item.store.id);
+      data.set('reportDate', item.date);
+      data.set('category', item.category);
+      data.set('comment', item.comment);
+      data.set('photoLocations', JSON.stringify(item.photos.map(photo => ({ latitude: photo.latitude, longitude: photo.longitude }))));
+      for (const { file } of item.photos) data.append('photos', file, 'photo.jpg');
+      try {
+        await apiPostFormData(endpoint, data, { authenticated: true, tenant: 'laska' });
+        await photoOutbox.delete(item.id);
+        window.dispatchEvent(new Event(queueEvent));
+      } catch {
+        // Do not delete the local copy on failure. Retry when online / app is active.
+        break;
+      }
+    }
+  } catch {
+    // Storage can become temporarily unavailable; keep queued data untouched.
+  } finally {
+    outboxRunning = false;
+  }
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => void processPhotoOutbox());
+  window.addEventListener('focus', () => void processPhotoOutbox());
+  window.setInterval(() => void processPhotoOutbox(), 30_000);
+  void processPhotoOutbox();
+}
 const emptyFilters = { from: '', to: '', department: '', agent: '', search: '', category: '' };
 const reportDate = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Kyiv' });
 const errorMessage = (error: unknown) => error instanceof Error && error.name !== 'TypeError'
@@ -148,53 +203,37 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     }
   }
 
-  async function save(send: boolean) {
-    setBusy(true);
+  async function save() {
+    if (busy) return;
     setFeedback('');
+    if (value.photos.some(photo => photo.latitude == null || photo.longitude == null)) {
+      setFeedback('Геолокація обов’язкова для кожного фото. Чернетка залишається на пристрої.');
+      return;
+    }
+    if (!value.store || !value.photos.length) {
+      setFeedback('Виберіть торгову точку й додайте хоча б одне фото.');
+      return;
+    }
+    // Only queue after the latest autosave is durable. Never block on network.
+    setBusy(true);
     try {
-      try {
-        await flushDraft();
-      } catch {
-        setDraftStatus('error');
-        throw new Error('Не вдалося зберегти чернетку на пристрої. Перевірте вільне місце та дозволи браузера.');
-      }
-      if (!send) {
-        setFeedback('Чернетку збережено на цьому пристрої.');
-        return;
-      }
-      if (!navigator.onLine) {
-        setFeedback('Чернетку збережено. Надішліть її, коли повернеться інтернет.');
-        return;
-      }
-      if (value.photos.some(photo => photo.latitude == null || photo.longitude == null)) {
-        setFeedback('Геолокація обов’язкова для кожного фото. Приберіть фото без координат та зробіть його повторно.');
-        return;
-      }
-      if (!value.store || !value.photos.length) {
-        setFeedback('Виберіть торгову точку й додайте хоча б одне фото.');
-        return;
-      }
-      const data = new FormData();
-      data.set('id', value.id);
-      data.set('routeId', value.store.id);
-      data.set('reportDate', value.date);
-      data.set('category', value.category);
-      data.set('comment', value.comment);
-      data.set('photoLocations', JSON.stringify(value.photos.map(photo => ({ latitude: photo.latitude ?? null, longitude: photo.longitude ?? null }))));
-      for (const { file } of value.photos) data.append('photos', file, 'photo.jpg');
-      await apiPostFormData(endpoint, data, { authenticated: true, tenant: 'laska' });
+      await flushDraft();
+      await database.transaction('rw', drafts, photoOutbox, async () => {
+        await photoOutbox.put(valueRef.current);
+        await drafts.delete(valueRef.current.owner);
+      });
       submitted.current = true;
-      await pendingSave.current.catch(() => undefined);
-      await drafts.delete(value.owner).catch(() => undefined);
       onSaved();
-    } catch (error) {
-      setFeedback(errorMessage(error));
+      void processPhotoOutbox();
+    } catch {
+      setDraftStatus('error');
+      setFeedback('Не вдалося поставити звіт у чергу. Фото залишаються у чернетці. Перевірте місце на пристрої.');
     } finally {
-      setBusy(false);
+      if (!submitted.current) setBusy(false);
     }
   }
 
-  return <form className={styles.panel} onSubmit={event => { event.preventDefault(); void save(true); }}>
+  return <form className={styles.panel} onSubmit={event => { event.preventDefault(); void save(); }}>
     <fieldset disabled={busy}>
       <legend>Новий фотозвіт</legend>
       <div className={styles.filters}>
@@ -263,7 +302,6 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
         </div>)}</div>}
       <div className={styles.toolbar}>
         <button className={styles.primary} type="submit">Надіслати фотозвіт</button>
-        <button type="button" onClick={() => void save(false)}>Зберегти чернетку</button>
       </div>
     </fieldset>
     <p role="status">{draftStatus === 'saving' ? 'Автозбереження чернетки…' : draftStatus === 'error' ? 'Не вдалося автоматично зберегти чернетку.' : 'Чернетка збережена на пристрої.'}</p>
@@ -334,7 +372,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
         {creating ? 'Закрити форму' : 'Додати фотозвіт'}
       </button>}
     </div>
-    {saved && <p role="status">Фотозвіт збережено.</p>}
+    {saved && <p role="status">Фотозвіт збережений у черзі на пристрої. Надсилання відбувається у фоні; локальні фото видаляться після підтвердження сервера.</p>}
     {creating && <DraftForm email={email} onSaved={() => {
       setCreating(false);
       setSaved(true);
