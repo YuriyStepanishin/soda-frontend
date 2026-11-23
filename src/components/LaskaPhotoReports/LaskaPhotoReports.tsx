@@ -6,6 +6,7 @@ import { apiGet, getActiveTenant } from '../../api/client';
 import { API_BASE_URL } from '../../api/config';
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '../../api/config';
 import styles from './LaskaPhotoReports.module.css';
+import AppDialog from '../Navigation/AppDialog';
 
 const endpoint = '/api/laska/photo-reports';
 const categories = {
@@ -581,18 +582,11 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
             <a target="_blank" rel="noreferrer" href={`https://www.google.com/maps?q=${selectedPhoto.latitude},${selectedPhoto.longitude}`}>📍 Місце зйомки на карті</a>
           </> : <p>Геолокація відсутня для цього фото</p>}
         </div>
-        {confirmDelete && <div className={styles.confirmBackdrop} role="presentation">
-          <div className={styles.confirmBox} role="alertdialog" aria-modal="true" aria-labelledby="confirm-photo-delete-title" aria-describedby="confirm-photo-delete-description">
-            <h2 id="confirm-photo-delete-title">Видалити фото?</h2>
-            <p id="confirm-photo-delete-description">Фото буде назавжди видалене з Neon і Cloudinary. Цю дію не можна скасувати.</p>
-            <div className={styles.confirmActions}>
-              <button type="button" onClick={() => setConfirmDelete(null)} disabled={deleting !== null}>Скасувати</button>
-              <button type="button" className={styles.galleryDelete} onClick={() => void deleteGalleryPhoto(confirmDelete.report, confirmDelete.index)} disabled={deleting !== null}>{deleting ? 'Видаляємо…' : 'Видалити'}</button>
-            </div>
-          </div>
-        </div>}
+
       </section>
     </div>}
+    {confirmDelete && <AppDialog title="Видалити фото?" message="Фото буде назавжди видалене з Neon і Cloudinary. Цю дію не можна скасувати." onClose={() => setConfirmDelete(null)}
+      onConfirm={() => void deleteGalleryPhoto(confirmDelete.report, confirmDelete.index)} confirmLabel="Видалити" destructive busy={deleting !== null} />}
     {mode === 'gallery' && (page > 1 || reportList.data?.hasNext) && <nav className={styles.toolbar} aria-label="Сторінки фотозвітів">
       <button type="button" disabled={page === 1} onClick={() => setPage(page - 1)}>Попередня</button>
       <span>Сторінка {page}</span>
