@@ -571,10 +571,9 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
           <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(-1)} aria-label="Попереднє фото" disabled={selectedGroup.photos.length < 2}>‹</button>
           <img src={selectedPhoto.url} alt={`Фото ${selectedIndex + 1}: ${selectedGroup.name}`} />
           <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(1)} aria-label="Наступне фото" disabled={selectedGroup.photos.length < 2}>›</button>
+          <button type="button" className={styles.galleryDelete} onClick={() => setConfirmDelete({ report: selectedPhoto.report, index: selectedPhoto.index })} aria-label="Видалити фото">Del</button>
         </div>
-        <div className={styles.photoMeta}><span>{selectedPhoto.report.report_date.split('-').reverse().join('.')} · {categories[selectedPhoto.report.category]}</span>
-          <button type="button" className={styles.galleryDelete} onClick={() => setConfirmDelete({ report: selectedPhoto.report, index: selectedPhoto.index })}>Del</button>
-        </div>
+        <div className={styles.photoMeta}><span>{selectedPhoto.report.report_date.split('-').reverse().join('.')} · {categories[selectedPhoto.report.category]}</span></div>
         {selectedPhoto.report.comment && <p className={styles.photoComment}>{selectedPhoto.report.comment}</p>}
         <div className={styles.miniMap}>
           {mapUrl ? <>
