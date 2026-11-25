@@ -336,7 +336,7 @@ export default function SalesByDaysPage({
   const uniqueBrands = useMemo(
     () =>
       (filtersData?.brands ?? []).filter(
-        brand => normalizeBrandValue(brand) !== 'інше'
+        brand => normalizeBrandValue(brand) !== 'ignore'
       ),
     [filtersData?.brands]
   );
