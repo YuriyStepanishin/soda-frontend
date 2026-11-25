@@ -209,7 +209,7 @@ function mapRouteHistory(
       const product = normalizeText(item.product);
       if (!product && fields.some(field => normalizeText(
         item[field as 'group' | 'subgroup' | 'tm' | 'packing']
-      ).toLocaleUpperCase('uk-UA') === 'ІНШЕ')) return;
+      ).toLocaleUpperCase('uk-UA') === 'IGNORE')) return;
       const label = fields
         .map(
           field =>
