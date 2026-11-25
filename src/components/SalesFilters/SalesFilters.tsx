@@ -274,7 +274,7 @@ export default function SalesFilters({
             {isLaska && (
               <MultiSelectDropdown
                 label="Група"
-                items={groups.filter(item => item.trim().toLocaleUpperCase('uk-UA') !== 'ІНШЕ')}
+                items={groups.filter(item => item.trim().toLocaleUpperCase('uk-UA') !== 'IGNORE')}
                 selected={filters.groups}
                 onChange={value => updateFilters({ groups: value })}
                 searchable
@@ -284,7 +284,7 @@ export default function SalesFilters({
             {isLaska && (
               <MultiSelectDropdown
                 label="Підгрупа"
-                items={subgroups.filter(item => item.trim().toLocaleUpperCase('uk-UA') !== 'ІНШЕ')}
+                items={subgroups.filter(item => item.trim().toLocaleUpperCase('uk-UA') !== 'IGNORE')}
                 selected={filters.subgroups}
                 onChange={value => updateFilters({ subgroups: value })}
                 searchable
@@ -293,7 +293,7 @@ export default function SalesFilters({
 
             <MultiSelectDropdown
               label="ТМ"
-              items={brands.filter(item => item.trim().toLocaleUpperCase('uk-UA') !== 'ІНШЕ')}
+              items={brands.filter(item => item.trim().toLocaleUpperCase('uk-UA') !== 'IGNORE')}
               selected={filters.brands}
               onChange={value => updateFilters({ brands: value })}
               searchable
