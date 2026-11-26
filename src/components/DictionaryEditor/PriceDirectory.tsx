@@ -8,7 +8,7 @@ import {
 import type { PriceMode, PriceRow } from './priceDirectoryData';
 import styles from './PriceDirectory.module.css';
 
-export type PriceSnapshot = { date: string; canViewPurchase: boolean; rows: PriceRow[] };
+export type PriceSnapshot = { date: string; canViewPurchase: boolean; canViewLowerThreshold?: boolean; rows: PriceRow[] };
 type Sections = Map<string, Section>;
 type Section = { children: Sections; keys: Set<string> };
 
@@ -136,6 +136,8 @@ export default function PriceDirectory({
   }, [rows, query, selected]);
   const visibleRows = withPriceHeadings(filtered.slice(0, visibleCount));
   const canViewPurchase = snapshot?.canViewPurchase === true;
+  const canViewLowerThreshold = snapshot?.canViewLowerThreshold === true;
+  const columnCount = canViewPurchase || canViewLowerThreshold ? 5 : 4;
   const calculationMode = canViewPurchase ? mode : 'discount';
   const normalizedPercent = percent.trim().replace(',', '.');
   const numericPercent = Number(normalizedPercent);
@@ -294,6 +296,7 @@ export default function PriceDirectory({
                 'Назва',
                 'Одиниця',
                 ...(canViewPurchase ? ['Закупка'] : []),
+                ...(canViewLowerThreshold ? ['Нижній поріг'] : []),
                 'Доставка +3',
                 'Розрахункова ціна',
               ].map(label => (
@@ -306,17 +309,18 @@ export default function PriceDirectory({
           <tbody>
             {visibleRows.map(({ headings, row }) => <Fragment key={row.row}>
               {headings.map(heading => <tr key={heading.key} className={styles.sectionHeading}>
-                <th colSpan={canViewPurchase ? 5 : 4} style={{ paddingInlineStart: 12 + heading.depth * 16 }}>{heading.name}</th>
+                <th colSpan={columnCount} style={{ paddingInlineStart: 12 + heading.depth * 16 }}>{heading.name}</th>
               </tr>)}
               <tr key={row.row}>
                 <td>{row.name}</td>
                 <td>{row.unit}</td>
                 {canViewPurchase && <td>{formatPrice(row.purchase ?? null)}</td>}
+                {canViewLowerThreshold && <td>{formatPrice(row.lowerThreshold ?? null)}</td>}
                 <td>{formatPrice(row.base)}</td>
                 <td>{formatPrice(calculatedPrice(row, calculationMode, rate))}</td>
               </tr>
             </Fragment>)}
-            {!filtered.length && <tr><td colSpan={canViewPurchase ? 5 : 4}>Позицій не знайдено.</td></tr>}
+            {!filtered.length && <tr><td colSpan={columnCount}>Позицій не знайдено.</td></tr>}
           </tbody>
         </table>
       </div>

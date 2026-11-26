@@ -394,7 +394,6 @@ export default function SalesPage({
             isLaska={isLaska}
             showDepartment={!isSupervisor && !isAgent}
             showAgent={!isAgent}
-            representativeLabel={ownRepresentative}
             hierarchyOrder={hierarchyOrder}
             onHierarchyOrderChange={ordered => {
               setHierarchyOrder(previous => {

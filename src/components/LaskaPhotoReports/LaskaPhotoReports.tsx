@@ -7,6 +7,7 @@ import { API_BASE_URL } from '../../api/config';
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '../../api/config';
 import styles from './LaskaPhotoReports.module.css';
 import AppDialog from '../Navigation/AppDialog';
+import { getUserRole } from '../../config/userRoles';
 
 const endpoint = '/api/laska/photo-reports';
 const categories = {
@@ -121,6 +122,7 @@ function FilePreview({ file }: { file: File }) {
 }
 
 function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
+  const role = getUserRole(draft.owner);
   const [value, setValue] = useState(draft);
   const [storeSearch, setStoreSearch] = useState('');
   const [storeDepartment, setStoreDepartment] = useState('');
@@ -129,6 +131,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     queryKey: [endpoint, draft.owner, 'filters'],
     queryFn: ({ signal }) => apiGet<{ rows: Assignment[] }>(endpoint + '/filters', { authenticated: true, signal }),
     retry: false,
+    enabled: role !== 'agent',
   });
   const departments = [...new Set((availableAssignments.data?.rows ?? []).map(row => row.department))].filter(Boolean);
   const agents = [...new Set((availableAssignments.data?.rows ?? []).filter(row => !storeDepartment || row.department === storeDepartment).map(row => row.agent_name))].filter(Boolean);
@@ -183,12 +186,13 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
     return () => window.clearTimeout(timeout);
   }, [storeSearch]);
 
+  const canSearchStores = role === 'agent' || search.length >= 2 || Boolean(storeDepartment) || Boolean(storeAgent);
   const stores = useQuery({
     queryKey: [endpoint, draft.owner, 'stores', search, storeDepartment, storeAgent],
     queryFn: ({ signal }) => apiGet<{ rows: Store[] }>(endpoint + '/stores', {
       authenticated: true, query: { search, department: storeDepartment, agent: storeAgent }, signal,
     }),
-    enabled: !value.store && (search.length >= 2 || Boolean(storeDepartment) || Boolean(storeAgent)),
+    enabled: !value.store && canSearchStores,
     retry: false,
   });
 
@@ -292,23 +296,23 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
   return <form id="laska-photo-create-form" className={`${styles.panel} ${styles.createForm}`} onSubmit={event => { event.preventDefault(); void save(); }}>
     <fieldset className={styles.createFieldset} disabled={busy}>
       <legend className={styles.visuallyHidden}>Новий фотозвіт</legend>
-      <div className={styles.filters}>
-        <label>Відділ<select value={storeDepartment} onChange={event => {
+      {role !== 'agent' && <div className={styles.filters}>
+        {role !== 'supervisor' && <label>Відділ<select value={storeDepartment} onChange={event => {
           setStoreDepartment(event.target.value);
           setStoreAgent('');
           setValue(current => ({ ...current, store: null }));
         }}>
-          <option value="">Усі доступні</option>
+          <option value="">Усі відділи</option>
           {departments.map(item => <option key={item} value={item}>{item}</option>)}
-        </select></label>
+        </select></label>}
         <label>Торговий представник<select value={storeAgent} onChange={event => {
           setStoreAgent(event.target.value);
           setValue(current => ({ ...current, store: null }));
         }}>
-          <option value="">Усі доступні</option>
+          <option value="">{role === 'supervisor' ? 'Мої торгові агенти' : 'Усі торгові агенти'}</option>
           {agents.map(item => <option key={item} value={item}>{item}</option>)}
         </select></label>
-      </div>
+      </div>}
       {availableAssignments.isError && <p role="alert">Не вдалося завантажити доступні відділи та торгових. <button type="button" onClick={() => void availableAssignments.refetch()}>Повторити</button></p>}
       {value.store ? <div className={styles.toolbar}>
         <strong>{value.store.store_name} · {value.store.agent_name}</strong>
@@ -317,7 +321,7 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
         <label>Торгова точка<input type="search" maxLength={200} value={storeSearch}
           placeholder="Пошук за назвою або вибір через фільтри"
           onChange={event => setStoreSearch(event.target.value)} /></label>
-        {(search.length >= 2 || Boolean(storeDepartment) || Boolean(storeAgent)) && <>
+        {canSearchStores && <>
           {stores.isFetching && <p role="status">Шукаємо торгові точки…</p>}
           {stores.isPaused && <p role="status">Для пошуку торгових точок потрібен інтернет.</p>}
           {stores.isError && <p role="alert">{errorMessage(stores.error)}</p>}
@@ -373,6 +377,7 @@ function DraftForm({ email, onSaved }: { email: string; onSaved: () => void }) {
 }
 
 export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: string; mode?: 'gallery' | 'create' }) {
+  const role = getUserRole(email);
   const [saved, setSaved] = useState(false);
   const [filters, setFilters] = useState(emptyFilters);
   const [applied, setApplied] = useState(emptyFilters);
@@ -437,7 +442,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
     queryKey: [...queryKey, 'filters'],
     queryFn: ({ signal }) => apiGet<{ rows: Assignment[] }>(endpoint + '/filters', { authenticated: true, signal }),
     retry: false,
-    enabled: mode === 'gallery',
+    enabled: mode === 'gallery' && role !== 'agent',
     staleTime: 5 * 60_000,
   });
   const assignments = options.data?.rows ?? [];
@@ -489,7 +494,10 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
     if (invalidDates) return;
     setApplied(filters);
     setPage(1);
-    if (applied === filters && page === 1) void reportList.refetch();
+    if (page === 1 && Object.keys(filters).every(key => filters[key as keyof typeof filters] === applied[key as keyof typeof applied])) {
+      void reportList.refetch();
+      void stats.refetch();
+    }
   }
 
   return <section className={`${styles.page} ${mode === 'create' ? styles.createPage : ''}`} aria-label="Фотозвіт">
@@ -511,14 +519,14 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
       <div className={styles.filters}>
         <label>Дата від<input type="date" value={filters.from} onChange={event => setFilters({ ...filters, from: event.target.value })} /></label>
         <label>Дата до<input type="date" value={filters.to} onChange={event => setFilters({ ...filters, to: event.target.value })} /></label>
-        <label>Відділ<select value={filters.department} onChange={event => setFilters({ ...filters, department: event.target.value, agent: '' })}>
-          <option value="">Усі доступні</option>
+        {role !== 'agent' && role !== 'supervisor' && <label>Відділ<select value={filters.department} onChange={event => setFilters({ ...filters, department: event.target.value, agent: '' })}>
+          <option value="">Усі відділи</option>
           {departments.map(item => <option key={item}>{item}</option>)}
-        </select></label>
-        <label>Торговий агент<select value={filters.agent} onChange={event => setFilters({ ...filters, agent: event.target.value })}>
-          <option value="">Усі доступні</option>
+        </select></label>}
+        {role !== 'agent' && <label>Торговий агент<select value={filters.agent} onChange={event => setFilters({ ...filters, agent: event.target.value })}>
+          <option value="">{role === 'supervisor' ? 'Мої торгові агенти' : 'Усі торгові агенти'}</option>
           {agents.map(item => <option key={item}>{item}</option>)}
-        </select></label>
+        </select></label>}
         <label>Торгова точка<input type="search" maxLength={200} placeholder="Назва або код"
           value={filters.search} onChange={event => setFilters({ ...filters, search: event.target.value })} /></label>
 
@@ -567,7 +575,7 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
             <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(-1)} aria-label="Попереднє фото">‹</button>
             <button type="button" className={styles.carouselArrow} onClick={() => movePhoto(1)} aria-label="Наступне фото">›</button>
           </>}
-          <button type="button" className={styles.galleryDelete} onClick={() => setConfirmDelete({ report: selectedPhoto.report, index: selectedPhoto.index })} aria-label="Видалити фото"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v7M14 10v7"/></svg>Видалити</button>
+          {role !== 'brand_manager' && <button type="button" className={styles.galleryDelete} onClick={() => setConfirmDelete({ report: selectedPhoto.report, index: selectedPhoto.index })} aria-label="Видалити фото"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v7M14 10v7"/></svg>Видалити</button>}
         </div>
         <div className={styles.photoMeta}><span>{selectedPhoto.report.report_date.split('-').reverse().join('.')} · {categories[selectedPhoto.report.category]}</span></div>
         {selectedPhoto.report.comment && <p className={styles.photoComment}>{selectedPhoto.report.comment}</p>}

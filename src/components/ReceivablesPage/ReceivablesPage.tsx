@@ -200,7 +200,7 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
           }));
         }}
       >
-        <div className={styles.representativeFilter}>
+        {user?.role !== 'agent' && <div className={styles.representativeFilter}>
           <span id="representatives-label">Торговий представник/ПТТ</span>
           <details ref={pickerRef} className={styles.picker}>
             <summary>
@@ -248,7 +248,7 @@ export default function ReceivablesPage({ onBack }: { onBack: () => void }) {
               ))}
             </div>
           </details>
-        </div>
+        </div>}
         <label className={styles.search}>
           ТТ або накладна
           <input

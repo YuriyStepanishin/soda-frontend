@@ -1,3 +1,4 @@
+import { getCurrentAuthorizedEmail, getUserRole } from '../../config/userRoles';
 import { useMemo, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
@@ -58,6 +59,7 @@ function summarize(rows: LaskaSale[]): SummaryResponse {
 }
 
 export default function LaskaSalesPage({ onBack }: Props) {
+  const role = getUserRole(getCurrentAuthorizedEmail());
   const {
     filters,
     updateFilters,
@@ -196,9 +198,8 @@ export default function LaskaSalesPage({ onBack }: Props) {
           subgroups={filterOptions.subgroups}
           products={filterOptions.products}
           isLaska
-          showDepartment
-          showAgent
-          representativeLabel="LASKA"
+          showDepartment={role !== 'agent' && role !== 'supervisor'}
+          showAgent={role !== 'agent'}
           options={options}
           metrics={metrics}
           onChangeOptions={setOptions}

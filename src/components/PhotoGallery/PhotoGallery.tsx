@@ -17,7 +17,6 @@ import Loader from '../Loader/Loader';
 import Popup from '../Popup/Popup';
 import {
   getCurrentAuthorizedEmail,
-  getUserRepresentative,
   getUserRole,
 } from '../../config/userRoles';
 
@@ -42,7 +41,6 @@ type Photo = {
 export default function PhotoGallery({ onBack }: Props) {
   const authEmail = getCurrentAuthorizedEmail();
   const userRole = getUserRole(authEmail);
-  const ownRepresentative = getUserRepresentative(authEmail);
   const isSupervisor = userRole === 'supervisor';
   const isAgent = userRole === 'agent';
   const canDelete = userRole === 'admin' || userRole === 'supervisor';
@@ -387,9 +385,7 @@ export default function PhotoGallery({ onBack }: Props) {
             </select>
           )}
 
-          {isAgent ? (
-            <div className={styles.lockedValue}>{ownRepresentative || '—'}</div>
-          ) : (
+          {!isAgent && (
             <select
               className={styles.select}
               value={rep}

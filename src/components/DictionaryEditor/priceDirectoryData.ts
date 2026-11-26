@@ -5,6 +5,7 @@ export type PriceRow = {
   name: string;
   unit: string;
   purchase?: number | null;
+  lowerThreshold?: number | null;
   base: number | null;
   route: string[];
 };

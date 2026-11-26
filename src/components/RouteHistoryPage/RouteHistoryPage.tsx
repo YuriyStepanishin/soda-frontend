@@ -109,7 +109,7 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
     return () => window.removeEventListener(OFFLINE_STATUS_EVENT, update);
   }, []);
   const savedHistory = restoredHistorySettings();
-  const [department, setDepartment] = useState(savedHistory?.department ?? '');
+  const [department, setDepartment] = useState(isSupervisor || isAgent ? '' : savedHistory?.department ?? '');
   const [agent, setAgent] = useState(savedHistory?.agent ?? '');
   const [useSavedDate, setUseSavedDate] = useState(!navigator.onLine && Boolean(savedHistory));
   const [searchTerm, setSearchTerm] = useState('');
@@ -372,7 +372,7 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
       <BackButton onBack={onBack} />
       {savedHistory && !useSavedDate && savedHistory.asOfDate !== asOfDate && (
         <button type="button" onClick={() => {
-          setDepartment(savedHistory.department);
+          setDepartment(isSupervisor || isAgent ? '' : savedHistory.department);
           setAgent(savedHistory.agent);
           setPeriodMode(savedHistory.period);
           setGroupingFields(savedHistory.groupingFields);
@@ -461,13 +461,7 @@ export default function RouteHistoryPage({ onBack, database }: Props) {
           </label>
         )}
 
-        {isAgent ? (
-          <label className={styles.field}>
-            <span>Торговий представник</span>
-
-            <div className={styles.lockedValue}>{ownRepresentative || '—'}</div>
-          </label>
-        ) : (
+        {!isAgent && (
           <label className={styles.field}>
             <span>Торговий представник</span>
 
