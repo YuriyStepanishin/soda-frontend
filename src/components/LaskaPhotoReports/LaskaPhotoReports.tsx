@@ -7,6 +7,7 @@ import { API_BASE_URL } from '../../api/config';
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '../../api/config';
 import styles from './LaskaPhotoReports.module.css';
 import AppDialog from '../Navigation/AppDialog';
+import { getUserRole } from '../../config/userRoles';
 
 const endpoint = '/api/laska/photo-reports';
 const categories = {
@@ -121,6 +122,7 @@ function FilePreview({ file }: { file: File }) {
 }
 
 function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
+  const role = getUserRole(draft.owner);
   const [value, setValue] = useState(draft);
   const [storeSearch, setStoreSearch] = useState('');
   const [storeDepartment, setStoreDepartment] = useState('');
@@ -298,14 +300,14 @@ function ReportForm({ draft, onSaved }: { draft: Draft; onSaved: () => void }) {
           setStoreAgent('');
           setValue(current => ({ ...current, store: null }));
         }}>
-          <option value="">Усі доступні</option>
+          <option value="">{role === 'supervisor' || role === 'agent' ? 'Мої відділи' : 'Усі відділи'}</option>
           {departments.map(item => <option key={item} value={item}>{item}</option>)}
         </select></label>
         <label>Торговий представник<select value={storeAgent} onChange={event => {
           setStoreAgent(event.target.value);
           setValue(current => ({ ...current, store: null }));
         }}>
-          <option value="">Усі доступні</option>
+          <option value="">{role === 'agent' ? 'Мій профіль' : role === 'supervisor' ? 'Мої торгові агенти' : 'Усі торгові агенти'}</option>
           {agents.map(item => <option key={item} value={item}>{item}</option>)}
         </select></label>
       </div>
@@ -373,6 +375,7 @@ function DraftForm({ email, onSaved }: { email: string; onSaved: () => void }) {
 }
 
 export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: string; mode?: 'gallery' | 'create' }) {
+  const role = getUserRole(email);
   const [saved, setSaved] = useState(false);
   const [filters, setFilters] = useState(emptyFilters);
   const [applied, setApplied] = useState(emptyFilters);
@@ -489,7 +492,10 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
     if (invalidDates) return;
     setApplied(filters);
     setPage(1);
-    if (applied === filters && page === 1) void reportList.refetch();
+    if (page === 1 && Object.keys(filters).every(key => filters[key as keyof typeof filters] === applied[key as keyof typeof applied])) {
+      void reportList.refetch();
+      void stats.refetch();
+    }
   }
 
   return <section className={`${styles.page} ${mode === 'create' ? styles.createPage : ''}`} aria-label="Фотозвіт">
@@ -512,11 +518,11 @@ export default function LaskaPhotoReports({ email, mode = 'gallery' }: { email: 
         <label>Дата від<input type="date" value={filters.from} onChange={event => setFilters({ ...filters, from: event.target.value })} /></label>
         <label>Дата до<input type="date" value={filters.to} onChange={event => setFilters({ ...filters, to: event.target.value })} /></label>
         <label>Відділ<select value={filters.department} onChange={event => setFilters({ ...filters, department: event.target.value, agent: '' })}>
-          <option value="">Усі доступні</option>
+          <option value="">{role === 'supervisor' || role === 'agent' ? 'Мої відділи' : 'Усі відділи'}</option>
           {departments.map(item => <option key={item}>{item}</option>)}
         </select></label>
         <label>Торговий агент<select value={filters.agent} onChange={event => setFilters({ ...filters, agent: event.target.value })}>
-          <option value="">Усі доступні</option>
+          <option value="">{role === 'agent' ? 'Мій профіль' : role === 'supervisor' ? 'Мої торгові агенти' : 'Усі торгові агенти'}</option>
           {agents.map(item => <option key={item}>{item}</option>)}
         </select></label>
         <label>Торгова точка<input type="search" maxLength={200} placeholder="Назва або код"
