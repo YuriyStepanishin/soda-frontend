@@ -13,7 +13,7 @@ const iconUrl = (name: string) => {
   const revision = createHash('sha256')
     .update(readFileSync(new URL(`./public/icons/${name}`, import.meta.url)))
     .digest('hex').slice(0, 12);
-  return `/icons/${name}?v=${revision}`;
+  return `/icons/${name}?v=2-${revision}`;
 };
 
 export default defineConfig({
@@ -57,8 +57,22 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
+      integration: {
+        // vite-plugin-pwa adds the manifest to the precache. The launcher needs the
+        // latest manifest even while a new service worker is waiting to activate.
+        beforeBuildServiceWorker(options) {
+          options.workbox.additionalManifestEntries = options.workbox.additionalManifestEntries?.filter(entry =>
+            (typeof entry === 'string' ? entry : entry.url) !== options.manifestFilename
+          );
+        },
+      },
       workbox: {
         ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
+        runtimeCaching: [{
+          urlPattern: ({ sameOrigin, url }) => sameOrigin && url.pathname === '/manifest.webmanifest',
+          handler: 'NetworkFirst',
+          options: { cacheName: 'soda-web-manifest', fetchOptions: { cache: 'no-cache' } },
+        }],
       },
       includeAssets: [
         'icons/soda-apple-180.png',
