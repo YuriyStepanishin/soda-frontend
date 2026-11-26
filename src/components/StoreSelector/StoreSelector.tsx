@@ -12,7 +12,6 @@ import Loader from '../Loader/Loader';
 import BackButton from '../BackButton/BackButton';
 import {
   getCurrentAuthorizedEmail,
-  getUserDepartment,
   getUserRepresentative,
   getUserRole,
 } from '../../config/userRoles';
@@ -46,9 +45,9 @@ function matchesProfileValue(profileValue: string, candidate: string): boolean {
 export default function StoreSelector({ source, onSelect, onBack }: Props) {
   const authEmail = getCurrentAuthorizedEmail();
   const userRole = getUserRole(authEmail);
-  const profileDepartment = getUserDepartment(authEmail) ?? '';
   const profileRepresentative = getUserRepresentative(authEmail) ?? '';
   const isAgent = userRole === 'agent';
+  const showDepartment = !isAgent && userRole !== 'supervisor';
   const [department, setDepartment] = useState('');
   const [representative, setRepresentative] = useState('');
   const [store, setStore] = useState('');
@@ -81,48 +80,10 @@ export default function StoreSelector({ source, onSelect, onBack }: Props) {
     );
   }, [normalizedData]);
 
-  const profileDepartmentCandidates = useMemo(() => {
-    return profileDepartment
-      .split(',')
-      .map(value => value.trim())
-      .filter(Boolean);
-  }, [profileDepartment]);
-
-  const effectiveDepartment = useMemo(() => {
-    if (!isAgent) {
-      return department;
-    }
-
-    if (department) {
-      return department;
-    }
-
-    const matchedDepartment = departments.find(item =>
-      profileDepartmentCandidates.some(candidate =>
-        matchesProfileValue(candidate, item)
-      )
-    );
-
-    if (matchedDepartment) {
-      return matchedDepartment;
-    }
-
-    if (departments.length === 1) {
-      return departments[0];
-    }
-
-    return '';
-  }, [isAgent, department, departments, profileDepartmentCandidates]);
-
   const departmentRows = useMemo(() => {
-    if (!effectiveDepartment) {
-      return [];
-    }
-
-    return normalizedData.filter(
-      item => item.department === effectiveDepartment
-    );
-  }, [normalizedData, effectiveDepartment]);
+    if (!showDepartment) return normalizedData;
+    return normalizedData.filter(item => item.department === department);
+  }, [department, normalizedData, showDepartment]);
 
   const representatives = useMemo(() => {
     return [...new Set(departmentRows.map(item => item.representative))].sort(
@@ -130,58 +91,35 @@ export default function StoreSelector({ source, onSelect, onBack }: Props) {
     );
   }, [departmentRows]);
 
-  const effectiveRepresentative = useMemo(() => {
-    if (!isAgent) {
-      return representative;
-    }
-
-    if (representative) {
-      return representative;
-    }
-
-    const matchedRepresentative = representatives.find(item =>
-      matchesProfileValue(profileRepresentative, item)
-    );
-
-    if (matchedRepresentative) {
-      return matchedRepresentative;
-    }
-
-    if (representatives.length === 1) {
-      return representatives[0];
-    }
-
-    return '';
-  }, [isAgent, representative, representatives, profileRepresentative]);
-
+  const effectiveRepresentative = isAgent
+    ? representatives.find(item => matchesProfileValue(profileRepresentative, item)) ?? ''
+    : representative;
+  const representativeRows = useMemo(
+    () => departmentRows.filter(item => item.representative === effectiveRepresentative),
+    [departmentRows, effectiveRepresentative]
+  );
+  const effectiveDepartment = showDepartment
+    ? department
+    : (representativeRows.find(item => item.store === store) ?? representativeRows[0])?.department ?? '';
   const stores = useMemo(() => {
-    if (!effectiveDepartment || !effectiveRepresentative) {
-      return [];
-    }
-
-    const fromSheet = departmentRows
-      .filter(item => item.representative === effectiveRepresentative)
-      .map(item => item.store);
-
+    if (!effectiveRepresentative) return [];
+    const fromSheet = representativeRows.map(item => item.store);
     return [...new Set([...fromSheet, ...localStores])].sort((a, b) =>
       a.localeCompare(b, 'uk')
     );
-  }, [
-    effectiveDepartment,
-    effectiveRepresentative,
-    departmentRows,
-    localStores,
-  ]);
+  }, [effectiveRepresentative, representativeRows, localStores]);
 
   function handleDepartmentChange(value: string) {
     setDepartment(value);
     setRepresentative('');
     setStore('');
+    setLocalStores([]);
   }
 
   function handleRepresentativeChange(value: string) {
     setRepresentative(value);
     setStore('');
+    setLocalStores([]);
   }
 
   function handleConfirm() {
@@ -237,24 +175,8 @@ export default function StoreSelector({ source, onSelect, onBack }: Props) {
   return (
     <div className={styles.wrapper}>
       {onBack && <BackButton onBack={onBack} />}
-      {isAgent ? (
-        <>
-          <div className={styles.lockedField}>
-            <span className={styles.lockedLabel}>Відділ</span>
-            <div className={styles.lockedValue}>
-              {effectiveDepartment || '—'}
-            </div>
-          </div>
-          <div className={styles.lockedField}>
-            <span className={styles.lockedLabel}>Торговий представник</span>
-            <div className={styles.lockedValue}>
-              {effectiveRepresentative || '—'}
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <select
+      {showDepartment && (
+        <select
             className={styles.select}
             value={department}
             onChange={e => handleDepartmentChange(e.target.value)}
@@ -269,11 +191,12 @@ export default function StoreSelector({ source, onSelect, onBack }: Props) {
               </option>
             ))}
           </select>
-
-          <select
+      )}
+      {!isAgent && (
+        <select
             className={styles.select}
             value={representative}
-            disabled={!effectiveDepartment}
+            disabled={showDepartment && !department}
             onChange={e => handleRepresentativeChange(e.target.value)}
           >
             <option value="" disabled hidden>
@@ -286,7 +209,6 @@ export default function StoreSelector({ source, onSelect, onBack }: Props) {
               </option>
             ))}
           </select>
-        </>
       )}
 
       <select

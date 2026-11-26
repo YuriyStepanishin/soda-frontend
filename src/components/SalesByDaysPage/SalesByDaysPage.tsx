@@ -1,3 +1,4 @@
+import { getCurrentAuthorizedEmail, getUserRole } from '../../config/userRoles';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -115,6 +116,8 @@ function normalizeBrandValue(value: string): string {
     .toLocaleLowerCase('uk-UA');
 }
 function SalesFilter({
+  showDepartment,
+  showAgent,
   departments,
   agents,
   department,
@@ -126,6 +129,8 @@ function SalesFilter({
   onChangeDateFrom,
   onChangeDateTo,
 }: {
+  showDepartment: boolean;
+  showAgent: boolean;
   departments: string[];
   agents: string[];
   department: string;
@@ -139,7 +144,7 @@ function SalesFilter({
 }) {
   return (
     <div className={styles.filterGrid}>
-      <label style={{ display: 'grid', gap: 6 }}>
+      {showDepartment && <label style={{ display: 'grid', gap: 6 }}>
         <span style={{ fontSize: 12, color: 'var(--soda-muted)' }}>Відділ</span>
         <select
           value={department}
@@ -152,8 +157,8 @@ function SalesFilter({
             </option>
           ))}
         </select>
-      </label>
-      <label style={{ display: 'grid', gap: 6 }}>
+      </label>}
+      {showAgent && <label style={{ display: 'grid', gap: 6 }}>
         <span style={{ fontSize: 12, color: 'var(--soda-muted)' }}>ТП</span>
         <select value={agent} onChange={e => onChangeAgent(e.target.value)}>
           <option value="">Усі ТП</option>
@@ -163,7 +168,7 @@ function SalesFilter({
             </option>
           ))}
         </select>
-      </label>
+      </label>}
       <label style={{ display: 'grid', gap: 6 }}>
         <span style={{ fontSize: 12, color: 'var(--soda-muted)' }}>
           Дата від
@@ -196,6 +201,9 @@ export default function SalesByDaysPage({
   onBack: () => void;
   database: string;
 }) {
+  const role = getUserRole(getCurrentAuthorizedEmail());
+  const showDepartment = role !== 'agent' && role !== 'supervisor';
+  const showAgent = role !== 'agent';
   const [saved] = useState(() =>
     readSalesSettings<{
       agent: string;
@@ -206,10 +214,10 @@ export default function SalesByDaysPage({
     }>('daily')
   );
   const [agent, setAgent] = useState(
-    typeof saved?.agent === 'string' ? saved.agent : ''
+    showAgent && typeof saved?.agent === 'string' ? saved.agent : ''
   );
   const [department, setDepartment] = useState(
-    typeof saved?.department === 'string' ? saved.department : ''
+    showDepartment && typeof saved?.department === 'string' ? saved.department : ''
   );
   const [brands, setBrands] = useState<Set<string>>(
     new Set(
@@ -583,6 +591,8 @@ export default function SalesByDaysPage({
         aria-label="Фільтри продажів по днях"
       >
         <SalesFilter
+          showDepartment={showDepartment}
+          showAgent={showAgent}
           departments={uniqueDepartments}
           agents={uniqueAgents}
           department={department}

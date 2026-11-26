@@ -35,7 +35,6 @@ type Props = {
   showDepartment: boolean;
   showAgent: boolean;
 
-  representativeLabel?: string;
 
   stores: string[];
   products: string[];
@@ -76,7 +75,6 @@ export default function SalesFilters({
   showDepartment,
   showAgent,
 
-  representativeLabel,
 
   stores,
   products,
@@ -248,7 +246,7 @@ export default function SalesFilters({
               />
             )}
 
-            {showAgent ? (
+            {showAgent && (
               <MultiSelectDropdown
                 label="Торговий представник"
                 items={agents}
@@ -256,11 +254,6 @@ export default function SalesFilters({
                 onChange={value => updateFilters({ agent: value })}
                 searchable
               />
-            ) : (
-              <div className={styles.fieldBlock}>
-                <label>Торговий представник</label>
-                <div className={styles.lockedValue}>{representativeLabel}</div>
-              </div>
             )}
 
             <MultiSelectDropdown

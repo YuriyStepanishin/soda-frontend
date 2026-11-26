@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { getCurrentAuthorizedEmail, getUserRole } from '../config/userRoles';
 import { readSalesSettings } from '../api/salesOffline';
 
 export interface SalesFiltersState {
@@ -17,6 +18,7 @@ export interface SalesFiltersState {
 }
 
 export function useSalesFilters() {
+  const role = getUserRole(getCurrentAuthorizedEmail());
   const emptyFilters: SalesFiltersState = {
     department: [],
     agent: [],
@@ -34,6 +36,8 @@ export function useSalesFilters() {
   const [saved] = useState(() => readSalesSettings<{ filters: SalesFiltersState; options: Record<string, boolean> }>('sales'));
   const initialFilters = { ...emptyFilters };
   for (const field of Object.keys(emptyFilters) as (keyof SalesFiltersState)[]) {
+    if (field === 'department' && (role === 'agent' || role === 'supervisor')) continue;
+    if (field === 'agent' && role === 'agent') continue;
     const value = saved?.filters?.[field];
     if (field === 'dateFrom' || field === 'dateTo') {
       if (typeof value === 'string' && /^(\d{4}-\d{2}-\d{2})?$/.test(value)) initialFilters[field] = value;

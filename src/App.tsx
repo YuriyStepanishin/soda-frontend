@@ -177,12 +177,11 @@ export default function App() {
 
   const canEditDictionaries = activeDatabase === 'laska' && userRole === 'admin';
   const canOpenMotivation = activeDatabase === 'laska' && ['admin', 'manager'].includes(getAuthSession()?.user.role ?? '');
-  // Photo-report backend accepts only admin/manager/supervisor/agent.
   const canUseLaskaTools = activeDatabase === 'laska' && ['admin', 'manager', 'supervisor', 'agent'].includes(userRole ?? getAuthSession()?.user.role ?? '');
+  const canOpenLaskaGallery = activeDatabase === 'laska' && canAccessSection(userRole, 'gallery');
   const canOpenReceivables = activeDatabase === 'laska' && !!email && ['admin', 'manager', 'supervisor', 'agent'].includes(userRole ?? getAuthSession()?.user.role ?? '');
 
-  // Admin dictionaries API is admin-only; do not offer unusable actions to other roles.
-  const canOpenDictionaries = activeDatabase === 'laska' && userRole === 'admin';
+  const canOpenDictionaries = activeDatabase === 'laska' && Boolean(userRole);
 
   const canAccess = (section: AppSection) =>
     canAccessSection(userRole, section);
@@ -269,7 +268,7 @@ export default function App() {
   }
 
   function renderPage() {
-  if ((page === 'photo-reports' || page === 'photo-gallery') && canUseLaskaTools && email) {
+  if (email && ((page === 'photo-reports' && canUseLaskaTools) || (page === 'photo-gallery' && canOpenLaskaGallery))) {
     return <Suspense fallback={<Loader />}><LaskaPhotoReports key={`${email}:${page}`} email={email} mode={page === 'photo-reports' ? 'create' : 'gallery'} /></Suspense>;
   }
   if (page === 'plan-targets' && canUseLaskaTools) {
@@ -545,6 +544,7 @@ export default function App() {
             }
             unreadMessagesCount={messagesCenter.unreadCount}
             canOpenGallery={canAccess('gallery') && backendFeatures.gallery}
+            canOpenLaskaGallery={canOpenLaskaGallery}
             canOpenPhotoReports={canUseLaskaTools}
             onOpenPhotoReports={() => runProtectedAction(() => setPage('photo-reports'))}
             onOpenLaskaGallery={() => runProtectedAction(() => setPage('photo-gallery'))}
@@ -616,7 +616,7 @@ export default function App() {
 
   const navigation: NavigationItem[] = [{ id: 'home', label: 'Головна', symbol: 'home', onClick: resetToHome }];
   if (canUseLaskaTools) navigation.push({ id: 'plan-targets', label: 'Планові показники', symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage('plan-targets'); }) });
-  if (canUseLaskaTools) navigation.push({ id: 'photo-gallery', label: 'Галерея', symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage('photo-gallery'); }) });
+  if (canOpenLaskaGallery) navigation.push({ id: 'photo-gallery', label: 'Галерея', symbol: 'more', group: 'Фотозвіт', onClick: () => runProtectedAction(() => { resetToHome(); setPage('photo-gallery'); }) });
   if (canOpenDictionaries) navigation.push({ id: 'dictionaries', label: 'Довідники', symbol: 'more', onClick: () => runProtectedAction(() => { resetToHome(); setPage('dictionaries'); }) });
   if (canOpenReceivables) navigation.push({ id: 'receivables', label: 'Дебіторка', symbol: 'debt', onClick: () => runProtectedAction(() => { resetToHome(); setPage('receivables'); }) });
   if (canAccess('sales')) {
@@ -638,12 +638,10 @@ export default function App() {
   for (const item of navigation) {
     if (item.id === 'receivables') item.group = 'Дебіторка';
     else if (item.id === 'dictionaries') item.group = 'Довідники';
-    else if (item.id !== 'home') item.group = 'Аналітика';
+    else if (item.id !== 'home' && !item.group) item.group = 'Аналітика';
   }
   if (canUseLaskaTools) {
     navigation.push({ id: 'photo-reports', label: 'Додати фотозвіт', symbol: 'more', group: 'Фотозвіт', onClick: () => runProtectedAction(() => { resetToHome(); setPage('photo-reports'); }) });
-    const galleryItem = navigation.find(item => item.id === 'photo-gallery');
-    if (galleryItem) galleryItem.group = 'Фотозвіт';
   }
   if (activeDatabase === 'olgatorg') {
     if (canAccess('gallery') && backendFeatures.gallery) navigation.push({ id: 'gallery', label: 'Галерея', symbol: 'more', group: 'Фотозвіт', onClick: () => runProtectedAction(() => { resetToHome(); setShowGallery(true); }, 'gallery') });

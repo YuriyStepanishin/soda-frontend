@@ -1,3 +1,4 @@
+import { getCurrentAuthorizedEmail, getUserRole } from '../../config/userRoles';
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -171,6 +172,7 @@ type StoreGroup = {
 };
 
 export default function StoreCheckReviewPage({ onBack }: Props) {
+  const role = getUserRole(getCurrentAuthorizedEmail());
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [repFilter, setRepFilter] = useState('all');
@@ -295,7 +297,7 @@ export default function StoreCheckReviewPage({ onBack }: Props) {
           className={styles.searchInput}
         />
 
-        <select
+        {role !== 'agent' && role !== 'supervisor' && <select
           className={styles.select}
           value={departmentFilter}
           onChange={e => {
@@ -308,9 +310,9 @@ export default function StoreCheckReviewPage({ onBack }: Props) {
               {dep === 'all' ? 'Усі відділи' : dep}
             </option>
           ))}
-        </select>
+        </select>}
 
-        <select
+        {role !== 'agent' && <select
           className={styles.select}
           value={repFilter}
           onChange={e => setRepFilter(e.target.value)}
@@ -320,7 +322,7 @@ export default function StoreCheckReviewPage({ onBack }: Props) {
               {rep === 'all' ? 'Усі торгові представники' : rep}
             </option>
           ))}
-        </select>
+        </select>}
       </div>
 
       {isLoading && <Loader />}

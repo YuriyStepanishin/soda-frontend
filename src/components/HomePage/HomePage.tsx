@@ -40,6 +40,7 @@ interface Props {
   canOpenDisplayReport: boolean;
   canOpenBonusReport: boolean;
   canOpenGallery: boolean;
+  canOpenLaskaGallery: boolean;
   canOpenPhotoReports: boolean;
   canOpenSales: boolean;
   canOpenSalesByDays: boolean;
@@ -80,6 +81,7 @@ export default function HomePage({
   canOpenDisplayReport,
   canOpenBonusReport,
   canOpenGallery,
+  canOpenLaskaGallery,
   canOpenPhotoReports,
   canOpenSales,
   canOpenSalesByDays,
@@ -241,7 +243,7 @@ export default function HomePage({
       icon: withVersion('/icons/gallery-icon-64.svg'),
       onClick: activeDatabase === 'laska' ? onOpenLaskaGallery : onOpenGallery,
       visible: activeDatabase === 'laska'
-        ? canOpenPhotoReports
+        ? canOpenLaskaGallery
         : activeDatabase === 'olgatorg' && canOpenGallery,
     },
     {

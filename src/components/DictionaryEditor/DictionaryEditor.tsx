@@ -3,6 +3,7 @@ import { API_BASE_URL, AUTH_TOKEN_KEY } from '../../api/config';
 import EquipmentPage from '../EquipmentPage/EquipmentPage';
 import AppDialog from '../Navigation/AppDialog';
 import PriceDirectory, { type PriceSnapshot } from './PriceDirectory';
+import { getUserRole } from '../../config/userRoles';
 import styles from './DictionaryEditor.module.css';
 
 type Kind = 'products' | 'routes';
@@ -43,30 +44,26 @@ function loadPrice(signal: AbortSignal) {
 }
 
 export default function Dictionaries({ email, canEdit }: { email: string; canEdit: boolean }) {
-  const [selected, setSelected] = useState<Kind | 'equipment' | 'price'>(canEdit ? 'products' : 'equipment');
-  const kind = canEdit || selected === 'price' ? selected : 'equipment';
+  const [selected, setSelected] = useState<Kind | 'equipment' | 'price'>('products');
+  const kind = selected;
 
   return (
     <section className={styles.main}>
       <header className={styles.header}><h1>Довідники</h1></header>
       <nav className={styles.tabs} aria-label="Довідники ЛАСКА">
-        {canEdit && (
-          <>
-            <button type="button" aria-pressed={kind === 'products'} onClick={() => setSelected('products')}>Товари</button>
-            <button type="button" aria-pressed={kind === 'routes'} onClick={() => setSelected('routes')}>Маршрути</button>
-          </>
-        )}
+        <button type="button" aria-pressed={kind === 'products'} onClick={() => setSelected('products')}>Товари</button>
+        <button type="button" aria-pressed={kind === 'routes'} onClick={() => setSelected('routes')}>Маршрути</button>
         <button type="button" aria-pressed={kind === 'equipment'} onClick={() => setSelected('equipment')}>Обладнання</button>
         <button type="button" aria-pressed={kind === 'price'} onClick={() => setSelected('price')}>Прайс</button>
       </nav>
       {kind === 'equipment' && <EquipmentPage email={email} />}
       {kind === 'price' && <PriceDirectory loadPrice={loadPrice} />}
-      {(kind === 'products' || kind === 'routes') && <DictionaryEditor key={kind} kind={kind} />}
+      {(kind === 'products' || kind === 'routes') && <DictionaryEditor key={kind} kind={kind} canEdit={canEdit} showAgentFilter={getUserRole(email) !== 'agent'} />}
     </section>
   );
 }
 
-function DictionaryEditor({ kind }: { kind: Kind }) {
+function DictionaryEditor({ kind, canEdit, showAgentFilter }: { kind: Kind; canEdit: boolean; showAgentFilter: boolean }) {
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [options, setOptions] = useState<Record<string, string[]>>({});
@@ -176,7 +173,7 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
     finally { setDeleting(false); }
   };
   return <>
-    <div className={styles.tools}><input aria-label="Пошук" placeholder="Пошук за назвою..." value={query} onChange={e => { setQuery(e.target.value); setPage(1); }}/><button onClick={newEntry}>+ Додати</button></div>
+    <div className={styles.tools}><input aria-label="Пошук" placeholder="Пошук за назвою..." value={query} onChange={e => { setQuery(e.target.value); setPage(1); }}/>{canEdit && <button onClick={newEntry}>+ Додати</button>}</div>
     {kind === 'routes' && <label className={styles.seasonalToggle}>
       <input type="checkbox" role="switch" checked={includeSeasonal} onChange={event => {
         setIncludeSeasonal(event.currentTarget.checked);
@@ -185,7 +182,7 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
       Показати сезонних клієнтів
     </label>}
     <div className={styles.filterBar}><button type="button" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(open => !open)}>Фільтри {Object.values(filters).filter(Boolean).length ? '(' + Object.values(filters).filter(Boolean).length + ')' : ''} {filtersOpen ? '▴' : '▾'}</button><button type="button" onClick={() => { setFilters({}); setQuery(''); setPage(1); }}>Скинути фільтри</button></div>
-    {filtersOpen && <div className={styles.filterPanel}>{filterFields[kind].map(field => <label key={field.key}>{field.label}{field.text
+    {filtersOpen && <div className={styles.filterPanel}>{filterFields[kind].filter(field => showAgentFilter || field.key !== 'agent_name').map(field => <label key={field.key}>{field.label}{field.text
       ? <input value={filters[field.key] || ''} placeholder="Код торгової точки" onChange={e => { setFilters(prev => ({ ...prev, [field.key]: e.target.value })); setPage(1); }} />
       : <select value={filters[field.key] || ''} onChange={event => {
         const value = event.currentTarget.value;
@@ -202,7 +199,7 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
     <p>{loading ? 'Завантаження…' : `Знайдено: ${total}`}</p>
     <div className={styles.list}>{rows.map(row => <article key={row.id} className={styles.item}>
       <div><strong>{String(row[kind === 'products' ? 'product_name' : 'store_name'] ?? '')}</strong><small>{kind === 'products' ? [{ label: 'Виробник', value: row.manufacturer }, { label: 'ТМ', value: row.tm }, { label: 'Група', value: row.group_name }, { label: 'Підгрупа', value: row.subgroup }, { label: 'Фасовка', value: row.packaging }].map(({ value }) => value == null || String(value).trim() === '' ? '' : String(value)).filter(Boolean).join(' · ') : [row.agent_name, row.route_day, '№ ' + row.stop_order, row.store_code, row.is_seasonal && 'Сезонний клієнт'].filter(Boolean).join(' · ')}</small></div>
-      <div className={styles.actions}><button onClick={() => openEditor({ ...row })}>Редагувати</button><button className={styles.danger} onClick={() => setPendingDelete(row)}>Видалити</button></div>
+      {canEdit && <div className={styles.actions}><button onClick={() => openEditor({ ...row })}>Редагувати</button><button className={styles.danger} onClick={() => setPendingDelete(row)}>Видалити</button></div>}
     </article>)}</div>
     {loadedPage > 0 && loadedPage * pageSize < total && <div className={styles.pager}>
       <button type="button" disabled={loading} onClick={() => {
@@ -211,8 +208,8 @@ function DictionaryEditor({ kind }: { kind: Kind }) {
         else setPage(loadedPage + 1);
       }}>{loading && page > 1 ? 'Завантаження…' : 'Показати ще'}</button>
     </div>}
-    {pendingDelete && <AppDialog title="Видалити запис?" message={`Запис «${String(pendingDelete[kind === 'products' ? 'product_name' : 'store_name'] ?? '')}» буде видалено назавжди. Цю дію неможливо скасувати.`} onClose={() => setPendingDelete(null)} onConfirm={() => void remove(pendingDelete)} confirmLabel="Видалити" destructive busy={deleting} />}
-    {editing && <div className={styles.overlay} role="presentation"><section className={styles.dialog} role="dialog" aria-modal="true" aria-label="Редагування довідника">
+    {canEdit && pendingDelete && <AppDialog title="Видалити запис?" message={`Запис «${String(pendingDelete[kind === 'products' ? 'product_name' : 'store_name'] ?? '')}» буде видалено назавжди. Цю дію неможливо скасувати.`} onClose={() => setPendingDelete(null)} onConfirm={() => void remove(pendingDelete)} confirmLabel="Видалити" destructive busy={deleting} />}
+    {canEdit && editing && <div className={styles.overlay} role="presentation"><section className={styles.dialog} role="dialog" aria-modal="true" aria-label="Редагування довідника">
       <h2>{editing.id ? 'Редагування' : 'Новий запис'}</h2>
       {kind === 'products' && optionsStatus === 'loading' && <p role="status">Завантаження варіантів…</p>}
       {kind === 'products' && optionsStatus === 'error' && <p role="alert">

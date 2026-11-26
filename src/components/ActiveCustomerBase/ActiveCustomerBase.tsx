@@ -721,12 +721,7 @@ export default function ActiveCustomerBase({ onBack }: Props) {
           </label>
         )}
 
-        {isAgent ? (
-          <label className={styles.field}>
-            <span>Торговий представник</span>
-            <div className={styles.lockedValue}>{ownRepresentative || '—'}</div>
-          </label>
-        ) : (
+        {!isAgent && (
           <label className={styles.field}>
             <span>Торговий представник</span>
             <select
