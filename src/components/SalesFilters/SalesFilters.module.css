@@ -142,21 +142,12 @@
   height: 44px;
   padding: 0 14px;
   box-sizing: border-box;
-  border: 1px solid var(--soda-border);
+  border: 1px solid var(--soda-field-border);
   border-radius: 10px;
-  background: linear-gradient(180deg, var(--soda-paper), var(--soda-paper));
-  color: var(--soda-ink);
   font-size: 14px;
   font-weight: 600;
-  --soda-text: var(--soda-ink);
-  --soda-muted: var(--soda-data-muted);
-  --soda-border: var(--soda-data-border);
-  --soda-surface: var(--soda-paper);
-  --soda-control: var(--soda-paper-raised);
-}
-
-.fieldBlock input[type='date'] {
-  cursor: pointer;
+  background-color: var(--soda-field-bg);
+  color: var(--soda-field-text);
 }
 
 .filtersGrid {

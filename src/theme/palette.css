@@ -10,7 +10,7 @@
   --soda-paper: #fff; --soda-paper-raised: #f5f8fd; --soda-ink: #15263f;
   --soda-data-muted: #526780; --soda-data-border: #d6e1ef; --soda-data-heading: #e5effd;
   --soda-field-bg: #123568; --soda-field-text: #edf4ff; --soda-field-border: #50719b; --soda-field-placeholder: #b3c7e5;
-  --soda-chart: #0867ed; --soda-chart-soft: #d8e9ff;
+  --soda-chart: #74aeff; --soda-chart-soft: #d8e9ff;
   --field-bg-light: var(--soda-paper); --field-text-dark: var(--soda-ink); --field-border: var(--soda-data-border); --field-placeholder: var(--soda-data-muted);
 }
 :root[data-theme='light'] {
