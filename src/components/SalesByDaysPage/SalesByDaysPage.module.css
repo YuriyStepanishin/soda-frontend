@@ -138,7 +138,7 @@
 }
 
 .chartBarNegative {
-  background: var(--soda-surface);
+  background: var(--soda-error);
   color: var(--soda-text);
 }
 
@@ -173,17 +173,10 @@
   color: var(--soda-text);
 }
 
-.table th {
-  background: var(--soda-surface);
-  color: var(--soda-text);
-}
-
-.weekTotalRow {
-  background: var(--soda-control);
-}
-
+.table th,
+.weekTotalRow,
 .grandTotalRow {
-  background: var(--soda-control);
+  background: var(--soda-accent-soft);
 }
 
 .weekTotalRow td,
@@ -281,7 +274,7 @@
   .filterGrid label { min-width: 0; }
   .filterGrid input, .filterGrid select {
     box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; min-height: 44px;
-    padding: 8px; border: 1px solid var(--soda-border); border-radius: 8px; background: var(--soda-paper); color: var(--soda-ink); font-size: 16px; --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised);
+    padding: 8px; border: 1px solid var(--soda-field-border); border-radius: 8px; font-size: 16px;
   }
   .desktopBrandPicker { display: block; min-width: 0; }
   .brandFilters { display: none; }
@@ -293,30 +286,27 @@
   .brandQuickActions button[aria-pressed='true'] { background: var(--soda-accent); color: var(--soda-on-accent); --soda-text: var(--soda-on-accent); --soda-muted: var(--soda-on-accent); }
   .desktopOverview { display: block; min-width: 0; }
   .summaryGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
-  .summaryGrid article { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 14px; border: 1px solid var(--soda-border); border-radius: 12px; background: var(--soda-surface); }
+  .summaryGrid article { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 14px; border: 1px solid var(--soda-border); border-radius: 12px; background: var(--soda-accent-soft); }
   .summaryGrid article:last-child { grid-column: 1 / -1; }
   .summaryGrid span, .summaryGrid small { color: var(--soda-muted); font-size: 12px; }
   .summaryGrid strong { font-size: clamp(17px, 4.8vw, 24px); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  .trendPanel { min-width: 0; padding: 14px; border: 1px solid var(--soda-border); border-radius: 14px; background: var(--soda-paper); color: var(--soda-ink); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
+  .trendPanel { min-width: 0; padding: 14px; border: 1px solid var(--soda-border); border-radius: 14px; background: var(--soda-surface); color: var(--soda-text); }
   .trendHeader { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
   .trendHeader > div:first-child { flex-basis: 100%; }
   .trendHeader h2 { margin: 0 0 4px; font-size: 18px; }
-  .trendHeader p, .chartNote { margin: 0; color: var(--soda-ink); font-size: 12px; line-height: 1.5; }
-  .chartControls { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--soda-border); border-radius: 10px; background: var(--soda-data-heading); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
-  .chartControls button { min-height: 44px; padding: 8px 12px; border: 0; border-radius: 7px; background: transparent; color: var(--soda-ink); font: inherit; font-size: 14px; font-weight: 600; }
-  .chartControls button[aria-pressed='true'] { background: var(--soda-data-heading); color: var(--soda-ink); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
-  .trendValue { min-height: 36px; padding-top: 12px; color: var(--soda-ink); font-size: 14px; font-weight: 700; }
+  .trendHeader p, .chartNote { margin: 0; color: var(--soda-text); font-size: 12px; line-height: 1.5; }
+  .chartControls { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--soda-border); border-radius: 10px; background: var(--soda-control); }
+  .chartControls button { min-height: 44px; padding: 8px 12px; border: 0; border-radius: 7px; background: transparent; color: var(--soda-text); font: inherit; font-size: 14px; font-weight: 600; }
+  .chartControls button[aria-pressed='true'] { background: var(--soda-accent-soft); color: var(--soda-text); }
+  .trendValue { min-height: 36px; padding-top: 12px; color: var(--soda-text); font-size: 14px; font-weight: 700; }
   .trendPlot { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
   .trendPlot svg { display: block; width: 100%; height: 285px; max-height: 300px; }
   .chartNote { margin-top: 8px; }
   .section { margin-top: 0; min-width: 0; }
   .tableWrap { border: 1px solid var(--soda-border); border-radius: 10px; }
-  .table { min-width: 560px; background: var(--soda-paper); border: 0; border-radius: 0; --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
-  .table th, .table td { border-color: var(--soda-border); padding: 10px; color: var(--soda-ink); font-size: 13px; }
-  .table th { background: var(--soda-data-heading); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
+  .table { min-width: 560px; background: var(--soda-surface); border: 0; border-radius: 0; }
+  .table th, .table td { padding: 10px; font-size: 13px; }
   .table td:not(:first-child) { text-align: right; }
-  .weekTotalRow, .grandTotalRow { background: var(--soda-data-heading); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
-  .weekTotalRow td, .grandTotalRow td { color: var(--soda-ink); }
   .comparisonToggle { display: block; width: 100%; text-align: left; }
   .chartsSection { display: none; margin-top: 0; padding-bottom: 16px; }
   .comparisonsOpen { display: block; }
@@ -424,16 +414,9 @@
     min-width: 0;
     height: 44px;
     padding: 0 10px;
-    border: 1px solid var(--soda-border);
+    border: 1px solid var(--soda-field-border);
     border-radius: 10px;
-    background: var(--soda-paper);
-    color: var(--soda-ink);
     font-size: 13px;
-    --soda-text: var(--soda-ink);
-    --soda-muted: var(--soda-data-muted);
-    --soda-border: var(--soda-data-border);
-    --soda-surface: var(--soda-paper);
-    --soda-control: var(--soda-paper-raised);
   }
 
   .desktopBrandPicker {
@@ -492,7 +475,7 @@
     padding: 16px 18px;
     border: 1px solid var(--soda-border);
     border-radius: 12px;
-    background: var(--soda-surface);
+    background: var(--soda-accent-soft);
   }
 
   .summaryGrid span,
@@ -511,13 +494,8 @@
     padding: 18px 20px 12px;
     border: 1px solid var(--soda-border);
     border-radius: 14px;
-    background: var(--soda-paper);
-    color: var(--soda-ink);
-    --soda-text: var(--soda-ink);
-    --soda-muted: var(--soda-data-muted);
-    --soda-border: var(--soda-data-border);
-    --soda-surface: var(--soda-paper);
-    --soda-control: var(--soda-paper-raised);
+    background: var(--soda-surface);
+    color: var(--soda-text);
   }
 
   .trendHeader {
@@ -536,7 +514,7 @@
   .trendHeader p,
   .chartNote {
     margin: 0;
-    color: var(--soda-ink);
+    color: var(--soda-text);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -547,12 +525,7 @@
     padding: 4px;
     border: 1px solid var(--soda-border);
     border-radius: 10px;
-    background: var(--soda-data-heading);
-    --soda-text: var(--soda-ink);
-    --soda-muted: var(--soda-data-muted);
-    --soda-border: var(--soda-data-border);
-    --soda-surface: var(--soda-paper);
-    --soda-control: var(--soda-paper-raised);
+    background: var(--soda-control);
   }
 
   .chartControls button {
@@ -561,7 +534,7 @@
     border: 0;
     border-radius: 7px;
     background: transparent;
-    color: var(--soda-ink);
+    color: var(--soda-text);
     font: inherit;
     font-size: 13px;
     font-weight: 600;
@@ -569,13 +542,8 @@
   }
 
   .chartControls button[aria-pressed='true'] {
-    background: var(--soda-data-heading);
-    color: var(--soda-ink);
-    --soda-text: var(--soda-ink);
-    --soda-muted: var(--soda-data-muted);
-    --soda-border: var(--soda-data-border);
-    --soda-surface: var(--soda-paper);
-    --soda-control: var(--soda-paper-raised);
+    background: var(--soda-accent-soft);
+    color: var(--soda-text);
   }
 
   .chartControls button:focus-visible,
@@ -588,7 +556,7 @@
   .trendValue {
     min-height: 28px;
     padding-top: 12px;
-    color: var(--soda-ink);
+    color: var(--soda-text);
     font-size: 13px;
     font-weight: 700;
   }
@@ -623,45 +591,18 @@
   .table {
     border: 0;
     border-radius: 0;
-    background: var(--soda-paper);
+    background: var(--soda-surface);
     overflow: visible;
-    --soda-text: var(--soda-ink);
-    --soda-muted: var(--soda-data-muted);
-    --soda-border: var(--soda-data-border);
-    --soda-surface: var(--soda-paper);
-    --soda-control: var(--soda-paper-raised);
-  }
-
-  .table th,
-  .table td {
-    border-color: var(--soda-border);
-    color: var(--soda-ink);
   }
 
   .table th {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: var(--soda-data-heading);
-    --soda-text: var(--soda-ink);
-    --soda-muted: var(--soda-data-muted);
-    --soda-border: var(--soda-data-border);
-    --soda-surface: var(--soda-paper);
-    --soda-control: var(--soda-paper-raised);
   }
 
   .table td:not(:first-child) {
     text-align: right;
-  }
-
-  .weekTotalRow,
-  .grandTotalRow {
-    background: var(--soda-data-heading);
-    --soda-text: var(--soda-ink);
-    --soda-muted: var(--soda-data-muted);
-    --soda-border: var(--soda-data-border);
-    --soda-surface: var(--soda-paper);
-    --soda-control: var(--soda-paper-raised);
   }
 
   .comparisonToggle {
@@ -692,11 +633,4 @@
   }
 }
 
-.trendPanel { --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); color-scheme: light; }
-.trendPanel, .table { background: var(--soda-paper); color: var(--soda-ink); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
-.chartControls { background: var(--soda-paper-raised); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
-.chartControls button { color: var(--soda-ink); }
-.chartControls button[aria-pressed='true'] { background: var(--soda-data-heading); color: var(--soda-ink); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
-.summaryGrid article { background: var(--soda-data-heading); color: var(--soda-ink); --soda-text: var(--soda-ink); --soda-muted: var(--soda-data-muted); --soda-border: var(--soda-data-border); --soda-surface: var(--soda-paper); --soda-control: var(--soda-paper-raised); }
-.summaryGrid article span, .summaryGrid article small { color: var(--soda-data-muted); }
 .pageIcon img { width: 100%; height: 100%; border-radius: inherit; }

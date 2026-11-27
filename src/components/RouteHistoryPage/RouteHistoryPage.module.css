@@ -478,20 +478,6 @@
 
 /* Таблиця десктопа та планшета */
 
-.desktopHistory {
-  --rh-panel: var(--soda-paper);
-  --rh-header: var(--soda-data-heading);
-  --rh-border: var(--soda-data-border);
-  --rh-text: var(--soda-ink);
-  --rh-muted: var(--soda-data-muted);
-  --soda-surface: var(--soda-paper);
-  --soda-control: var(--soda-paper-raised);
-  --soda-text: var(--soda-ink);
-  --soda-muted: var(--soda-data-muted);
-  --soda-border: var(--soda-data-border);
-  color-scheme: light;
-}
-
 .historyTable {
   width: 100%;
   min-width: 900px;
